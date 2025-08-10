@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext", // change this
+    "moduleResolution": "Bundler", // fix resolution without extensions
+    "baseUrl": ".", // for path aliases
+    "paths": {
+      "@/*": ["./src/*"] // alias for root imports
+    },
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
+    "outDir": "./dist"
+  },
+  "exclude": ["node_modules"]
+}
