@@ -144,3 +144,34 @@ export const avatarSchemaZ = z.object({
       }
     ),
 });
+
+// Category create/update schema
+export const categoryCreateZ = z.object({
+  name: z.string().min(1, "Name is required").trim(),
+  // slug: require kebab-case (lowercase letters, numbers, hyphens)
+  slug: z
+    .string()
+    .min(1, "Slug is required")
+    .trim()
+    .toLowerCase()
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      "Slug must be kebab-case (e.g. my-category)"
+    ),
+  description: z.string().trim().optional().nullable(),
+  image: imageZ.optional().nullable(),
+  isFeatured: z.boolean().optional().default(false),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const categoryUpdateZ = categoryCreateZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// Input Type inferred from Zod
+export type CategoryCreateInput = z.infer<typeof categoryCreateZ>;
+export type CategoryUpdateInput = z.infer<typeof categoryUpdateZ>;

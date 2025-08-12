@@ -620,13 +620,11 @@ export const resetPassword = async (
   }
 };
 
-export const changeAvatar = async ({
-  collection,
+export const uploadSingleFile = async ({
   filename,
   body,
   folder,
 }: {
-  collection: IAdmin | IUser;
   filename: string;
   folder: string;
   body: {
@@ -672,14 +670,6 @@ export const changeAvatar = async ({
     });
 
     const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${folder}/${filename}`;
-
-    // Update collection.avatar.url and save
-    collection.avatar = {
-      alt: filename,
-      url: url,
-    };
-
-    await collection.save();
 
     return {
       success: {

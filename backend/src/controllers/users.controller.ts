@@ -418,10 +418,9 @@ export const changeAvatar = async (c: Context) => {
     const fileN = c.req.query("filename") || "avatar";
     const filename = `${fileN}-${Date.now()}.webp`;
 
-    const response = await adminService.changeAvatar({
+    const response = await adminService.uploadSingleFile({
       body: { avatar: file },
       filename,
-      collection: user,
       folder: "users",
     });
 
@@ -432,6 +431,14 @@ export const changeAvatar = async (c: Context) => {
     if (response.serverError) {
       return serverErrorHandler(c, response.serverError);
     }
+
+    // Update user.avatar.url and save
+    user.avatar = {
+      alt: filename,
+      url: response.success.data,
+    };
+
+    await user.save();
 
     return c.json(response.success, 200);
   } catch (error: any) {

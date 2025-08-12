@@ -14,6 +14,15 @@ TASFIN is a comprehensive e-commerce backend application built with Node.js, Typ
 - **Password Security**: Bcrypt hashing with salt rounds for secure password storage
 - **Session Management**: Secure cookie-based session handling
 
+### 📂 Category Management
+
+- **Category CRUD Operations**: Full create, read, update, delete functionality
+- **Slug Generation**: Automatic unique slug creation for SEO-friendly URLs
+- **Image Management**: Category image upload and management with AWS S3
+- **Featured Categories**: Mark categories as featured for promotional purposes
+- **Search & Filtering**: Advanced search with pagination and sorting
+- **Unique Constraints**: Prevent duplicate category names and slugs
+
 ### 👥 User Management
 
 - **User Registration & Login**: Email/phone-based authentication
@@ -56,6 +65,7 @@ TASFIN is a comprehensive e-commerce backend application built with Node.js, Typ
 - **Pagination**: Efficient data pagination with sorting and filtering
 - **Search Functionality**: Text-based search across multiple fields
 - **Data Relationships**: Proper MongoDB relationships and references
+- **Category Management**: Hierarchical category system with slug-based routing
 
 ## 🏗️ Architecture
 
@@ -81,6 +91,7 @@ backend/
 │   │   └── s3.ts       # AWS S3 configuration
 │   ├── controllers/    # Request handlers
 │   │   ├── admins.controller.ts
+│   │   ├── categorise.controller.ts
 │   │   └── users.controller.ts
 │   ├── error/          # Custom error handlers
 │   │   └── index.ts
@@ -90,12 +101,15 @@ backend/
 │   │   └── auth.middleware.ts
 │   ├── models/         # Database models
 │   │   ├── admins.model.ts
+│   │   ├── categorise.model.ts
 │   │   └── users.model.ts
 │   ├── routes/         # API route definitions
 │   │   ├── admins.route.ts
+│   │   ├── categorise.route.ts
 │   │   └── users.route.ts
 │   ├── services/       # Business logic
 │   │   ├── admins.service.ts
+│   │   ├── categorise.service.ts
 │   │   └── users.service.ts
 │   ├── utils/          # Utility functions
 │   │   ├── index.ts
@@ -211,6 +225,17 @@ NODE_ENV=development
 - `PATCH /api/v1/admins/:_id` - Update admin
 - `DELETE /api/v1/admins/:_id` - Delete admin
 
+### Category Management Endpoints
+
+#### Category Operations
+
+- `POST /api/v1/categories/register` - Create new category (admin only)
+- `GET /api/v1/categories` - Get all categories with pagination
+- `GET /api/v1/categories/:_id` - Get specific category
+- `PATCH /api/v1/categories/:_id` - Update category (admin only)
+- `DELETE /api/v1/categories/:_id` - Delete category (admin only)
+- `POST /api/v1/categories/:_id/upload-avatar` - Upload category image (admin only)
+
 ### Utility Endpoints
 
 - `GET /api/v1/health` - Health check endpoint
@@ -282,6 +307,21 @@ interface IImage {
 }
 ```
 
+### Category Model
+
+```typescript
+interface ICategory {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: IImage;
+  isFeatured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
 ## 🔒 Security & Validation
 
 ### Input Validation
@@ -291,6 +331,7 @@ interface IImage {
 - **Email Validation**: Standard email format validation
 - **Password Requirements**: Minimum 8 characters, maximum 20
 - **File Validation**: Size limits (2MB) and type restrictions
+- **Category Validation**: Name, slug, and description validation with unique constraints
 
 ### Authentication Middleware
 
@@ -368,6 +409,7 @@ You can explore and test the APIs directly from Postman using the following docu
 
 [User APIs](https://documenter.getpostman.com/view/31092031/2sB3BEnVMh) – User registration, login, profile updat. etc
 [Admin APIs](https://documenter.getpostman.com/view/31092031/2sB3BEnVMg) – Admin panel APIs. product management, user blocking. etc
+[Category APIs](https://documenter.getpostman.com/view/31092031/2sB3BEoAvs) – Category management, CRUD operations, image uploads etc
 
 ### Request/Response Format
 
@@ -407,10 +449,86 @@ Content-Type: multipart/form-data
 Body: avatar=<file>
 ```
 
+### Category Image Upload
+
+```http
+POST /api/v1/categories/:_id/upload-avatar
+Content-Type: multipart/form-data
+Body: avatar=<file>
+Query: filename=<optional_filename>
+```
+
 ### Pagination
 
 ```http
 GET /api/v1/users?page=1&limit=10&sortBy=name&sortType=asc
+```
+
+### Category Search & Filtering
+
+```http
+GET /api/v1/categories?page=1&limit=10&sortBy=name&sortType=asc&search=electronics
+```
+
+**Query Parameters:**
+
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 10)
+- `sortBy`: Sort field (createdAt, updatedAt, name, slug)
+- `sortType`: Sort direction (asc, desc)
+- `search`: Search term for name or slug
+
+### Category API Examples
+
+#### Create Category
+
+```http
+POST /api/v1/categories/register
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Electronics",
+  "slug": "electronics",
+  "description": "Electronic devices and gadgets",
+  "isFeatured": true
+}
+```
+
+#### Update Category
+
+```http
+PATCH /api/v1/categories/:_id
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Electronics & Gadgets",
+  "description": "Updated description for electronics category",
+  "isFeatured": false
+}
+```
+
+#### Category Response Format
+
+```json
+{
+  "success": true,
+  "message": "Category created successfully",
+  "data": {
+    "_id": "64f8a1b2c3d4e5f6a7b8c9d0",
+    "name": "Electronics",
+    "slug": "electronics",
+    "description": "Electronic devices and gadgets",
+    "image": {
+      "alt": "electronics-category",
+      "url": "https://s3.amazonaws.com/bucket/folder/image.webp"
+    },
+    "isFeatured": true,
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  }
+}
 ```
 
 ## 🧪 Testing
@@ -421,6 +539,9 @@ GET /api/v1/users?page=1&limit=10&sortBy=name&sortType=asc
 - Verify file upload functionality
 - Check error handling scenarios
 - Test role-based access control
+- Test category CRUD operations
+- Verify category image upload functionality
+- Test category search and filtering
 
 ### API Testing Tools
 
@@ -502,5 +623,6 @@ This project is proprietary software. All rights reserved.
 ✅ **File Management**: AWS S3 integration working
 ✅ **User Management**: Complete CRUD operations
 ✅ **Admin System**: Role-based access control
+✅ **Category Management**: Complete CRUD operations with image support
 ✅ **Security**: Input validation and error handling
 ✅ **Documentation**: Comprehensive API documentation

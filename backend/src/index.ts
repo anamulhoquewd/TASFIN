@@ -8,6 +8,7 @@ import adminRoutes from "@/routes/admins.route.js";
 import { notFound } from "@/error/index.js";
 import userRoutes from "./routes/users.route";
 import { adminService } from "./services";
+import categoryRoutes from "./routes/categorise.route";
 
 const app = new Hono().basePath("/api/v1");
 
@@ -44,6 +45,9 @@ app.route("/admins", adminRoutes);
 
 // User routes
 app.route("/users", userRoutes);
+
+// Category routes
+app.route("/categories", categoryRoutes);
 
 // Global Error Handler
 app.onError((error: any, c) => {

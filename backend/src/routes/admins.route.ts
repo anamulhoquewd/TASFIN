@@ -1,5 +1,5 @@
 import { adminController } from "@/controllers";
-import { authenticatedAdmin, authorize } from "@/middlewares/auth.middleware";
+import { authenticatedAdmin } from "@/middlewares/auth.middleware";
 import { Hono } from "hono";
 
 const adminRoutes = new Hono();
