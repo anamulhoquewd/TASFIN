@@ -2,6 +2,80 @@
 import mongoose from "mongoose";
 import { z } from "zod";
 
+// Image validation (matches your ImageSchema)
+export const imageZ = z.object({
+  alt: z.string().min(1, "Image alt text required").trim(),
+  url: z.string().url("Invalid image URL").trim(),
+});
+
+// Accept either a 24-char hex string or a real ObjectId instance
+export const objectIdSchemaZ = z.union([
+  z
+    .string()
+    .regex(/^[a-fA-F0-9]{24}$/, "Expected a 24-char hex ObjectId string"),
+  z.instanceof(mongoose.Types.ObjectId),
+]);
+
+// IProductVariant schema
+export const productVariantSchemaZ = z.object({
+  size: z.string().min(1),
+  color: z.string().min(1),
+  stock: z.number().int().min(0, "stock must be >= 0"),
+  price: z.number().nonnegative("price must be >= 0"),
+  images: z.array(imageZ).optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// IProduct schema
+export const productSchemaZ = z.object({
+  title: z.string().min(1, "title is required"),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+  description: z.string().optional(),
+
+  categories: z.array(objectIdSchemaZ),
+
+  images: z.array(imageZ),
+  variants: z.array(productVariantSchemaZ),
+
+  fabric: z.string().optional(),
+  valueAddition: z.string().optional(),
+  cutFit: z.string().optional(),
+  collarNeck: z.string().optional(),
+  sleeve: z.string().optional(),
+  length: z.string().optional(),
+  washCare: z.string().optional(),
+  sideCut: z.string().optional(),
+
+  isFeatured: z.boolean().optional(),
+  isActive: z.boolean().default(true),
+  tags: z.array(z.string().min(1)).optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const productUpdateZ = productSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// Types + helpers
+export type ProductCreateInput = z.infer<typeof productSchemaZ>;
+export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
+
+export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
+
 // Address validation (matches your AddressSchema fields)
 export const addressZ = z.object({
   street: z.string().min(1, "Street is required").trim(),
@@ -13,12 +87,6 @@ export const addressZ = z.object({
     .min(1, "Country is required")
     .trim()
     .default("Bangladesh"),
-});
-
-// Image validation (matches your ImageSchema)
-export const imageZ = z.object({
-  alt: z.string().min(1, "Image alt text required").trim(),
-  url: z.string().url("Invalid image URL").trim(),
 });
 
 // Bangladesh phone regex (local format like 017xxxxxxxx)
@@ -81,16 +149,28 @@ export const changePasswordZ = z
 
 // Admin (Amdin) validation
 export const userCreateZ = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").trim(),
-  email: z.string().email("Invalid email address").trim().toLowerCase(),
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters")
+    .trim()
+    .optional(),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .trim()
+    .toLowerCase()
+    .optional(),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  shippingAddress: addressZ,
-  billingAddress: addressZ,
+  shippingAddress: addressZ.optional(),
+  billingAddress: addressZ.optional(),
   isActive: z.boolean().default(true),
+
+  gender: z.enum(["male", "female"]).optional(),
+
   isBlocked: z.boolean().default(false),
   blockedAt: z.date().optional(),
   avatar: imageZ.optional(), // optional

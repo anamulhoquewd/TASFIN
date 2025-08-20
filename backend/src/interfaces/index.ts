@@ -19,7 +19,7 @@ export interface IProduct extends mongoose.Document {
   title: string;
   slug: string;
   description?: string;
-  category: mongoose.Types.ObjectId;
+  categories: mongoose.Types.ObjectId[];
 
   images: IImage[];
   variants: IProductVariant[];
@@ -28,12 +28,15 @@ export interface IProduct extends mongoose.Document {
   valueAddition?: string;
   cutFit?: string;
   collarNeck?: string;
-  fullSleeve?: string;
+  sleeve?: string;
   length?: string;
   washCare?: string;
   sideCut?: string;
 
   isFeatured?: boolean;
+
+  isActive: boolean;
+
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -95,6 +98,8 @@ export interface IUser extends mongoose.Document {
   blockedAt: Date;
   avatar: IImage;
 
+  gender: "male" | "female";
+
   matchPassword: (password: string) => Promise<boolean>;
   generateAuthToken: () => Promise<string>;
   generateResetPasswordToken: (expMinutes?: number) => string;
@@ -105,6 +110,24 @@ export interface IUser extends mongoose.Document {
 
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ICoupon extends mongoose.Document {
+  code: string;
+  discountType: "percent" | "fixed";
+  amount: number;
+  maxDiscount: number;
+  minSubtotal: number;
+
+  startAt: Date;
+  endAt: Date;
+
+  usageLimitTotal: number;
+  usageLimitPerUser: number;
+  usedCount: number;
+  applicableProductIds: mongoose.Types.ObjectId;
+
+  active: boolean;
 }
 
 export interface IOrderProduct extends mongoose.Document {

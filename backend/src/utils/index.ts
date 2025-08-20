@@ -6,11 +6,18 @@ import { setSignedCookie } from "hono/cookie";
 import { IAdmin, IUser } from "@/interfaces";
 dotenv.config();
 
-const JWT_REFRESH_SECRET =
-  (process.env.JWT_REFRESH_SECRET as string) || "JWT_REFRESH_SECRET";
-const JWT_ACCESS_SECRET =
-  (process.env.JWT_ACCESS_SECRET as string) || "JWT_ACCESS_SECRET";
-
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+if (!JWT_REFRESH_SECRET) {
+  throw new Error("JWT_REFRESH_SECRET is not defined");
+}
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+if (!JWT_ACCESS_SECRET) {
+  throw new Error("JWT_ACCESS_SECRET is not defined");
+}
+const COOKIE_SECRET = process.env.COOKIE_SECRET;
+if (!COOKIE_SECRET) {
+  throw new Error("COOKIE_SECRET is not defined");
+}
 // Upload Avatar to S3
 export const uploadAvatar = async ({
   s3,
@@ -51,18 +58,18 @@ export const generateAccessToken = async ({
   expMinutes?: number;
 }) => {
   console.log(user);
+
   const token = await sign(
     {
       _id: user._id,
       email: user.email,
       exp: Math.floor(Date.now() / 1000) + 60 * expMinutes,
-      // exp: Math.floor(Date.now() / 1000) + 60 * 120,
     },
-    JWT_ACCESS_SECRET as string
+    JWT_ACCESS_SECRET
   );
 
   if (!token) {
-    throw new Error("Token generated failed");
+    throw new Error("Token generation failed");
   }
 
   return token;
@@ -98,7 +105,7 @@ export const setAuthCookie = async (
   value: string,
   maxAgeSeconds: number
 ) => {
-  await setSignedCookie(c, name, value, process.env.COOKIE_SECRET as string, {
+  await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,

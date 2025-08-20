@@ -6,10 +6,9 @@ import { AddressSchema, ImageSchema } from "@/models/admins.model";
 
 const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
   {
-    name: { type: String, required: true, trim: true },
+    name: { type: String, trim: true },
     email: {
       type: String,
-      required: true,
       unique: true,
       lowercase: true,
       trim: true,
@@ -19,6 +18,9 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     shippingAddress: { type: AddressSchema, required: false },
     billingAddress: { type: AddressSchema, required: false },
     avatar: { type: ImageSchema, required: false },
+
+    gender: { type: String, enum: ["male", "female"] },
+
     isActive: { type: Boolean, default: true },
     isBlocked: { type: Boolean, default: false },
     blockedAt: { type: Date, required: false },

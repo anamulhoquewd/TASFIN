@@ -57,7 +57,7 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     role: {
       type: String,
       enum: ["super_admin", "admin"],
-      default: "admin",
+      required: true,
     },
     address: { type: AddressSchema },
     avatar: { type: ImageSchema, required: false },

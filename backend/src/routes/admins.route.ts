@@ -4,7 +4,7 @@ import { Hono } from "hono";
 
 const adminRoutes = new Hono();
 
-adminRoutes.get("/", authenticatedAdmin, (c) => adminController.getAdmins(c));
+adminRoutes.get("/", (c) => adminController.getAdmins(c));
 
 adminRoutes.post("/register", authenticatedAdmin, (c) =>
   adminController.register(c)

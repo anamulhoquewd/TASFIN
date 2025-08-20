@@ -744,6 +744,8 @@ export const login = async (body: {
     // Generate access token
     const accessToken = await generateAccessToken({ user: admin });
 
+    console.log("Access Token:", accessToken);
+
     // Generate refresh token
     const refreshToken = await generateRefreshToken({ user: admin });
 

@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext", // change this
-    "moduleResolution": "Bundler", // fix resolution without extensions
-    "baseUrl": ".", // for path aliases
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"] // alias for root imports
+      "@/*": ["./src/*"]
     },
     "strict": true,
     "esModuleInterop": true,

@@ -3,12 +3,13 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
-import connectDB from "@/config/db.js";
-import adminRoutes from "@/routes/admins.route.js";
-import { notFound } from "@/error/index.js";
+import connectDB from "@/config/db";
+import adminRoutes from "@/routes/admins.route";
+import { notFound } from "@/error/index";
 import userRoutes from "./routes/users.route";
 import { adminService } from "./services";
 import categoryRoutes from "./routes/categorise.route";
+import productRoutes from "./routes/products.route";
 
 const app = new Hono().basePath("/api/v1");
 
@@ -48,6 +49,9 @@ app.route("/users", userRoutes);
 
 // Category routes
 app.route("/categories", categoryRoutes);
+
+// Product routes
+app.route("/products", productRoutes);
 
 // Global Error Handler
 app.onError((error: any, c) => {

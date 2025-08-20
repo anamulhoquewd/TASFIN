@@ -169,8 +169,8 @@ export const login = async (c: Context) => {
     c,
     "accessToken",
     response.success.tokens.accessToken,
-    60 * 60
-  ); // 1h
+    60 * 20
+  ); // 20 minutes
 
   return c.json(response.success, 200);
 };

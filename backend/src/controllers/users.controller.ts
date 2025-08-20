@@ -181,14 +181,14 @@ export const login = async (c: Context) => {
     c,
     "refreshToken",
     response.success.tokens.refreshToken,
-    60 * 60 * 24 * 7
-  ); // 7d
+    60 * 60 * 24 * 365
+  ); // 1 year
   await setAuthCookie(
     c,
     "accessToken",
     response.success.tokens.accessToken,
     60 * 60
-  ); // 1h
+  ); // 1 hour
 
   return c.json(response.success, 200);
 };
