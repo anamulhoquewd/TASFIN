@@ -15,59 +15,59 @@ import {
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import z from "zod";
 
-export const register = async (body: ProductCreateInput) => {
-  // Safe Parse for better error handling
-  const validData = productSchemaZ.safeParse(body);
+// export const register = async (body: ProductCreateInput) => {
+//   // Safe Parse for better error handling
+//   const validData = productSchemaZ.safeParse(body);
 
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body!"),
-    };
-  }
+//   if (!validData.success) {
+//     return {
+//       error: schemaValidationError(validData.error, "Invalid request body!"),
+//     };
+//   }
 
-  try {
-    // Check if category already exists
-    const existingProduct = await Product.findOne({
-      slug: validData.data.slug,
-    });
+//   try {
+//     // Check if category already exists
+//     const existingProduct = await Product.findOne({
+//       slug: validData.data.slug,
+//     });
 
-    if (existingProduct) {
-      return {
-        error: {
-          message: "Sorry! This product already exists.",
-          fields: [
-            {
-              name: "slug",
-              message: "Slug must be unique",
-            },
-          ],
-        },
-      };
-    }
+//     if (existingProduct) {
+//       return {
+//         error: {
+//           message: "Sorry! This product already exists.",
+//           fields: [
+//             {
+//               name: "slug",
+//               message: "Slug must be unique",
+//             },
+//           ],
+//         },
+//       };
+//     }
 
-    // Create product
-    const product = new Product(validData.data);
+//     // Create product
+//     const product = new Product(validData.data);
 
-    // Save product
-    const docs = await product.save();
+//     // Save product
+//     const docs = await product.save();
 
-    return {
-      success: {
-        success: true,
-        message: "Prodcut created successfully",
-        data: docs,
-      },
-    };
-  } catch (error: any) {
-    return {
-      serverError: {
-        success: false,
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
+//     return {
+//       success: {
+//         success: true,
+//         message: "Prodcut created successfully",
+//         data: docs,
+//       },
+//     };
+//   } catch (error: any) {
+//     return {
+//       serverError: {
+//         success: false,
+//         message: error.message,
+//         stack: process.env.NODE_ENV === "production" ? null : error.stack,
+//       },
+//     };
+//   }
+// };
 
 export const getProducts = async (queryParams: {
   page: number;
@@ -346,12 +346,13 @@ export const uploadMultipleFiles = async ({
   // Validate with zod (same as single avatar but array)
   const imagesSchema = z.object({
     images: z
-      .array(avatarSchemaZ.shape.avatar) // same validation as single avatar
-      .min(1, { message: "At least one file is required" }),
+      .array(z.file())
+      .nonempty({ message: "At least one file is required" }),
   });
 
   const validData = imagesSchema.safeParse({ images });
   if (!validData.success) {
+    console.log("Validation error:", validData.error);
     return {
       error: schemaValidationError(validData.error, "Invalid request body"),
     };
@@ -362,7 +363,7 @@ export const uploadMultipleFiles = async ({
       uploadAvatar({
         s3,
         file,
-        key: `uploads/${folder}/${
+        key: `tasfin/${folder}/${
           filenames[index] || `${Date.now()}-${file.name}`
         }`,
         fileType: file.type,
@@ -370,7 +371,7 @@ export const uploadMultipleFiles = async ({
       }).then(() => {
         return `https://${process.env.AWS_BUCKET_NAME}.s3.${
           process.env.AWS_REGION
-        }.amazonaws.com/uploads/${folder}/${
+        }.amazonaws.com/tasfin/${folder}/${
           filenames[index] || `${Date.now()}-${file.name}`
         }`;
       })
@@ -464,7 +465,7 @@ export const uploadSingleFile = async ({
   }
 };
 
-export const createProductWithImages = async ({
+export const register = async ({
   body,
   folder,
 }: {
@@ -474,16 +475,35 @@ export const createProductWithImages = async ({
   let uploadedRootUrls: string[] = [];
   let uploadedVariantUrls: Record<number, string[]> = {}; // { variantIndex: [urls] }
 
+  // Step 1: validate fields (skip file validation here)
+  const validData = productSchemaZ.safeParse(body);
+
+  if (!validData.success) {
+    return {
+      error: schemaValidationError(validData.error, "Invalid request body!"),
+    };
+  }
+
+  // Check if category already exists
+  const existingProduct = await Product.findOne({
+    slug: validData.data.slug,
+  });
+
+  if (existingProduct) {
+    return {
+      error: {
+        message: "Sorry! This product already exists.",
+        fields: [
+          {
+            name: "slug",
+            message: "Slug must be unique",
+          },
+        ],
+      },
+    };
+  }
+
   try {
-    // Step 1: validate fields (skip file validation here)
-    const validData = productSchemaZ.safeParse(body);
-
-    if (!validData.success) {
-      return {
-        error: schemaValidationError(validData.error, "Invalid request body!"),
-      };
-    }
-
     // -------------------------------
     // Step 2: Upload Root Images
     // -------------------------------
@@ -495,7 +515,10 @@ export const createProductWithImages = async ({
       ),
     });
 
-    if ("error" in rootUpload) throw new Error(rootUpload?.error?.message);
+    if (rootUpload.error) throw new Error(rootUpload?.error?.message);
+    if (rootUpload.serverError)
+      throw new Error(rootUpload?.serverError?.message);
+
     uploadedRootUrls = rootUpload?.success?.data ?? [];
 
     const imageObjects = uploadedRootUrls.map((url) => ({
@@ -521,8 +544,10 @@ export const createProductWithImages = async ({
               ),
             });
 
-            if ("error" in variantUpload)
+            if (variantUpload.error)
               throw new Error(variantUpload?.error?.message);
+            if (variantUpload.serverError)
+              throw new Error(variantUpload?.serverError?.message);
 
             variantUrls = variantUpload?.success?.data ?? [];
             uploadedVariantUrls[vIdx] = variantUrls;
@@ -558,6 +583,7 @@ export const createProductWithImages = async ({
       },
     };
   } catch (error: any) {
+    console.error("Error in register product:", error);
     // Rollback root images
     if (uploadedRootUrls.length > 0) {
       await Promise.all(uploadedRootUrls.map((url) => deleteFromS3(url)));

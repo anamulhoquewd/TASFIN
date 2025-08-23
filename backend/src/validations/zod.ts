@@ -44,8 +44,10 @@ export const productSchemaZ = z.object({
 
   categories: z.array(objectIdSchemaZ),
 
-  images: z.array(z.file()),
-  variants: z.array(productVariantSchemaZ),
+  images: z.array(z.file()).nonempty("At least 1 image is required"),
+  variants: z
+    .array(productVariantSchemaZ)
+    .nonempty("At least 1 variant is required"),
 
   fabric: z.string().optional(),
   valueAddition: z.string().optional(),

@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -46,41 +46,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-
-const productVariantSchema = z.object({
-  size: z.string().min(1, "Size is required"),
-  color: z.string().min(1, "Color is required"),
-  stock: z.number().int().min(0, "Stock must be >= 0"),
-  price: z.number().nonnegative("Price must be >= 0"),
-  images: z.array(z.instanceof(File)).optional(),
-});
-
-// Main product form schema
-const productFormSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  slug: z
-    .string()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be kebab-case"),
-  description: z.string().optional(),
-  images: z.array(z.instanceof(File)).optional(),
-  categories: z.array(z.string()).min(1, "At least one category is required"),
-  variants: z
-    .array(productVariantSchema)
-    .min(1, "At least one variant is required"),
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
-  isFeatured: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  tags: z.array(z.string()).optional(),
-});
-
-type ProductFormData = z.infer<typeof productFormSchema>;
+import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
 
 const CATEGORIES = [
   { id: "507f1f77bcf86cd799439011", name: "T-Shirts" },
@@ -96,7 +62,6 @@ const CATEGORIES = [
 ];
 
 export function CreateProductForm() {
-  const [images, setImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -104,8 +69,8 @@ export function CreateProductForm() {
     [key: number]: string[];
   }>({});
 
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productFormSchema),
+  const form = useForm({
+    resolver: zodResolver(productSchemaZ),
     defaultValues: {
       title: "",
       slug: "",
@@ -155,37 +120,35 @@ export function CreateProductForm() {
   };
 
   // Handle image upload
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
+  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const files = Array.from(event.target.files || []);
+  //   if (files.length === 0) return;
 
-    // Validate file types
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const invalidFiles = files.filter(
-      (file) => !validTypes.includes(file.type)
-    );
+  //   // Validate file types
+  //   const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+  //   const invalidFiles = files.filter(
+  //     (file) => !validTypes.includes(file.type)
+  //   );
 
-    if (invalidFiles.length > 0) {
-      toast.error("Invalid file type", {
-        description: "Please upload only JPEG, PNG, or WebP images.",
-      });
-      return;
-    }
+  //   if (invalidFiles.length > 0) {
+  //     toast.error("Invalid file type", {
+  //       description: "Please upload only JPEG, PNG, or WebP images.",
+  //     });
+  //     return;
+  //   }
 
-    // Add new images
-    setImages((prev) => [...prev, ...files]);
-    const currentImages = form.getValues("images") || [];
-    form.setValue("images", [...currentImages, ...files]);
+  //   const currentImages = form.getValues("images") || [];
+  //   form.setValue("images", [...currentImages, ...files]);
 
-    // Create previews
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreviews((prev) => [...prev, e.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
+  //   // Create previews
+  //   files.forEach((file) => {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       setImagePreviews((prev) => [...prev, e.target?.result as string]);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   });
+  // };
 
   const handleVariantImageUpload = (
     variantIndex: number,
@@ -234,15 +197,14 @@ export function CreateProductForm() {
   };
 
   // Remove image
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-    const currentImages = form.getValues("images") || [];
-    form.setValue(
-      "images",
-      currentImages.filter((_, i) => i !== index)
-    );
-  };
+  // const removeImage = (index: number) => {
+  //   setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  //   const currentImages = form.getValues("images") || [];
+  //   form.setValue(
+  //     "images",
+  //     currentImages.filter((_, i) => i !== index)
+  //   );
+  // };
 
   const removeVariantImage = (variantIndex: number, imageIndex: number) => {
     const currentImages =
@@ -258,23 +220,23 @@ export function CreateProductForm() {
     }));
   };
 
-  // ---- SUBMIT HANDLER ----
-  const onSubmit = async (data: ProductFormData) => {
+  // SUBMIT HANDLER
+  const onSubmit = async (data: ProductCreateInput) => {
     try {
       const formData = new FormData();
 
       // Append simple fields
       formData.append("title", data.title);
       formData.append("slug", data.slug);
-      formData.append("description", data.description);
-      formData.append("fabric", data.fabric);
-      formData.append("valueAddition", data.valueAddition);
-      formData.append("cutFit", data.cutFit);
-      formData.append("collarNeck", data.collarNeck);
-      formData.append("sleeve", data.sleeve);
-      formData.append("length", data.length);
-      formData.append("washCare", data.washCare);
-      formData.append("sideCut", data.sideCut);
+      formData.append("description", data.description ?? "");
+      formData.append("fabric", data.fabric ?? "");
+      formData.append("valueAddition", data.valueAddition ?? "");
+      formData.append("cutFit", data.cutFit ?? "");
+      formData.append("collarNeck", data.collarNeck ?? "");
+      formData.append("sleeve", data.sleeve ?? "");
+      formData.append("length", data.length ?? "");
+      formData.append("washCare", data.washCare ?? "");
+      formData.append("sideCut", data.sideCut ?? "");
       formData.append("isFeatured", data.isFeatured.toString());
       formData.append("isActive", data.isActive.toString());
 
@@ -311,19 +273,47 @@ export function CreateProductForm() {
         }
       );
 
-      if (response.data.error) {
+      if (!response.data.success) {
+        console.log("Failed to create product:", response.data.error);
         toast.error(response.data.error.message || "Failed to create product.");
       }
 
-      if (response.data.success) {
-        toast.success(
-          response.data.success.message || "Product created successfully."
-        );
-      }
-    } catch (error) {
+      toast.success(
+        response.data.success.message || "Product created successfully."
+      );
+
+      // Reset form after successful submission
+      form.reset({
+        title: "",
+        slug: "",
+        description: "",
+        fabric: "",
+        valueAddition: "",
+        cutFit: "",
+        collarNeck: "",
+        sleeve: "",
+        length: "",
+        washCare: "",
+        sideCut: "",
+        isFeatured: false,
+        isActive: false,
+        categories: [],
+        tags: [],
+        images: [],
+        variants: [],
+      });
+    } catch (error: any) {
       console.error("Error creating product:", error);
+      if (error.response.data.success === false) {
+        error.response.data.fields.forEach((field: any) => {
+          form.setError(field.name, {
+            message: field.message,
+          });
+        });
+      }
       toast.error("Error creating product", {
-        description: error.message,
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
     }
   };
@@ -505,46 +495,64 @@ export function CreateProductForm() {
             <CardTitle>Product Images</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-center w-full">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload images
-                    </p>
-                  </div>
-                  <input
-                    type="file"
-                    className="hidden"
-                    multiple
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                  />
-                </label>
-              </div>
+            <FormField
+              control={form.control}
+              name="images"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <div>
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
+                            Click to upload images
+                          </p>
+                        </div>
+                        <Input
+                          type="file"
+                          className="hidden"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            field.onChange(files);
+                          }}
+                        />
+                      </label>
 
-              {imagePreviews.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
-                  {imagePreviews.map((preview, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={preview || "/placeholder.svg"}
-                        alt={`Preview ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
+                      {field.value?.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+                          {field.value.map((file: File, index: number) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                alt={`Preview ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  field.onChange(
+                                    field.value.filter(
+                                      (_: any, i: number) => i !== index
+                                    )
+                                  )
+                                }
+                                className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
           </CardContent>
         </Card>
 
@@ -898,28 +906,40 @@ export function CreateProductForm() {
             <FormField
               control={form.control}
               name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter tags (comma-separated)"
-                      value={field.value?.join(", ") || ""}
-                      onChange={(e) => {
-                        const tags = e.target.value
-                          .split(",")
-                          .map((tag) => tag.trim())
-                          .filter((tag) => tag.length > 0);
-                        field.onChange(tags);
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Add tags to help customers find your product
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const [inputValue, setInputValue] = useState(
+                  field.value?.join(", ") || ""
+                );
+
+                useEffect(() => {
+                  setInputValue(field.value?.join(", ") || "");
+                }, [field.value]);
+
+                return (
+                  <FormItem>
+                    <FormLabel>Tags</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Enter tags (comma-separated)"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onBlur={() => {
+                          const tags = inputValue
+                            .split(",")
+                            .map((tag) => tag.trim())
+                            .filter((tag) => tag.length > 0);
+                          field.onChange(tags);
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Add tags to help customers find your product
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </CardContent>
         </Card>

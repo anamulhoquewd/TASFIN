@@ -93,10 +93,12 @@ export const productSchemaZ = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
   description: z.string().optional(),
 
-  categories: z.array(z.string()),
+  categories: z.array(z.string()).nonempty("At least 1 category is required"),
 
-  images: z.array(z.file()),
-  variants: z.array(productVariantSchemaZ),
+  images: z.array(z.file()).nonempty("At least 1 image is required"),
+  variants: z
+    .array(productVariantSchemaZ)
+    .nonempty("At least 1 variant is required"),
 
   fabric: z.string().optional(),
   valueAddition: z.string().optional(),
@@ -107,7 +109,7 @@ export const productSchemaZ = z.object({
   washCare: z.string().optional(),
   sideCut: z.string().optional(),
 
-  isFeatured: z.boolean().optional(),
+  isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
   tags: z.array(z.string().min(1)).optional(),
 });

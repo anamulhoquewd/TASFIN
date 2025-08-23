@@ -4,7 +4,7 @@ import { Hono } from "hono";
 
 const productRoutes = new Hono();
 
-productRoutes.post("/register", (c) => productController.createProduct(c));
+productRoutes.post("/register", (c) => productController.register(c));
 
 // productRoutes.get("/", (c) => productController.getProducts(c));
 
