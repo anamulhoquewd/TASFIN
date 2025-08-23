@@ -19,6 +19,7 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     billingAddress: { type: AddressSchema, required: false },
     avatar: { type: ImageSchema, required: false },
 
+    dob: { type: Date, required: false },
     gender: { type: String, enum: ["male", "female"] },
 
     isActive: { type: Boolean, default: true },

@@ -467,40 +467,85 @@ export const uploadSingleFile = async ({
 export const createProductWithImages = async ({
   body,
   folder,
-  filenames,
 }: {
-  body: ProductCreateInput & { images: File[] | File };
+  body: any; // ProductCreateInput + { images: File[], variants: [{ images: File[] }] }
   folder: string;
-  filenames: string[];
 }) => {
-  // Step 1: Validate Product Data
-  const validData = productSchemaZ.safeParse(body);
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body!"),
-    };
-  }
-
-  let uploadedUrls: string[] = [];
+  let uploadedRootUrls: string[] = [];
+  let uploadedVariantUrls: Record<number, string[]> = {}; // { variantIndex: [urls] }
 
   try {
-    // Step 2: Upload Images to S3
-    const uploadResult = await uploadMultipleFiles({
-      body: { images: body.images },
-      folder,
-      filenames,
-    });
+    // Step 1: validate fields (skip file validation here)
+    const validData = productSchemaZ.safeParse(body);
 
-    if ("error" in uploadResult) {
-      throw new Error(uploadResult.error?.message || "Unknown upload error");
+    if (!validData.success) {
+      return {
+        error: schemaValidationError(validData.error, "Invalid request body!"),
+      };
     }
 
-    uploadedUrls = uploadResult.success?.data ?? [];
+    // -------------------------------
+    // Step 2: Upload Root Images
+    // -------------------------------
+    const rootUpload = await uploadMultipleFiles({
+      body: { images: validData.data.images || [] },
+      folder: `${folder}/root`,
+      filenames: (validData.data.images || []).map(
+        (f: File, i: number) => `${Date.now()}-root-${i}-${f.name}`
+      ),
+    });
 
-    // Step 3: Save Product in DB
+    if ("error" in rootUpload) throw new Error(rootUpload?.error?.message);
+    uploadedRootUrls = rootUpload?.success?.data ?? [];
+
+    const imageObjects = uploadedRootUrls.map((url) => ({
+      alt: validData.data.title || "product image",
+      url,
+    }));
+
+    // -------------------------------
+    // Step 3: Upload Variant Images
+    // -------------------------------
+    const variantsWithUrls = await Promise.all(
+      (validData.data.variants || []).map(
+        async (variant: any, vIdx: number) => {
+          let variantUrls: string[] = [];
+
+          if (variant.images && variant.images.length > 0) {
+            const variantUpload = await uploadMultipleFiles({
+              body: { images: variant.images },
+              folder: `${folder}/variants/${vIdx}`,
+              filenames: variant.images.map(
+                (f: File, i: number) =>
+                  `${Date.now()}-variant-${vIdx}-${i}-${f.name}`
+              ),
+            });
+
+            if ("error" in variantUpload)
+              throw new Error(variantUpload?.error?.message);
+
+            variantUrls = variantUpload?.success?.data ?? [];
+            uploadedVariantUrls[vIdx] = variantUrls;
+          }
+
+          return {
+            ...variant,
+            images: variantUrls.map((url) => ({
+              alt: `${variant.color}-${variant.size}`,
+              url,
+            })),
+          };
+        }
+      )
+    );
+
+    // -------------------------------
+    // Step 4: Save in DB
+    // -------------------------------
     const product = new Product({
       ...validData.data,
-      images: uploadedUrls,
+      images: imageObjects,
+      variants: variantsWithUrls,
     });
 
     const docs = await product.save();
@@ -513,17 +558,21 @@ export const createProductWithImages = async ({
       },
     };
   } catch (error: any) {
-    // Step 4: Rollback – delete already uploaded images from S3
-    if (uploadedUrls.length > 0) {
-      console.error("Error occurred, rolling back uploaded images:", error);
-      await Promise.all(uploadedUrls.map((url) => deleteFromS3(url)));
+    // Rollback root images
+    if (uploadedRootUrls.length > 0) {
+      await Promise.all(uploadedRootUrls.map((url) => deleteFromS3(url)));
+    }
+    // Rollback variant images
+    for (const vIdx in uploadedVariantUrls) {
+      await Promise.all(
+        uploadedVariantUrls[vIdx].map((url) => deleteFromS3(url))
+      );
     }
 
     return {
       serverError: {
         success: false,
         message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
     };
   }
@@ -544,7 +593,7 @@ export const deleteFromS3 = async (fileUrl: string) => {
       })
     );
 
-    console.log(`✅ Deleted from S3: ${key}`);
+    console.log(`Deleted from S3: ${key}`);
   } catch (error) {
     console.error("Failed to delete from S3:", error);
   }

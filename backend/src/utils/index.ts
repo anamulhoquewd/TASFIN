@@ -115,3 +115,25 @@ export const setAuthCookie = async (
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
 };
+
+export const parseFormValue = (key: string, value: any) => {
+  if (value === undefined) return undefined;
+
+  try {
+    // if boolean string
+    if (value === "true") return true;
+    if (value === "false") return false;
+
+    // if array/object JSON string
+    if (
+      (key === "categories" || key === "variants" || key === "tags") &&
+      typeof value === "string"
+    ) {
+      return JSON.parse(value);
+    }
+
+    return value;
+  } catch (err) {
+    return value;
+  }
+};

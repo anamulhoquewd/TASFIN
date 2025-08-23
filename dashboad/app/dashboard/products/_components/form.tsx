@@ -1,8 +1,38 @@
-import { useFieldArray } from "react-hook-form";
+"use client";
+
+import type React from "react";
+
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { z } from "zod";
 import axios from "axios";
-import { PlusCircle, Trash2, Upload } from "lucide-react";
+import {
+  CheckCheck,
+  ChevronsUpDown,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -13,326 +43,741 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { type ProductFormValues } from "@/lib/schemas";
-import useCategories from "@/app/dashboard/categories/_hooks/useCategories";
-import useProducts from "../_hooks/useProducts";
-import useUploads from "../_hooks/useUploads";
-import { useRef, useState } from "react";
-import { Label } from "@/components/ui/label";
-import Image from "next/image";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
-export function ProductForm() {
-  // State for image upload - now holds a FileList
-  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
-  const [slug, setSlug] = useState<string>("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const productVariantSchema = z.object({
+  size: z.string().min(1, "Size is required"),
+  color: z.string().min(1, "Color is required"),
+  stock: z.number().int().min(0, "Stock must be >= 0"),
+  price: z.number().nonnegative("Price must be >= 0"),
+  images: z.array(z.instanceof(File)).optional(),
+});
 
-  const { data: categories } = useCategories();
+// Main product form schema
+const productFormSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be kebab-case"),
+  description: z.string().optional(),
+  images: z.array(z.instanceof(File)).optional(),
+  categories: z.array(z.string()).min(1, "At least one category is required"),
+  variants: z
+    .array(productVariantSchema)
+    .min(1, "At least one variant is required"),
+  fabric: z.string().optional(),
+  valueAddition: z.string().optional(),
+  cutFit: z.string().optional(),
+  collarNeck: z.string().optional(),
+  sleeve: z.string().optional(),
+  length: z.string().optional(),
+  washCare: z.string().optional(),
+  sideCut: z.string().optional(),
+  isFeatured: z.boolean().default(false),
+  isActive: z.boolean().default(true),
+  tags: z.array(z.string()).optional(),
+});
 
-  const {
-    form,
-    imageFields,
-    keywordFields,
-    colorFields,
-    appendImage,
-    removeImage,
-    appendColor,
-    removeColor,
-    appendKeyword,
-    removeKeyword,
-    setFilterByCategory,
-    data,
-  } = useProducts();
+type ProductFormData = z.infer<typeof productFormSchema>;
 
-  // Use the new file upload hook
-  const { uploadFiles, isLoading, data: urls } = useUploads();
+const CATEGORIES = [
+  { id: "507f1f77bcf86cd799439011", name: "T-Shirts" },
+  { id: "507f1f77bcf86cd799439012", name: "Shirts" },
+  { id: "507f1f77bcf86cd799439013", name: "Jeans" },
+  { id: "507f1f77bcf86cd799439014", name: "Trousers" },
+  { id: "507f1f77bcf86cd799439015", name: "Dresses" },
+  { id: "507f1f77bcf86cd799439016", name: "Skirts" },
+  { id: "507f1f77bcf86cd799439017", name: "Jackets" },
+  { id: "507f1f77bcf86cd799439018", name: "Sweaters" },
+  { id: "507f1f77bcf86cd799439019", name: "Shorts" },
+  { id: "507f1f77bcf86cd79943901a", name: "Accessories" },
+];
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedFiles(event.target.files); // Set the entire FileList
+export function CreateProductForm() {
+  const [images, setImages] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<{
+    [key: number]: string[];
+  }>({});
+
+  const form = useForm<ProductFormData>({
+    resolver: zodResolver(productFormSchema),
+    defaultValues: {
+      title: "",
+      slug: "",
+      description: "",
+      categories: [],
+      images: [],
+      variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
+      fabric: "",
+      valueAddition: "",
+      cutFit: "",
+      collarNeck: "",
+      sleeve: "",
+      length: "",
+      washCare: "",
+      sideCut: "",
+      isFeatured: false,
+      isActive: true,
+      tags: [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
+  });
+
+  const getCategoryName = (categoryId: string) => {
+    return CATEGORIES.find((cat) => cat.id === categoryId)?.name || categoryId;
   };
 
-  const handleUpload = async () => {
-    if (!selectedFiles || selectedFiles.length === 0) {
-      console.log({
-        title: "No files selected",
-        description: "Please choose one or more image files to upload.",
-        variant: "destructive",
+  // Generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  // Handle title change and auto-generate slug
+  const handleTitleChange = (value: string) => {
+    form.setValue("title", value);
+    if (value) {
+      form.setValue("slug", generateSlug(value));
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const invalidFiles = files.filter(
+      (file) => !validTypes.includes(file.type)
+    );
+
+    if (invalidFiles.length > 0) {
+      toast.error("Invalid file type", {
+        description: "Please upload only JPEG, PNG, or WebP images.",
       });
       return;
     }
 
-    const filesArray = Array.from(selectedFiles); // Convert FileList to array for the hook
-    const result = await uploadFiles(filesArray, slug);
+    // Add new images
+    setImages((prev) => [...prev, ...files]);
+    const currentImages = form.getValues("images") || [];
+    form.setValue("images", [...currentImages, ...files]);
 
-    if (result?.success && result.urls && result.urls.length > 0) {
-      result.urls.map((url: string, index: number) => {
-        // Use the original file name for alt text if available, otherwise a generic one
-        const altText =
-          filesArray[index]?.name.split(".")[0] ||
-          `Uploaded image ${index + 1}`;
-        appendImage({ url: url, alt: altText });
-      });
-      console.log({
-        title: "Upload Successful",
-        description: `${result.urls.length} image(s) uploaded and added to product images.`,
-      });
-      setSelectedFiles(null); // Clear selected files
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""; // Clear file input visually
-      }
-    }
+    // Create previews
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreviews((prev) => [...prev, e.target?.result as string]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
-  const onSubmit = async (values: ProductFormValues) => {
+  const handleVariantImageUpload = (
+    variantIndex: number,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const invalidFiles = files.filter(
+      (file) => !validTypes.includes(file.type)
+    );
+
+    if (invalidFiles.length > 0) {
+      toast.error("Invalid file type", {
+        description: "Please upload only JPEG, PNG, or WebP images.",
+      });
+      return;
+    }
+
+    // Get current variant images
+    const currentVariant = form.getValues(`variants.${variantIndex}`);
+    const currentImages = currentVariant.images || [];
+
+    // Add new images to variant
+    form.setValue(`variants.${variantIndex}.images`, [
+      ...currentImages,
+      ...files,
+    ]);
+
+    // Create previews for variant images
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setVariantImagePreviews((prev) => ({
+          ...prev,
+          [variantIndex]: [
+            ...(prev[variantIndex] || []),
+            e.target?.result as string,
+          ],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Remove image
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    const currentImages = form.getValues("images") || [];
+    form.setValue(
+      "images",
+      currentImages.filter((_, i) => i !== index)
+    );
+  };
+
+  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+    const currentImages =
+      form.getValues(`variants.${variantIndex}.images`) || [];
+    const updatedImages = currentImages.filter((_, i) => i !== imageIndex);
+    form.setValue(`variants.${variantIndex}.images`, updatedImages);
+
+    setVariantImagePreviews((prev) => ({
+      ...prev,
+      [variantIndex]: (prev[variantIndex] || []).filter(
+        (_, i) => i !== imageIndex
+      ),
+    }));
+  };
+
+  // ---- SUBMIT HANDLER ----
+  const onSubmit = async (data: ProductFormData) => {
     try {
       const formData = new FormData();
-      formData.append("title", values.title);
-      formData.append("slug", values.slug);
-      formData.append("description", values.description || "");
-      formData.append("categories", values.categories);
 
-      // ✅ multiple image handle
-      for (let i = 0; i < (values.images as FileList).length; i++) {
-        formData.append("images", (values.images as FileList)[i]);
-      }
+      // Append simple fields
+      formData.append("title", data.title);
+      formData.append("slug", data.slug);
+      formData.append("description", data.description);
+      formData.append("fabric", data.fabric);
+      formData.append("valueAddition", data.valueAddition);
+      formData.append("cutFit", data.cutFit);
+      formData.append("collarNeck", data.collarNeck);
+      formData.append("sleeve", data.sleeve);
+      formData.append("length", data.length);
+      formData.append("washCare", data.washCare);
+      formData.append("sideCut", data.sideCut);
+      formData.append("isFeatured", data.isFeatured.toString());
+      formData.append("isActive", data.isActive.toString());
 
-      const res = await axios.post("/api/products", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      // Append arrays as JSON strings
+      formData.append("categories", JSON.stringify(data.categories));
+      formData.append("tags", JSON.stringify(data.tags));
+
+      // Append main product images
+      data.images.forEach((image) => {
+        formData.append("images", image);
       });
 
-      alert("✅ Product created successfully!");
-      console.log(res.data);
-      form.reset();
-    } catch (error: any) {
-      console.error(error);
-      alert(error?.response?.data?.message || "Failed to create product");
+      // Append variants
+      data.variants.forEach((variant, index) => {
+        formData.append(`variants[${index}][size]`, variant.size);
+        formData.append(`variants[${index}][color]`, variant.color);
+        formData.append(`variants[${index}][stock]`, variant.stock.toString());
+        formData.append(`variants[${index}][price]`, variant.price.toString());
+
+        // Append variant images
+        variant.images?.forEach((image) => {
+          formData.append(`variants[${index}][images]`, image);
+        });
+      });
+
+      // Send to backend
+      const response = await axios.post(
+        "http://localhost:4000/api/v1/products/register",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.data.error) {
+        toast.error(response.data.error.message || "Failed to create product.");
+      }
+
+      if (response.data.success) {
+        toast.success(
+          response.data.success.message || "Product created successfully."
+        );
+      }
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Error creating product", {
+        description: error.message,
+      });
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        {/* Basic Product Details */}
-        <div className="grid gap-4 md:grid-cols-2 items-start">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="cursor-pointer">Product Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Wireless Headphones" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="slug"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="cursor-pointer">Product Slug</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., wireless-headphones" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Unique identifier (lowercase, alphanumeric, hyphen-separated).
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="cursor-pointer">Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Detailed description of the product..."
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid gap-4 md:grid-cols-2 items-start">
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="cursor-pointer">Price</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    {...field}
-                    value={String(field.value || "")}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="cursor-pointer">Category</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categories !== null &&
-                      categories.map((category) => (
-                        <SelectItem key={category._id} value={category._id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <Separator />
-
-        {/* Image Upload Section */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium">Upload New Image(s)</h3>
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label className="cursor-pointer" htmlFor="picture">
-                Image File(s)
-              </Label>
-              <Input
-                id="picture"
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                ref={fileInputRef}
-              />
-
-              {selectedFiles && selectedFiles.length > 0 && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Selected:{" "}
-                  {Array.from(selectedFiles)
-                    .map((f) => f.name)
-                    .join(", ")}
-                </p>
-              )}
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label className="cursor-pointer" htmlFor="slug">
-                Image slug
-              </Label>
-              <Input
-                id="slug"
-                multiple
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="t-shirts"
-              />
-            </div>
-            <Button
-              className="cursor-pointer"
-              onClick={handleUpload}
-              type="button"
-              disabled={
-                !selectedFiles ||
-                selectedFiles.length === 0 ||
-                isLoading ||
-                !slug
-              }
-            >
-              {isLoading ? (
-                <>
-                  <span className="animate-spin mr-2">🌀</span> Uploading...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" /> Upload Image(s)
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Existing Images Section */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium">
-            Product Images (Manage Existing)
-          </h3>
-          {imageFields.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No images added yet. Upload one above or add manually.
-            </p>
-          )}
-          {imageFields.map((item, index) => (
-            <div
-              key={item.id}
-              className="mb-4 grid gap-4 md:grid-cols-[auto_1fr_1fr_auto] items-end"
-            >
-              {/* Image Preview */}
-              <div className="flex items-center justify-center h-16 w-16 rounded-md overflow-hidden border bg-muted">
-                {item.url ? (
-                  <Image
-                    src={item.url || "/placeholder.svg"}
-                    alt={item.alt || "Product image"}
-                    width={64}
-                    height={64}
-                    className="object-cover"
-                  />
-                ) : (
-                  <span className="text-xs text-muted-foreground text-center p-1">
-                    No Image
-                  </span>
-                )}
-              </div>
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
-                name={`images.${index}.url`}
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel
-                      className={cn(
-                        "cursor-pointer",
-                        index === 0 ? "block" : "sr-only"
-                      )}
-                    >
-                      Image URL
-                    </FormLabel>
+                    <FormLabel>Product Title</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://example.com/image.jpg"
+                        placeholder="Enter product title"
+                        {...field}
+                        onChange={(e) => handleTitleChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="product-slug" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      URL-friendly version of the title (auto-generated)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter product description"
+                      className="min-h-[100px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="categories"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Categories</FormLabel>
+                  <Popover open={categoryOpen} onOpenChange={setCategoryOpen}>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={categoryOpen}
+                          className="w-full justify-between h-auto min-h-[40px] px-3 py-2 bg-transparent"
+                        >
+                          <div className="flex flex-wrap gap-1">
+                            {field.value && field.value.length > 0 ? (
+                              field.value.map((categoryId) => (
+                                <Badge
+                                  key={categoryId}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {getCategoryName(categoryId)}
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer ml-1 hover:bg-secondary-foreground/20 rounded-full"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const newCategories =
+                                        field.value?.filter(
+                                          (id) => id !== categoryId
+                                        ) || [];
+                                      field.onChange(newCategories);
+                                    }}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Select categories...
+                              </span>
+                            )}
+                          </div>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-full p-0" align="start">
+                      <Command>
+                        <CommandInput placeholder="Search categories..." />
+                        <CommandList>
+                          <CommandEmpty>No categories found.</CommandEmpty>
+                          <CommandGroup>
+                            {CATEGORIES.map((category) => (
+                              <CommandItem
+                                key={category.id}
+                                value={category.name}
+                                onSelect={() => {
+                                  const currentCategories = field.value || [];
+                                  const isSelected = currentCategories.includes(
+                                    category.id
+                                  );
+
+                                  if (isSelected) {
+                                    field.onChange(
+                                      currentCategories.filter(
+                                        (id) => id !== category.id
+                                      )
+                                    );
+                                  } else {
+                                    field.onChange([
+                                      ...currentCategories,
+                                      category.id,
+                                    ]);
+                                  }
+                                }}
+                              >
+                                <CheckCheck
+                                  className={cn(
+                                    "mr-2 h-4 w-4",
+                                    field.value?.includes(category.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                {category.name}
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    Select one or more categories for your product
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Product Images */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Click to upload images
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                  />
+                </label>
+              </div>
+
+              {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={preview || "/placeholder.svg"}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Variants */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              Product Variants
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  append({
+                    size: "",
+                    color: "",
+                    stock: 0,
+                    price: 0,
+                    images: [],
+                  })
+                }
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Variant
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              {fields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="p-4 border border-border rounded-lg"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium">Variant {index + 1}</h4>
+                    {fields.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => remove(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.size`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Size</FormLabel>
+                          <FormControl>
+                            <Input placeholder="S, M, L, XL" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.color`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Color</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Red, Blue, etc." {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.stock`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Stock</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(
+                                  Number.parseInt(e.target.value) || 0
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`variants.${index}.price`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Variant Images</FormLabel>
+                      <label className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md cursor-pointer hover:bg-muted/50">
+                        <Upload className="w-4 h-4" />
+                        Upload Images
+                        <input
+                          type="file"
+                          className="hidden"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleVariantImageUpload(index, e)}
+                        />
+                      </label>
+                    </div>
+
+                    {variantImagePreviews[index] &&
+                      variantImagePreviews[index].length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2">
+                          {variantImagePreviews[index].map(
+                            (preview, imageIndex) => (
+                              <div key={imageIndex} className="relative group">
+                                <img
+                                  src={preview || "/placeholder.svg"}
+                                  alt={`Variant ${index + 1} Image ${
+                                    imageIndex + 1
+                                  }`}
+                                  className="w-full h-20 object-cover rounded-md"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeVariantImage(index, imageIndex)
+                                  }
+                                  className="cursor-pointer absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Product Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Product Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="fabric"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fabric</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Cotton, Polyester, etc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="valueAddition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Value Addition</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Special features" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="cutFit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cut & Fit</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Slim, Regular, Loose" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="collarNeck"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Collar/Neck</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Round neck, V-neck, etc."
                         {...field}
                       />
                     </FormControl>
@@ -340,315 +785,157 @@ export function ProductForm() {
                   </FormItem>
                 )}
               />
+
               <FormField
                 control={form.control}
-                name={`images.${index}.alt`}
+                name="sleeve"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel
-                      className={cn(
-                        "cursor-pointer",
-                        index === 0 ? "block" : "sr-only"
-                      )}
-                    >
-                      Alt Text
-                    </FormLabel>
+                    <FormLabel>Sleeve</FormLabel>
                     <FormControl>
-                      <Input placeholder="Description of image" {...field} />
+                      <Input placeholder="Short, Long, 3/4" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => removeImage(index)}
-                className={
-                  imageFields.length === 1
-                    ? "opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
-                }
-                disabled={imageFields.length === 1}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Remove image</span>
-              </Button>
-            </div>
-          ))}
-          <Button
-            className="cursor-pointer"
-            type="button"
-            variant="outline"
-            onClick={() => appendImage({ alt: "", url: "" })}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Image Manually
-          </Button>
-        </div>
 
-        <Separator />
-
-        {/* Keys Section */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium">
-            Product Keywords/Tags (Optional)
-          </h3>
-          {keywordFields.map((item, index) => (
-            <div key={item.id} className="mb-4 flex gap-2 items-end">
               <FormField
                 control={form.control}
-                name={`keywords.${index}.value`}
+                name="length"
                 render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel
-                      className={cn(
-                        "cursor-pointer",
-                        index === 0 ? "block" : "sr-only"
-                      )}
-                    >
-                      Keyword
-                    </FormLabel>
+                  <FormItem>
+                    <FormLabel>Length</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., bluetooth" {...field} />
+                      <Input placeholder="Short, Medium, Long" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button
-                className="cursor-pointer"
-                type="button"
-                variant="destructive"
-                size="icon"
-                onClick={() => removeKeyword(index)}
-              >
-                <Trash2 className="h-4 w-4" />
-                <span className="sr-only">Remove keyword</span>
-              </Button>
+
+              <FormField
+                control={form.control}
+                name="washCare"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Wash Care</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Machine wash, Hand wash" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sideCut"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Side Cut</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Side cut details" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          ))}
+          </CardContent>
+        </Card>
+
+        {/* Settings & Tags */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Settings & Tags</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-6">
+              <FormField
+                control={form.control}
+                name="isFeatured"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Featured Product</FormLabel>
+                      <FormDescription>
+                        Display this product in featured sections
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="isActive"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Active Product</FormLabel>
+                      <FormDescription>
+                        Make this product visible to customers
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter tags (comma-separated)"
+                      value={field.value?.join(", ") || ""}
+                      onChange={(e) => {
+                        const tags = e.target.value
+                          .split(",")
+                          .map((tag) => tag.trim())
+                          .filter((tag) => tag.length > 0);
+                        field.onChange(tags);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Add tags to help customers find your product
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Submit Button */}
+        <div className="flex justify-end">
           <Button
-            className="cursor-pointer"
-            type="button"
-            variant="outline"
-            onClick={() => appendKeyword({ value: "" })}
+            type="submit"
+            size="lg"
+            disabled={isSubmitting}
+            className="min-w-[150px]"
           >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Keyword
+            {isSubmitting ? "Creating..." : "Create Product"}
           </Button>
         </div>
-
-        <Separator />
-
-        {/* Colors and Sizes Section */}
-        <div>
-          <h3 className="mb-4 text-lg font-medium">Product Colors & Sizes</h3>
-          {colorFields.map((colorItem, colorIndex) => (
-            <div key={colorItem.id} className="mb-8 rounded-md border p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-semibold">Color #{colorIndex + 1}</h4>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => removeColor(colorIndex)}
-                  className={cn(
-                    colorFields.length === 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
-                  )}
-                  disabled={colorFields.length === 1}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Remove Color
-                </Button>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2 mb-4 items-start">
-                <FormField
-                  control={form.control}
-                  name={`colors.${colorIndex}.name`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="cursor-pointer">
-                        Color Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Black" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`colors.${colorIndex}.inStock`}
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel className="cursor-pointer">
-                          In Stock
-                        </FormLabel>
-                        <FormDescription>
-                          Is this color currently in stock?
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <h5 className="mb-3 text-md font-medium">
-                Sizes for{" "}
-                {form.watch(`colors.${colorIndex}.name`) ||
-                  `Color #${colorIndex + 1}`}
-              </h5>
-              <div className="ml-4 border-l pl-4">
-                <SizesFieldArray
-                  colorIndex={colorIndex}
-                  control={form.control}
-                />
-              </div>
-            </div>
-          ))}
-          <Button
-            className="cursor-pointer"
-            type="button"
-            variant="outline"
-            onClick={() =>
-              appendColor({
-                name: "",
-                inStock: true,
-                sizes: [{ name: "S", inStock: true, quantity: 0 }],
-              })
-            }
-          >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Color
-          </Button>
-        </div>
-
-        <Button className="cursor-pointer" type="submit" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Product"}
-        </Button>
       </form>
     </Form>
-  );
-}
-
-// Helper component for nested sizes array
-function SizesFieldArray({
-  colorIndex,
-  control,
-}: {
-  colorIndex: number;
-  control: any;
-}) {
-  const {
-    fields: sizeFields,
-    append: appendSize,
-    remove: removeSize,
-  } = useFieldArray({
-    control,
-    name: `colors.${colorIndex}.sizes`,
-  });
-
-  return (
-    <div className="space-y-4">
-      {sizeFields.map((sizeItem, sizeIndex) => (
-        <div
-          key={sizeItem.id}
-          className="grid gap-4 md:grid-cols-[1fr_auto_auto_auto] items-start"
-        >
-          <FormField
-            control={control}
-            name={`colors.${colorIndex}.sizes.${sizeIndex}.name`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel
-                  className={cn(
-                    "cursor-pointer",
-                    sizeIndex === 0 ? "block" : "sr-only"
-                  )}
-                >
-                  Size Name
-                </FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., M, XL" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name={`colors.${colorIndex}.sizes.${sizeIndex}.quantity`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel
-                  className={cn(
-                    "cursor-pointer",
-                    sizeIndex === 0 ? "block" : "sr-only"
-                  )}
-                >
-                  Quantity
-                </FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="0" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={control}
-            name={`colors.${colorIndex}.sizes.${sizeIndex}.inStock`}
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-2 space-y-0 rounded-md border p-2 shadow">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel className="cursor-pointer">In Stock</FormLabel>
-                  <FormDescription className="sr-only">
-                    Is this size in stock?
-                  </FormDescription>
-                </div>
-              </FormItem>
-            )}
-          />
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            onClick={() => removeSize(sizeIndex)}
-            className={
-              sizeFields.length === 1
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
-            }
-            disabled={sizeFields.length === 1}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Remove size</span>
-          </Button>
-        </div>
-      ))}
-      <Button
-        className="cursor-pointer"
-        type="button"
-        variant="secondary"
-        onClick={() => appendSize({ name: "", inStock: true, quantity: 0 })}
-      >
-        <PlusCircle className="mr-2 h-4 w-4" /> Add Size
-      </Button>
-    </div>
   );
 }

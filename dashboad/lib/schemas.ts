@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+// Image validation (matches your ImageSchema)
+export const imageZ = z.object({
+  alt: z.string().min(1, "Image alt text required").trim(),
+  url: z.string().url("Invalid image URL").trim(),
+});
+
 // Zod schema for ICategory
 export const categorySchema = z.object({
   slug: z
@@ -60,6 +66,66 @@ export const productSchema = z.object({
     .length(24, { message: "Invalid category ID" })
     .regex(/^[a-fA-F0-9]{24}$/, { message: "Invalid ObjectId format" }),
 });
+
+// IProductVariant schema
+export const productVariantSchemaZ = z.object({
+  size: z.string().min(1),
+  color: z.string().min(1),
+  stock: z.number().int().min(0, "stock must be >= 0"),
+  price: z.number().nonnegative("price must be >= 0"),
+  images: z.array(z.file()).optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// IProduct schema
+export const productSchemaZ = z.object({
+  title: z.string().min(1, "title is required"),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+  description: z.string().optional(),
+
+  categories: z.array(z.string()),
+
+  images: z.array(z.file()),
+  variants: z.array(productVariantSchemaZ),
+
+  fabric: z.string().optional(),
+  valueAddition: z.string().optional(),
+  cutFit: z.string().optional(),
+  collarNeck: z.string().optional(),
+  sleeve: z.string().optional(),
+  length: z.string().optional(),
+  washCare: z.string().optional(),
+  sideCut: z.string().optional(),
+
+  isFeatured: z.boolean().optional(),
+  isActive: z.boolean().default(true),
+  tags: z.array(z.string().min(1)).optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const productUpdateZ = productSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// Types + helpers
+export type ProductCreateInput = z.infer<typeof productSchemaZ>;
+export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
+
+export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type CategoryFormValues = z.infer<typeof categorySchema>;

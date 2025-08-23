@@ -98,6 +98,7 @@ export interface IUser extends mongoose.Document {
   blockedAt: Date;
   avatar: IImage;
 
+  dob: Date;
   gender: "male" | "female";
 
   matchPassword: (password: string) => Promise<boolean>;
@@ -115,7 +116,7 @@ export interface IUser extends mongoose.Document {
 export interface ICoupon extends mongoose.Document {
   code: string;
   discountType: "percent" | "fixed";
-  amount: number;
+  value: number;
   maxDiscount: number;
   minSubtotal: number;
 

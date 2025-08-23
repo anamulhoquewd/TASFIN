@@ -22,7 +22,7 @@ export const productVariantSchemaZ = z.object({
   color: z.string().min(1),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
-  images: z.array(imageZ).optional(),
+  images: z.array(z.file()).optional(),
 });
 
 // If you want a separate update schema where fields can be optional:
@@ -44,7 +44,7 @@ export const productSchemaZ = z.object({
 
   categories: z.array(objectIdSchemaZ),
 
-  images: z.array(imageZ),
+  images: z.array(z.file()),
   variants: z.array(productVariantSchemaZ),
 
   fabric: z.string().optional(),

@@ -2,7 +2,11 @@ import api from "@/api/axios-init";
 import { ICategory } from "@/interfaces/category";
 import { IPagination } from "@/interfaces/global";
 import { IProduct } from "@/interfaces/products";
-import { ProductFormValues, productSchema } from "@/lib/schemas";
+import {
+  ProductFormValues,
+  productSchema,
+  productSchemaZ,
+} from "@/lib/schemas";
 import { defaultPagination } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -21,22 +25,33 @@ const useProducts = () => {
   const router = useRouter();
 
   const form = useForm({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(productSchemaZ),
     defaultValues: {
+      title: "",
       slug: "",
-      name: "",
-      images: [{ alt: "", url: "" }],
-      keywords: [{ value: "" }],
       description: "",
-      price: 0,
-      colors: [
+      categories: [""],
+      images: [{ alt: "", url: "" }],
+      variants: [
         {
-          name: "",
-          inStock: true,
-          sizes: [{ name: "", inStock: true, quantity: 0 }],
+          size: "",
+          color: "",
+          stock: 0,
+          price: 0,
+          images: [{ alt: "", url: "" }],
         },
       ],
-      category: "",
+      fabric: "",
+      valueAddition: "",
+      cutFit: "",
+      collarNeck: "",
+      sleeve: "",
+      length: "",
+      washCare: "",
+      sideCut: "",
+      isFeatured: false,
+      isActive: true,
+      tags: [""],
     },
     mode: "onChange",
   });
@@ -59,22 +74,7 @@ const useProducts = () => {
       toast(response.data?.message || "Product has been created.");
       setData(response.data.data);
 
-      form.reset({
-        slug: "",
-        name: "",
-        images: [{ alt: "", url: "" }],
-        keywords: [{ value: "" }],
-        description: "",
-        price: 0,
-        colors: [
-          {
-            name: "",
-            inStock: true,
-            sizes: [{ name: "", inStock: true, quantity: 0 }],
-          },
-        ],
-        category: "",
-      });
+      form.reset({});
 
       router.push("/dashboard/products");
 

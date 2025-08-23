@@ -1,12 +1,23 @@
 "use client";
 
-import { ProductForm } from "../_components/form";
+import { CreateProductForm } from "../_components/form";
 
-export default function CreateProductPage() {
+export default function Home() {
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-6">
-      <h2 className="text-2xl font-semibold mb-4">Create New Product</h2>
-      <ProductForm />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground">
+              Create Product
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Add a new product to your inventory with images and variants.
+            </p>
+          </div>
+          <CreateProductForm />
+        </div>
+      </div>
     </div>
   );
 }
