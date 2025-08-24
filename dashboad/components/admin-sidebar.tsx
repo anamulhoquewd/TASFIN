@@ -30,27 +30,27 @@ import Image from "next/image";
 const navItems = [
   {
     title: "Dashboard",
-    href: "/dashboard",
+    href: "/",
     icon: LayoutDashboard,
   },
   {
     title: "Products",
-    href: "/dashboard/products",
+    href: "/products",
     icon: ShoppingCart,
   },
   {
     title: "Categories",
-    href: "/dashboard/categories",
+    href: "/categories",
     icon: Tag,
   },
   {
     title: "Orders",
-    href: "/dashboard/orders",
+    href: "/orders",
     icon: Package,
   },
   {
     title: "Settings",
-    href: "/dashboard/settings",
+    href: "/settings",
     icon: Settings,
   },
 ];

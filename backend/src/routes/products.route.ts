@@ -8,13 +8,11 @@ productRoutes.post("/register", (c) => productController.register(c));
 
 // productRoutes.get("/", (c) => productController.getProducts(c));
 
-// productRoutes.get("/:_id", (c) => productController.getProduct(c));
+productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
-// productRoutes.patch("/:_id", authenticatedAdmin, (c) =>
-//   productController.updateProduct(c)
-// );
+productRoutes.put("/:productId", (c) => productController.updateProduct(c));
 
-// productRoutes.delete("/:_id", authenticatedAdmin, (c) =>
+// productRoutes.delete("/:productId", authenticatedAdmin, (c) =>
 //   productController.deleteProduct(c)
 // );
 

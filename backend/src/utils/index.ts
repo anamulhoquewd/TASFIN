@@ -43,7 +43,7 @@ export const uploadAvatar = async ({
       Body: buffer,
     });
 
-    // await s3.send(command);
+    await s3.send(command);
   } catch (error: any) {
     throw new Error(error.message || "Failed to upload avatar");
   }

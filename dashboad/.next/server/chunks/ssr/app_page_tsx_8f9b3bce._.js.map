@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 5, "column": 0}, "map": {"version":3,"sources":["file:///F:/SOFTWARES/Tasfin/dashboad/app/page.tsx"],"sourcesContent":["\"use client\";\nimport { useRouter } from \"next/navigation\";\n\nfunction Page() {\n  const router = useRouter();\n\n  router.push(\"/dashboard\");\n  return;\n}\n\nexport default Page;\n"],"names":[],"mappings":";;;AACA;AADA;;AAGA,SAAS;IACP,MAAM,SAAS,CAAA,GAAA,iPAAA,CAAA,YAAS,AAAD;IAEvB,OAAO,IAAI,CAAC;IACZ;AACF;uCAEe","debugId":null}}]
+}
