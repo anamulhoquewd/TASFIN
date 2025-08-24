@@ -1,7 +1,0 @@
-{
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/products/create/page": "app/dashboard/products/create/page.js",
-  "/dashboard/products/page": "app/dashboard/products/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/page": "app/page.js"
-}

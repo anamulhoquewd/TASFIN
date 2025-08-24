@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/components/tiptap-node/image-node/F:/SOFTWARES/Tasfin/dashboad/components/tiptap-node/image-node/image-node.scss"],"sourcesContent":[".tiptap.ProseMirror {\n  img {\n    max-width: 100%;\n    height: auto;\n    display: block;\n  }\n\n  > img:not([data-type=\"emoji\"] img) {\n    margin: 2rem 0;\n    outline: 0.125rem solid transparent;\n    border-radius: var(--tt-radius-xs, 0.25rem);\n  }\n\n  img:not([data-type=\"emoji\"] img).ProseMirror-selectednode {\n    outline-color: var(--tt-brand-color-500);\n  }\n\n  // Thread image handling\n  .tiptap-thread:has(> img) {\n    margin: 2rem 0;\n\n    img {\n      outline: 0.125rem solid transparent;\n      border-radius: var(--tt-radius-xs, 0.25rem);\n    }\n  }\n\n  .tiptap-thread img {\n    margin: 0;\n  }\n}\n"],"names":[],"mappings":"AACE;;;;;;AAMA;;;;;;AAMA;;;;AAKA;;;;AAGE;;;;;AAMF"}}]
-}
