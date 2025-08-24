@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/components/tiptap-ui-primitive/input/F:/SOFTWARES/Tasfin/dashboad/components/tiptap-ui-primitive/input/input.scss"],"sourcesContent":[":root {\n  --tiptap-input-placeholder: var(--tt-gray-light-a-400);\n}\n\n.dark {\n  --tiptap-input-placeholder: var(--tt-gray-dark-a-400);\n}\n\n.tiptap-input {\n  display: block;\n  width: 100%;\n  height: 2rem;\n  font-size: 0.875rem;\n  font-weight: 400;\n  line-height: 1.5;\n  padding: 0.375rem 0.5rem;\n  border-radius: 0.375rem;\n  background: none;\n  appearance: none;\n  outline: none;\n\n  &::placeholder {\n    color: var(--tiptap-input-placeholder);\n  }\n}\n\n.tiptap-input-clamp {\n  min-width: 12rem;\n  padding-right: 0;\n\n  text-overflow: ellipsis;\n  white-space: nowrap;\n\n  &:focus {\n    text-overflow: clip;\n    overflow: visible;\n  }\n}\n\n.tiptap-input-group {\n  position: relative;\n  display: flex;\n  flex-wrap: wrap;\n  align-items: stretch;\n}\n"],"names":[],"mappings":"AAAA;;;;AAIA;;;;AAIA;;;;;;;;;;;;;;;;AAaE;;;;AAKF;;;;;;;AAOE;;;;;AAMF"}}]
+}

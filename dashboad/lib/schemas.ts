@@ -91,7 +91,12 @@ export const productSchemaZ = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().optional(),
+  description: z
+    .object({
+      html: z.string().optional(),
+      json: z.any().optional(),
+    })
+    .optional(),
 
   categories: z.array(z.string()).nonempty("At least 1 category is required"),
 

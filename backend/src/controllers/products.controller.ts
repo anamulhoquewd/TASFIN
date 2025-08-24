@@ -25,7 +25,6 @@ export const register = async (c: Context) => {
   // Extract all fields from form data
   const title = formData.get("title") as string;
   const slug = formData.get("slug") as string;
-  const description = formData.get("description") as string;
   const fabric = formData.get("fabric") as string;
   const valueAddition = formData.get("valueAddition") as string;
   const cutFit = formData.get("cutFit") as string;
@@ -40,6 +39,9 @@ export const register = async (c: Context) => {
   // Parse array fields
   const categories = JSON.parse(formData.get("categories") as string);
   const tags = JSON.parse(formData.get("tags") as string);
+
+  // Parse description
+  const description = JSON.parse(formData.get("description") as string);
 
   // Get main images
   const images = formData.getAll("images") as File[];

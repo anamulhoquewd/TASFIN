@@ -1,0 +1,88 @@
+/* [project]/components/tiptap-ui-primitive/badge/badge.scss.css [app-client] (css) */
+.tiptap-badge {
+  font-feature-settings: "salt" on, "cv01" on;
+  border-radius: var(--tt-radius-sm, .375rem);
+  min-width: 1.25rem;
+  height: 1.25rem;
+  transition-property: background, color, opacity;
+  transition-duration: var(--tt-transition-duration-default);
+  transition-timing-function: var(--tt-transition-easing-default);
+  border: 1px solid;
+  justify-content: center;
+  align-items: center;
+  padding: .25rem;
+  font-size: .625rem;
+  font-weight: 700;
+  line-height: 1.15;
+  display: flex;
+}
+
+.tiptap-badge[data-size="large"] {
+  border-radius: var(--tt-radius-md, .375rem);
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: .375rem;
+  font-size: .75rem;
+}
+
+.tiptap-badge[data-size="small"] {
+  border-radius: var(--tt-radius-xs, .25rem);
+  min-width: 1rem;
+  height: 1rem;
+  padding: .125rem;
+}
+
+.tiptap-badge .tiptap-badge-text {
+  text-align: left;
+  flex-grow: 1;
+  padding: 0 .125rem;
+}
+
+.tiptap-badge[data-text-trim="on"] .tiptap-badge-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.tiptap-badge .tiptap-badge-icon {
+  pointer-events: none;
+  flex-shrink: 0;
+  width: .625rem;
+  height: .625rem;
+}
+
+.tiptap-badge[data-size="large"] .tiptap-badge-icon {
+  width: .75rem;
+  height: .75rem;
+}
+
+.tiptap-badge {
+  background-color: var(--tt-badge-bg-color);
+  border-color: var(--tt-badge-border-color);
+  color: var(--tt-badge-text-color);
+}
+
+.tiptap-badge .tiptap-badge-icon {
+  color: var(--tt-badge-icon-color);
+}
+
+.tiptap-badge[data-appearance="emphasized"] {
+  background-color: var(--tt-badge-bg-color-emphasized);
+  border-color: var(--tt-badge-border-color-emphasized);
+  color: var(--tt-badge-text-color-emphasized);
+}
+
+.tiptap-badge[data-appearance="emphasized"] .tiptap-badge-icon {
+  color: var(--tt-badge-icon-color-emphasized);
+}
+
+.tiptap-badge[data-appearance="subdued"] {
+  background-color: var(--tt-badge-bg-color-subdued);
+  border-color: var(--tt-badge-border-color-subdued);
+  color: var(--tt-badge-text-color-subdued);
+}
+
+.tiptap-badge[data-appearance="subdued"] .tiptap-badge-icon {
+  color: var(--tt-badge-icon-color-subdued);
+}
+
+/*# sourceMappingURL=components_tiptap-ui-primitive_badge_badge_scss_css_e59ae46c._.single.css.map*/

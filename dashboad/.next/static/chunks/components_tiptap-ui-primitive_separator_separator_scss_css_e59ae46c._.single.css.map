@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/components/tiptap-ui-primitive/separator/F:/SOFTWARES/Tasfin/dashboad/components/tiptap-ui-primitive/separator/separator.scss"],"sourcesContent":[".tiptap-separator {\n  --tt-link-border-color: var(--tt-gray-light-a-200);\n\n  .dark & {\n    --tt-link-border-color: var(--tt-gray-dark-a-200);\n  }\n}\n\n.tiptap-separator {\n  flex-shrink: 0;\n  background-color: var(--tt-link-border-color);\n\n  &[data-orientation=\"horizontal\"] {\n    height: 1px;\n    width: 100%;\n    margin: 0.5rem 0;\n  }\n\n  &[data-orientation=\"vertical\"] {\n    height: 1.5rem;\n    width: 1px;\n  }\n}\n"],"names":[],"mappings":"AAAA;;;;AAGE;;;;AAKF;;;;;AAIE;;;;;;AAMA"}}]
+}

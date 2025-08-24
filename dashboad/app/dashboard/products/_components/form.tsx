@@ -32,7 +32,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
@@ -47,6 +46,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 const CATEGORIES = [
   { id: "507f1f77bcf86cd799439011", name: "T-Shirts" },
@@ -63,7 +63,6 @@ const CATEGORIES = [
 
 export function CreateProductForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [variantImagePreviews, setVariantImagePreviews] = useState<{
     [key: number]: string[];
@@ -74,7 +73,10 @@ export function CreateProductForm() {
     defaultValues: {
       title: "",
       slug: "",
-      description: "",
+      description: {
+        json: "",
+        html: "",
+      },
       categories: [],
       images: [],
       variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
@@ -119,37 +121,7 @@ export function CreateProductForm() {
     }
   };
 
-  // Handle image upload
-  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const files = Array.from(event.target.files || []);
-  //   if (files.length === 0) return;
-
-  //   // Validate file types
-  //   const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  //   const invalidFiles = files.filter(
-  //     (file) => !validTypes.includes(file.type)
-  //   );
-
-  //   if (invalidFiles.length > 0) {
-  //     toast.error("Invalid file type", {
-  //       description: "Please upload only JPEG, PNG, or WebP images.",
-  //     });
-  //     return;
-  //   }
-
-  //   const currentImages = form.getValues("images") || [];
-  //   form.setValue("images", [...currentImages, ...files]);
-
-  //   // Create previews
-  //   files.forEach((file) => {
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       setImagePreviews((prev) => [...prev, e.target?.result as string]);
-  //     };
-  //     reader.readAsDataURL(file);
-  //   });
-  // };
-
+  // Handle variant image upload
   const handleVariantImageUpload = (
     variantIndex: number,
     event: React.ChangeEvent<HTMLInputElement>
@@ -196,16 +168,6 @@ export function CreateProductForm() {
     });
   };
 
-  // Remove image
-  // const removeImage = (index: number) => {
-  //   setImagePreviews((prev) => prev.filter((_, i) => i !== index));
-  //   const currentImages = form.getValues("images") || [];
-  //   form.setValue(
-  //     "images",
-  //     currentImages.filter((_, i) => i !== index)
-  //   );
-  // };
-
   const removeVariantImage = (variantIndex: number, imageIndex: number) => {
     const currentImages =
       form.getValues(`variants.${variantIndex}.images`) || [];
@@ -228,7 +190,12 @@ export function CreateProductForm() {
       // Append simple fields
       formData.append("title", data.title);
       formData.append("slug", data.slug);
-      formData.append("description", data.description ?? "");
+      formData.append(
+        "description",
+        typeof data.description === "string"
+          ? data.description
+          : JSON.stringify(data.description ?? {})
+      );
       formData.append("fabric", data.fabric ?? "");
       formData.append("valueAddition", data.valueAddition ?? "");
       formData.append("cutFit", data.cutFit ?? "");
@@ -286,7 +253,7 @@ export function CreateProductForm() {
       form.reset({
         title: "",
         slug: "",
-        description: "",
+        description: { html: "", json: "" },
         fabric: "",
         valueAddition: "",
         cutFit: "",
@@ -364,17 +331,30 @@ export function CreateProductForm() {
               />
             </div>
 
+            {/* Product Description */}
             <FormField
               control={form.control}
-              name="description"
+              name="description.json"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter product description"
-                      className="min-h-[100px]"
-                      {...field}
+                    <RichTextEditor
+                      value={{
+                        html:
+                          typeof field.value?.html === "string"
+                            ? field.value.html
+                            : "",
+                        json: field.value?.json ?? null,
+                      }}
+                      // onChange={field.onChange}
+                      onChange={(val) => {
+                        field.onChange({
+                          html: val.html,
+                          json: val.json,
+                        });
+                      }}
+                      placeholder="Write a detailed product description..."
                     />
                   </FormControl>
                   <FormMessage />

@@ -15,60 +15,6 @@ import {
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import z from "zod";
 
-// export const register = async (body: ProductCreateInput) => {
-//   // Safe Parse for better error handling
-//   const validData = productSchemaZ.safeParse(body);
-
-//   if (!validData.success) {
-//     return {
-//       error: schemaValidationError(validData.error, "Invalid request body!"),
-//     };
-//   }
-
-//   try {
-//     // Check if category already exists
-//     const existingProduct = await Product.findOne({
-//       slug: validData.data.slug,
-//     });
-
-//     if (existingProduct) {
-//       return {
-//         error: {
-//           message: "Sorry! This product already exists.",
-//           fields: [
-//             {
-//               name: "slug",
-//               message: "Slug must be unique",
-//             },
-//           ],
-//         },
-//       };
-//     }
-
-//     // Create product
-//     const product = new Product(validData.data);
-
-//     // Save product
-//     const docs = await product.save();
-
-//     return {
-//       success: {
-//         success: true,
-//         message: "Prodcut created successfully",
-//         data: docs,
-//       },
-//     };
-//   } catch (error: any) {
-//     return {
-//       serverError: {
-//         success: false,
-//         message: error.message,
-//         stack: process.env.NODE_ENV === "production" ? null : error.stack,
-//       },
-//     };
-//   }
-// };
-
 export const getProducts = async (queryParams: {
   page: number;
   limit: number;
@@ -477,6 +423,7 @@ export const register = async ({
 
   // Step 1: validate fields (skip file validation here)
   const validData = productSchemaZ.safeParse(body);
+  console.log("Valid data:", validData);
 
   if (!validData.success) {
     return {

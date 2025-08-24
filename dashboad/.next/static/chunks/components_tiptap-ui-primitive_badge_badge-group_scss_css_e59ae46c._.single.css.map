@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/components/tiptap-ui-primitive/badge/F:/SOFTWARES/Tasfin/dashboad/components/tiptap-ui-primitive/badge/badge-group.scss"],"sourcesContent":[".tiptap-badge-group {\n  align-items: center;\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0.25rem;\n}\n\n.tiptap-badge-group {\n  [data-orientation=\"vertical\"] {\n    flex-direction: column;\n  }\n\n  [data-orientation=\"horizontal\"] {\n    flex-direction: row;\n  }\n}\n"],"names":[],"mappings":"AAAA;;;;;;;AAQE;;;;AAIA"}}]
+}

@@ -15,7 +15,10 @@ const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true, unique: true },
-    description: { type: String },
+    description: {
+      html: { type: String, required: false },
+      json: { type: Object, required: false },
+    },
     categories: [
       {
         type: mongoose.Schema.Types.ObjectId,

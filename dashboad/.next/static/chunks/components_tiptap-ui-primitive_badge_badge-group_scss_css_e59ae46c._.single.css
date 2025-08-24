@@ -1,0 +1,17 @@
+/* [project]/components/tiptap-ui-primitive/badge/badge-group.scss.css [app-client] (css) */
+.tiptap-badge-group {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem;
+  display: flex;
+}
+
+.tiptap-badge-group [data-orientation="vertical"] {
+  flex-direction: column;
+}
+
+.tiptap-badge-group [data-orientation="horizontal"] {
+  flex-direction: row;
+}
+
+/*# sourceMappingURL=components_tiptap-ui-primitive_badge_badge-group_scss_css_e59ae46c._.single.css.map*/

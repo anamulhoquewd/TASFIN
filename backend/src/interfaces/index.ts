@@ -18,7 +18,10 @@ export interface IProduct extends mongoose.Document {
   _id: string;
   title: string;
   slug: string;
-  description?: string;
+  description: {
+    html: { type: string };
+    json: { type: object };
+  };
   categories: mongoose.Types.ObjectId[];
 
   images: IImage[];

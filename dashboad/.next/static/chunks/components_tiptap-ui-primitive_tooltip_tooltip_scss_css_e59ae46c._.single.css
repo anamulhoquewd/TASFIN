@@ -1,0 +1,36 @@
+/* [project]/components/tiptap-ui-primitive/tooltip/tooltip.scss.css [app-client] (css) */
+.tiptap-tooltip {
+  --tt-tooltip-bg: var(--tt-gray-light-900);
+  --tt-tooltip-text: var(--white);
+  --tt-kbd: var(--tt-gray-dark-a-400);
+}
+
+.dark .tiptap-tooltip {
+  --tt-tooltip-bg: var(--white);
+  --tt-tooltip-text: var(--tt-gray-light-600);
+  --tt-kbd: var(--tt-gray-light-a-400);
+}
+
+.tiptap-tooltip {
+  z-index: 200;
+  border-radius: var(--tt-radius-md, .375rem);
+  background-color: var(--tt-tooltip-bg);
+  color: var(--tt-tooltip-text);
+  text-align: center;
+  padding: .375rem .5rem;
+  font-size: .75rem;
+  font-weight: 500;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, .1);
+}
+
+.tiptap-tooltip kbd {
+  text-align: center;
+  vertical-align: baseline;
+  text-transform: capitalize;
+  color: var(--tt-kbd);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, sans-serif;
+  display: inline-block;
+}
+
+/*# sourceMappingURL=components_tiptap-ui-primitive_tooltip_tooltip_scss_css_e59ae46c._.single.css.map*/
