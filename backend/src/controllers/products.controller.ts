@@ -240,35 +240,36 @@ export const getProduct = async (c: Context) => {
 
 //   return c.json(response.success, 200);
 // };
+
 // // Get all products
-// export const getProducts = async (c: Context) => {
-//   const page = parseInt(c.req.query("page") as string, 10) || 1;
-//   const limit = parseInt(c.req.query("limit") as string, 10) || 10;
-//   const sortBy = c.req.query("sortBy") as string;
-//   const sortType = c.req.query("sortType") as string;
-//   const search = c.req.query("search") as string;
-//   const isFeatured = c.req.query("isFeatured") as string;
-//   const isActive = c.req.query("isActive") as string;
+export const getProducts = async (c: Context) => {
+  const page = parseInt(c.req.query("page") as string, 10) || 1;
+  const limit = parseInt(c.req.query("limit") as string, 10) || 10;
+  const sortBy = c.req.query("sortBy") as string;
+  const sortType = c.req.query("sortType") as string;
+  const search = c.req.query("search") as string;
+  const isFeatured = c.req.query("isFeatured") as string;
+  const isActive = c.req.query("isActive") as string;
 
-//   const response = await productService.getProducts({
-//     page,
-//     limit,
-//     sortBy,
-//     sortType,
+  const response = await productService.getProducts({
+    page,
+    limit,
+    sortBy,
+    sortType,
 
-//     search,
+    search,
 
-//     isFeatured,
-//     isActive,
-//   });
+    isFeatured,
+    isActive,
+  });
 
-//   if (response.error) {
-//     return badRequestHandler(c, response.error);
-//   }
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
 
-//   if (response.serverError) {
-//     return serverErrorHandler(c, response.serverError);
-//   }
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
 
-//   return c.json(response.success, 200);
-// };
+  return c.json(response.success, 200);
+};

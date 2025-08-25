@@ -51,7 +51,6 @@ export interface ICategory extends mongoose.Document {
   slug: string;
   description?: string;
   image?: IImage;
-  isFeatured?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

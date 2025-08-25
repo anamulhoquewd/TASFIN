@@ -6,7 +6,7 @@ const productRoutes = new Hono();
 
 productRoutes.post("/register", (c) => productController.register(c));
 
-// productRoutes.get("/", (c) => productController.getProducts(c));
+productRoutes.get("/", (c) => productController.getProducts(c));
 
 productRoutes.get("/:productId", (c) => productController.getProduct(c));
 

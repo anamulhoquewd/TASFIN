@@ -1,9 +1,0 @@
-const CHUNK_PUBLIC_PATH = "server/pages/_error.js";
-const runtime = require("../chunks/ssr/[turbopack]_runtime.js");
-runtime.loadChunk("server/chunks/ssr/node_modules__pnpm_cbe853d2._.js");
-runtime.loadChunk("server/chunks/ssr/[root-of-the-server]__c75c51b7._.js");
-runtime.loadChunk("server/chunks/ssr/c323b_next_13b48d2d._.js");
-runtime.loadChunk("server/chunks/ssr/node_modules__pnpm_6e425d4b._.js");
-runtime.loadChunk("server/chunks/ssr/[externals]_next_dist_shared_lib_no-fallback-error_external_d7a8835d.js");
-runtime.getOrInstantiateRuntimeModule("[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/error.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)", CHUNK_PUBLIC_PATH);
-module.exports = runtime.getOrInstantiateRuntimeModule("[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/dist/esm/build/templates/pages.js { INNER_PAGE => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/error.js [ssr] (ecmascript)\", INNER_DOCUMENT => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/document.js [ssr] (ecmascript)\", INNER_APP => \"[project]/node_modules/.pnpm/next@15.4.5_react-dom@19.1._ef4523c3cd30f1376607630843a96a70/node_modules/next/app.js [ssr] (ecmascript)\" } [ssr] (ecmascript)", CHUNK_PUBLIC_PATH).exports;

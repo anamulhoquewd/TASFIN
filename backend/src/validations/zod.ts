@@ -247,7 +247,6 @@ export const categoryCreateZ = z.object({
     ),
   description: z.string().trim().optional().nullable(),
   image: imageZ.optional().nullable(),
-  isFeatured: z.boolean().optional().default(false),
 });
 
 // If you want a separate update schema where fields can be optional:
