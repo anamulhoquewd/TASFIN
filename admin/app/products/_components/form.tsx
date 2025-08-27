@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import useCategory from "@/app/categories/_hook/useCategory";
+import { toast } from "sonner";
 
 export function CreateProductForm({
   form,
@@ -112,7 +113,7 @@ export function CreateProductForm({
                 {/* Product Description */}
                 <FormField
                   control={form.control}
-                  name="description.json"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Description</FormLabel>
@@ -125,7 +126,6 @@ export function CreateProductForm({
                                 : "",
                             json: field.value?.json ?? null,
                           }}
-                          // onChange={field.onChange}
                           onChange={(val) => {
                             field.onChange({
                               html: val.html,
@@ -183,6 +183,21 @@ export function CreateProductForm({
                                         f.lastModified === file.lastModified
                                     )
                                 );
+
+                                if (
+                                  filtered.length === 0 &&
+                                  newFiles.length > 0
+                                ) {
+                                  toast.warning("Duplicate images ignored", {
+                                    description:
+                                      "You tried to upload images that already exist.",
+                                  });
+                                } else if (filtered.length < newFiles.length) {
+                                  toast.warning("Some duplicates ignored", {
+                                    description:
+                                      "Only new images have been added.",
+                                  });
+                                }
 
                                 field.onChange([...existing, ...filtered]);
                               }}

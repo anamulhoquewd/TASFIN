@@ -7,24 +7,20 @@ example
 # Node.js dependencies
 # ----------------------
 backend/node_modules/
-dashboard/node_modules/
+admin/node_modules/
 node_modules/
 
 # ----------------------
 # Build outputs
 # ----------------------
 backend/dist/
-dashboard/dist/
+admin/dist/
 
 backend/build/
-dashboard/build/
+admin/build/
 
 backend/.next/
-dashboard/.next/
-
-out/
-coverage/
-*.tsbuildinfo
+admin/.next/
 
 # ----------------------
 # Environment files
@@ -36,7 +32,7 @@ coverage/
 .env.production.local
 
 backend/.env
-dashboard/.env
+admin/.env
 
 # ----------------------
 # Logs

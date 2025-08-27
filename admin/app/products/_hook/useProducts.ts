@@ -36,10 +36,7 @@ function useProducts() {
     defaultValues: product ?? {
       title: "",
       slug: "",
-      description: {
-        json: "",
-        html: "",
-      },
+      description: "",
       categories: [],
       images: [],
       variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
@@ -103,16 +100,31 @@ function useProducts() {
 
     // Get current variant images
     const currentVariant = form.getValues(`variants.${variantIndex}`);
-    const currentImages = currentVariant.images || [];
+    const currentImages: File[] = currentVariant.images || [];
+
+    // Filter duplicates (check by name + size)
+    const newFiles = files.filter(
+      (file) =>
+        !currentImages.some(
+          (img: File) => img.name === file.name && img.size === file.size
+        )
+    );
+
+    if (newFiles.length === 0) {
+      toast.warning("Duplicate images ignored", {
+        description: "You tried to upload images that already exist.",
+      });
+      return;
+    }
 
     // Add new images to variant
     form.setValue(`variants.${variantIndex}.images`, [
       ...currentImages,
-      ...files,
+      ...newFiles,
     ]);
 
     // Create previews for variant images
-    files.forEach((file) => {
+    newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         setVariantImagePreviews((prev) => ({
@@ -254,7 +266,7 @@ function useProducts() {
       form.reset({
         title: "",
         slug: "",
-        description: { html: "", json: "" },
+        description: "",
         fabric: "",
         valueAddition: "",
         cutFit: "",
@@ -370,7 +382,7 @@ function useProducts() {
       form.reset({
         title: "",
         slug: "",
-        description: { html: "", json: "" },
+        description: "",
         fabric: "",
         valueAddition: "",
         cutFit: "",
