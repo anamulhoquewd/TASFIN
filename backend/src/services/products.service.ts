@@ -400,8 +400,7 @@ export const getProducts = async (queryParams: {
     };
   }
 
-  const { page, limit, sortBy, sortType, search, isFeatured, isActive } =
-    validData.data;
+  const { sortBy, search, isFeatured, isActive } = validData.data;
 
   try {
     // Build query

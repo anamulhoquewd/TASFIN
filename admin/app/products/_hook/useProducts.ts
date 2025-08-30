@@ -22,7 +22,7 @@ function useProducts() {
     [key: number]: string[];
   }>({});
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    "68aaed1a67e613efcaefdce9"
+    null
   );
   const [product, setProduct] = useState<ProductCreateInput | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -30,6 +30,8 @@ function useProducts() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [featuredFilter, setFeaturedFilter] = useState("all");
 
   const form = useForm({
     resolver: zodResolver(productSchemaZ),
@@ -157,10 +159,14 @@ function useProducts() {
     searchQuery,
     page = 1,
     categoryFilter,
+    isActive,
+    isFeatured,
   }: {
     searchQuery: string;
     page: number;
     categoryFilter: string;
+    isActive: boolean | undefined;
+    isFeatured: boolean | undefined;
   }) => {
     try {
       const response = await axios.get(
@@ -169,6 +175,8 @@ function useProducts() {
           params: {
             search: searchQuery,
             page,
+            ...(isActive !== undefined && { isActive }),
+            ...(isFeatured !== undefined && { isFeatured }),
             ...(categoryFilter !== "all" && {
               category: categoryFilter,
             }),
@@ -425,7 +433,13 @@ function useProducts() {
       }
 
       toast(response.data.message || "Product deleted successfully!");
-      getProducts({ page: pagination.page, searchQuery, categoryFilter });
+      getProducts({
+        page: pagination.page,
+        searchQuery,
+        categoryFilter,
+        isActive,
+        isFeatured,
+      });
     } catch (error: any) {
       console.log(error);
 
@@ -454,6 +468,19 @@ function useProducts() {
     return null;
   };
 
+  // mapping helper
+  const mapStatusToBoolean = (status: string): boolean | undefined => {
+    if (status === "active") return true;
+    if (status === "inactive") return false;
+    return undefined; // "all"
+  };
+
+  const mapFeaturedToBoolean = (featured: string): boolean | undefined => {
+    if (featured === "featured") return true;
+    if (featured === "not-featured") return false;
+    return undefined; // "all"
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(search);
@@ -466,8 +493,20 @@ function useProducts() {
   }, [search]);
 
   useEffect(() => {
-    getProducts({ page: pagination.page, searchQuery, categoryFilter });
-  }, [pagination.page, searchQuery, categoryFilter]);
+    getProducts({
+      page: pagination.page,
+      searchQuery,
+      categoryFilter,
+      isActive: mapStatusToBoolean(statusFilter),
+      isFeatured: mapFeaturedToBoolean(featuredFilter),
+    });
+  }, [
+    pagination.page,
+    searchQuery,
+    categoryFilter,
+    statusFilter,
+    featuredFilter,
+  ]);
 
   useEffect(() => {
     getProductById(selectedProductId ?? "");
@@ -501,6 +540,10 @@ function useProducts() {
     handleDelete,
     selectedItem,
     setSelectedItem,
+    statusFilter,
+    setStatusFilter,
+    featuredFilter,
+    setFeaturedFilter,
   };
 }
 

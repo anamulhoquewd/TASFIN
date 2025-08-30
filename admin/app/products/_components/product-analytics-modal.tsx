@@ -32,24 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip as RechartsTooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
   X,
   RefreshCw,
   Download,
@@ -60,40 +42,18 @@ import {
   TrendingDown,
   MoreHorizontal,
   Calendar,
-  Eye,
   ShoppingCart,
   DollarSign,
   Package,
   Users,
   AlertTriangle,
-  LocationEdit,
   MapPin,
-  Calendar1,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { IProduct } from "@/interfaces/products";
 
 // Types
-interface Product {
-  _id: string;
-  title: string;
-  slug: string;
-  categories: string[];
-  tags: string[];
-  images: Array<{ alt: string; url: string }>;
-  variants: Array<{
-    _id?: string;
-    size: string;
-    color: string;
-    price: number;
-    stock: number;
-  }>;
-  isActive: boolean;
-  isFeatured: boolean;
-  fabric?: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface Analytics {
   period: { from: string; to: string; preset: "7d" | "30d" | "90d" | "custom" };
@@ -145,7 +105,7 @@ interface Analytics {
 }
 
 // Mock analytics data generator
-const generateMockAnalytics = (product: Product): Analytics => {
+const generateMockAnalytics = (product: IProduct): Analytics => {
   const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
   const avgPrice =
     product.variants.reduce((acc, v) => acc + v.price, 0) /
@@ -191,9 +151,9 @@ const generateMockAnalytics = (product: Product): Analytics => {
       },
     ],
     inventory: {
-      totalStock,
-      lowStock: Math.floor(totalStock * 0.2),
-      outOfStock: Math.floor(Math.random() * 3),
+      totalStock: product.variants.reduce((acc, v) => acc + v.stock, 0),
+      lowStock: product.variants.filter((v) => v.stock < 10).length,
+      outOfStock: product.variants.filter((v) => v.stock === 0).length,
     },
     priceHistory: Array.from({ length: 30 }, (_, i) => ({
       date: `2024-12-${i + 1}`,
@@ -241,9 +201,16 @@ interface KPICardProps {
   value: string;
   trend?: number;
   icon: React.ReactNode;
+  description?: string;
 }
 
-export function KPICard({ title, value, trend, icon }: KPICardProps) {
+export function KPICard({
+  title,
+  value,
+  trend,
+  icon,
+  description,
+}: KPICardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -254,6 +221,9 @@ export function KPICard({ title, value, trend, icon }: KPICardProps) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
+        {description && (
+          <div className="text-sm text-muted-foreground">{description}</div>
+        )}
         {trend !== undefined && (
           <div className="flex items-center text-xs text-muted-foreground">
             {trend > 0 ? (
@@ -274,7 +244,7 @@ export function KPICard({ title, value, trend, icon }: KPICardProps) {
 
 // Main Modal Component
 interface ProductAnalyticsModalProps {
-  product: Product | null;
+  product: IProduct | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -286,7 +256,6 @@ export function ProductAnalyticsModal({
 }: ProductAnalyticsModalProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [period, setPeriod] = useState<"7d" | "30d" | "90d" | "custom">("7d");
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
   // Generate analytics data when product changes
@@ -455,7 +424,7 @@ export function ProductAnalyticsModal({
               {/* KPI Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
-                  title="Total Sales"
+                  title="Total Sales - Mock"
                   value={formatCurrency(analytics.kpis.revenue)}
                   trend={Math.random() * 20 - 10}
                   icon={
@@ -463,7 +432,7 @@ export function ProductAnalyticsModal({
                   }
                 />
                 <KPICard
-                  title="Total Orders"
+                  title="Total Orders - Mock"
                   value={analytics.kpis.orders.toString()}
                   trend={Math.random() * 15 - 5}
                   icon={
@@ -471,7 +440,7 @@ export function ProductAnalyticsModal({
                   }
                 />
                 <KPICard
-                  title="Total Units Sold"
+                  title="Total Units Sold - Mock"
                   value={analytics.kpis.unitsSold.toString()}
                   trend={Math.random() * 25 - 10}
                   icon={<Package className="h-4 w-4 text-muted-foreground" />}
@@ -487,7 +456,7 @@ export function ProductAnalyticsModal({
                   <CardContent className="space-y-4">
                     <div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span>Total Stock</span>
+                        <span>Total Stock - Mock</span>
                         <span>{analytics.inventory.totalStock}</span>
                       </div>
                       <Progress value={100} className="h-2" />
@@ -545,6 +514,7 @@ export function ProductAnalyticsModal({
                     )}
                   </CardContent>
                 </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Product Details</CardTitle>
@@ -553,6 +523,8 @@ export function ProductAnalyticsModal({
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>Color</TableHead>
+                          <TableHead>Size</TableHead>
                           <TableHead>Fabric</TableHead>
                           <TableHead>Sleeve</TableHead>
                           <TableHead>Collar/Neck</TableHead>
@@ -562,34 +534,31 @@ export function ProductAnalyticsModal({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {analytics.variantPerformance.map((variant) => (
-                          <TableRow key={variant.variantId}>
+                        {product.variants.map((variant) => (
+                          <TableRow key={variant._id}>
                             <TableCell className="font-medium">
-                              {variant.variantName}
+                              {variant.color}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {formatCurrency(
-                                product.variants.find(
-                                  (v) => v._id === variant.variantId
-                                )?.price || 0
-                              )}
+                              {variant.size}
                             </TableCell>
-                            <TableCell>
-                              <span
-                                className={
-                                  variant.stock < 10
-                                    ? "text-red-600"
-                                    : variant.stock < 20
-                                    ? "text-yellow-600"
-                                    : "text-green-600"
-                                }
-                              >
-                                {variant.stock}
-                              </span>
+                            <TableCell className="font-medium">
+                              {product.fabric}
                             </TableCell>
-                            <TableCell>{variant.unitsSold}</TableCell>
-                            <TableCell>
-                              {formatCurrency(variant.revenue)}
+                            <TableCell className="font-medium">
+                              {product.sleeve}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.collarNeck}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.cutFit}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.valueAddition}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.washCare}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -619,20 +588,20 @@ export function ProductAnalyticsModal({
                             <TableHead>Variants</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Stock</TableHead>
-                            <TableHead>Units Sold</TableHead>
-                            <TableHead>Revenue</TableHead>
+                            <TableHead>Units Sold - Mock</TableHead>
+                            <TableHead>Revenue - Mock</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {analytics.variantPerformance.map((variant) => (
-                            <TableRow key={variant.variantId}>
+                          {product.variants.map((variant) => (
+                            <TableRow key={variant._id}>
                               <TableCell className="font-medium">
-                                {variant.variantName}
+                                {variant.color + " - " + variant.size}
                               </TableCell>
                               <TableCell className="font-medium">
                                 {formatCurrency(
                                   product.variants.find(
-                                    (v) => v._id === variant.variantId
+                                    (v) => v._id === variant._id
                                   )?.price || 0
                                 )}
                               </TableCell>
@@ -649,10 +618,8 @@ export function ProductAnalyticsModal({
                                   {variant.stock}
                                 </span>
                               </TableCell>
-                              <TableCell>{variant.unitsSold}</TableCell>
-                              <TableCell>
-                                {formatCurrency(variant.revenue)}
-                              </TableCell>
+                              <TableCell>{20}</TableCell>
+                              <TableCell>{formatCurrency(20)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>
@@ -664,7 +631,7 @@ export function ProductAnalyticsModal({
                 <TabsContent value="orders">
                   <Card>
                     <CardHeader>
-                      <CardTitle>সাম্প্রতিক অর্ডার</CardTitle>
+                      <CardTitle>সাম্প্রতিক অর্ডার - Mock</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Table>
@@ -716,7 +683,7 @@ export function ProductAnalyticsModal({
                 <TabsContent value="customers">
                   <Card>
                     <CardHeader>
-                      <CardTitle>টপ কাস্টমার</CardTitle>
+                      <CardTitle>টপ কাস্টমার - Mock</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">

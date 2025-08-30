@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -35,151 +36,59 @@ import {
   Star,
   Package,
   DollarSign,
+  ExternalLink,
 } from "lucide-react";
 import {
   KPICard,
   ProductAnalyticsModal,
   useProductAnalyticsModal,
 } from "./product-analytics-modal";
-
-// Mock data based on the product structure provided
-const mockProducts = [
-  {
-    _id: "68acae001c4532f20c4df987",
-    title: "Product number three",
-    slug: "product-number-three",
-    categories: ["68ac39357df68464d1e8dd10", "68ac38cc7df68464d1e8dcfc"],
-    tags: ["one", "two"],
-    images: [
-      {
-        alt: "Product number three",
-        url: "https://tasfin-shop.s3.eu-north-1.amazonaws.com/tasfin/products/root/1756147176328-root-0-image (1).png",
-      },
-    ],
-    variants: [
-      {
-        _id: "68acae001c4532f20c4df988",
-        size: "S",
-        color: "Orange",
-        price: 4500,
-        stock: 35,
-      },
-      {
-        size: "S",
-        color: "Sky",
-        price: 4200,
-        stock: 34,
-      },
-    ],
-    isActive: true,
-    isFeatured: true,
-    fabric: "Cotton",
-    createdAt: "2025-08-25T18:40:00.541Z",
-    updatedAt: "2025-08-25T18:40:00.541Z",
-  },
-  // Add more mock products for demonstration
-  {
-    _id: "68acae001c4532f20c4df988",
-    title: "Summer Collection Shirt",
-    slug: "summer-collection-shirt",
-    categories: ["68ac39357df68464d1e8dd10"],
-    tags: ["summer", "casual"],
-    images: [
-      {
-        alt: "Summer shirt",
-        url: "/summer-shirt.png",
-      },
-    ],
-    variants: [
-      {
-        _id: "68acae001c4532f20c4df989",
-        size: "M",
-        color: "Blue",
-        price: 3500,
-        stock: 20,
-      },
-      {
-        size: "L",
-        color: "White",
-        price: 3500,
-        stock: 15,
-      },
-    ],
-    isActive: true,
-    isFeatured: false,
-    fabric: "Linen",
-    createdAt: "2025-08-24T10:30:00.541Z",
-    updatedAt: "2025-08-24T10:30:00.541Z",
-  },
-];
+import useProducts from "../_hook/useProducts";
+import Paginations from "@/components/pagination";
+import Link from "next/link";
 
 export function ProductsTable() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [featuredFilter, setFeaturedFilter] = useState("all");
-
   const { isOpen, selectedProductId, openModal, closeModal } =
     useProductAnalyticsModal();
 
+  const {
+    products,
+    pagination,
+    setPagination,
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    featuredFilter,
+    setFeaturedFilter,
+  } = useProducts();
+
+  console.log("Products:", products);
+
   // Calculate analytics data
   const analytics = useMemo(() => {
-    const totalProducts = mockProducts.length;
-    const activeProducts = mockProducts.filter((p) => p.isActive).length;
-    const featuredProducts = mockProducts.filter((p) => p.isFeatured).length;
-    const totalStock = mockProducts.reduce(
+    const activeProducts = products.filter((p) => p.isActive).length;
+    const featuredProducts = products.filter((p) => p.isFeatured).length;
+    const totalStock = products.reduce(
       (acc, product) =>
         acc +
         product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
       0
     );
-    const totalVariants = mockProducts.reduce(
+    const totalVariants = products.reduce(
       (acc, product) => acc + product.variants.length,
       0
     );
-    const avgPrice =
-      mockProducts.reduce((acc, product) => {
-        const productAvgPrice =
-          product.variants.reduce(
-            (varAcc, variant) => varAcc + variant.price,
-            0
-          ) / product.variants.length;
-        return acc + productAvgPrice;
-      }, 0) / mockProducts.length;
 
     return {
-      totalProducts,
       activeProducts,
       featuredProducts,
       totalStock,
       totalVariants,
-      avgPrice: Math.round(avgPrice),
     };
-  }, []);
+  }, [products]);
 
-  // Filter products based on search and filters
-  const filteredProducts = useMemo(() => {
-    return mockProducts.filter((product) => {
-      const matchesSearch =
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.tags.some((tag) =>
-          tag.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && product.isActive) ||
-        (statusFilter === "inactive" && !product.isActive);
-
-      const matchesFeatured =
-        featuredFilter === "all" ||
-        (featuredFilter === "featured" && product.isFeatured) ||
-        (featuredFilter === "not-featured" && !product.isFeatured);
-
-      return matchesSearch && matchesStatus && matchesFeatured;
-    });
-  }, [searchTerm, statusFilter, featuredFilter]);
-
-  const formatPrice = (price: number) => `৳${price.toLocaleString()}`;
+  const formatPrice = (price: number) => `BDT${price.toLocaleString()}`;
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString();
 
@@ -189,31 +98,36 @@ export function ProductsTable() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <KPICard
           title="Total Products"
-          value={analytics.totalProducts.toString()}
+          value={pagination.total.toString()}
           icon={<ShoppingCart className="h-4 w-4" />}
+          description="Total product on our system"
         />
 
         <KPICard
           title="Active Products"
           value={analytics.activeProducts.toString()}
           icon={<Eye className="h-4 w-4" />}
+          description="Only on this page"
         />
 
         <KPICard
           title="Featured Products"
           value={analytics.featuredProducts.toString()}
           icon={<Star className="h-4 w-4" />}
+          description="Only on this page"
         />
 
         <KPICard
           title="Total Stock"
           value={analytics.totalStock.toString()}
+          description="Only on this page"
           icon={<Package className="h-4 w-4" />}
         />
 
         <KPICard
           title="Total Variants"
           value={analytics.totalVariants.toString()}
+          description="Only on this page"
           icon={<Package className="h-4 w-4" />}
         />
       </div>
@@ -229,12 +143,13 @@ export function ProductsTable() {
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                type="search"
                 placeholder="Search products by title or tags..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-8"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
 
@@ -269,7 +184,6 @@ export function ProductsTable() {
                   <TableHead className="w-[100px]">Image</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Variants</TableHead>
-                  <TableHead>Price Range</TableHead>
                   <TableHead>Total Stock</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Tags</TableHead>
@@ -277,20 +191,9 @@ export function ProductsTable() {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => {
-                  const priceRange =
-                    product.variants.length > 0
-                      ? {
-                          min: Math.min(
-                            ...product.variants.map((v) => v.price)
-                          ),
-                          max: Math.max(
-                            ...product.variants.map((v) => v.price)
-                          ),
-                        }
-                      : { min: 0, max: 0 };
 
+              <TableBody>
+                {products.map((product) => {
                   const totalStock = product.variants.reduce(
                     (acc, variant) => acc + variant.stock,
                     0
@@ -312,9 +215,15 @@ export function ProductsTable() {
                       <TableCell>
                         <div>
                           <div className="font-medium">{product.title}</div>
-                          <div className="text-sm text-muted-foreground">
+                          {/* <div className="text-sm text-muted-foreground">
                             {product.slug}
-                          </div>
+                          </div> */}
+                          <Link
+                            href={`/products/${product.slug}`}
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
+                          >
+                            /{product.slug} <ExternalLink className="h-4 w-4" />
+                          </Link>
                           {product.fabric && (
                             <div className="text-xs text-muted-foreground">
                               Fabric: {product.fabric}
@@ -345,15 +254,6 @@ export function ProductsTable() {
                           )}
                         </div>
                       </TableCell>
-
-                      <TableCell>
-                        {priceRange.min === priceRange.max
-                          ? formatPrice(priceRange.min)
-                          : `${formatPrice(priceRange.min)} - ${formatPrice(
-                              priceRange.max
-                            )}`}
-                      </TableCell>
-
                       <TableCell>
                         <span
                           className={`font-medium ${
@@ -388,7 +288,7 @@ export function ProductsTable() {
 
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {product.tags.slice(0, 2).map((tag, index) => (
+                          {product.tags?.slice(0, 2).map((tag, index) => (
                             <Badge
                               key={index}
                               variant="outline"
@@ -397,15 +297,17 @@ export function ProductsTable() {
                               {tag}
                             </Badge>
                           ))}
-                          {product.tags.length > 2 && (
+                          {product.tags && product.tags.length > 2 && (
                             <Badge variant="outline" className="text-xs">
-                              +{product.tags.length - 2}
+                              +{product.tags?.length - 2}
                             </Badge>
                           )}
                         </div>
                       </TableCell>
 
-                      <TableCell>{formatDate(product.createdAt)}</TableCell>
+                      <TableCell>
+                        {formatDate(product.createdAt.toString())}
+                      </TableCell>
 
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -435,16 +337,25 @@ export function ProductsTable() {
             </Table>
           </div>
 
-          {filteredProducts.length === 0 && (
+          {products.length === 0 && (
             <div className="text-center py-8 text-muted-foreground">
               No products found matching your criteria.
             </div>
           )}
         </CardContent>
+
+        {products.length !== 0 && (
+          <CardFooter className="flex items-center justify-end">
+            <Paginations
+              pagination={pagination}
+              setPagination={setPagination}
+            />
+          </CardFooter>
+        )}
       </Card>
 
       <ProductAnalyticsModal
-        product={mockProducts.find((p) => p._id === selectedProductId) || null}
+        product={products.find((p) => p._id === selectedProductId) || null}
         open={isOpen}
         onOpenChange={closeModal}
       />
