@@ -52,6 +52,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
+import { formatPrice } from "@/utils";
 
 // Types
 
@@ -106,7 +107,6 @@ interface Analytics {
 
 // Mock analytics data generator
 const generateMockAnalytics = (product: IProduct): Analytics => {
-  const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
   const avgPrice =
     product.variants.reduce((acc, v) => acc + v.price, 0) /
     product.variants.length;
@@ -191,7 +191,6 @@ const generateMockAnalytics = (product: IProduct): Analytics => {
 
 // Utility functions
 const formatCurrency = (amount: number) => `৳${amount.toLocaleString()}`;
-const formatPercent = (value: number) => `${value.toFixed(1)}%`;
 const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString("bn-BD");
 
@@ -309,6 +308,12 @@ export function ProductAnalyticsModal({
     }
   };
 
+  const handleCopyId = async () => {
+    if (!product) return;
+    await navigator.clipboard.writeText(product._id);
+    toast.success("Product ID copied to clipboard");
+  };
+
   if (!product || !analytics) return null;
 
   const totalStock = product.variants.reduce((acc, v) => acc + v.stock, 0);
@@ -317,16 +322,13 @@ export function ProductAnalyticsModal({
   return (
     <TooltipProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="overflow-hidden lg:max-w-7xl max-h-[95vh] p-0 bg-background">
+        <DialogContent className="overflow-hidden lg:max-w-7xl max-h-[100vh] p-0 bg-background">
           {/* Header */}
           <DialogHeader className="sticky top-0 z-10 bg-background border-b px-6 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <img
-                  src={
-                    product.images[0]?.url ||
-                    "/placeholder.svg?height=60&width=60&query=product"
-                  }
+                  src={product.images[0]?.url as string}
                   alt={product.title}
                   className="w-15 h-15 object-cover rounded-lg"
                 />
@@ -335,7 +337,13 @@ export function ProductAnalyticsModal({
                     {product.title}
                   </DialogTitle>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="outline">SKU: {product.slug}</Badge>
+                    <Badge
+                      className="cursor-pointer"
+                      variant="outline"
+                      onClick={handleCopyId}
+                    >
+                      {product._id}
+                    </Badge>
                     {product.fabric && (
                       <Badge variant="default">{product.fabric}</Badge>
                     )}
@@ -451,12 +459,12 @@ export function ProductAnalyticsModal({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Inventory Status</CardTitle>
+                    <CardTitle>Inventory Status - Mock</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span>Total Stock - Mock</span>
+                        <span>Total Stock</span>
                         <span>{analytics.inventory.totalStock}</span>
                       </div>
                       <Progress value={100} className="h-2" />
@@ -599,7 +607,7 @@ export function ProductAnalyticsModal({
                                 {variant.color + " - " + variant.size}
                               </TableCell>
                               <TableCell className="font-medium">
-                                {formatCurrency(
+                                {formatPrice(
                                   product.variants.find(
                                     (v) => v._id === variant._id
                                   )?.price || 0

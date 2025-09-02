@@ -12,8 +12,6 @@ productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
 productRoutes.put("/:productId", (c) => productController.updateProduct(c));
 
-// productRoutes.delete("/:productId", authenticatedAdmin, (c) =>
-//   productController.deleteProduct(c)
-// );
+productRoutes.delete("/:productId", (c) => productController.deleteProduct(c));
 
 export default productRoutes;

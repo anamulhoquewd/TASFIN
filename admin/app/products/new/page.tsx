@@ -1,84 +1,17 @@
 "use client";
 
 import type React from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { Upload, X, ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Switch } from "@/components/ui/switch";
-import { Slider } from "@/components/ui/slider";
-import useProduct from "../_hook/useProduct";
-import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { CreateProductForm } from "../_components/form";
 import useProducts from "../_hook/useProducts";
-
-interface ProductDiscunt {
-  discountType: "percentage" | "flat";
-  discountValue: number;
-  discountExp: Date;
-}
-
-interface ProductUnit {
-  unitType: "kg" | "piece";
-  price: number;
-  originalPrice?: number;
-  costPerItem: number;
-  stockQuantity: number;
-  averageWeightPerFruit?: string;
-}
-
-interface Category {
-  _id: string;
-  name: string;
-  slug: string;
-  description?: string;
-}
-
-export interface ProductDocument extends Document {
-  slug: string;
-  name: string;
-  title: string;
-  origin?: string;
-  shortDescription?: string;
-  longDescription?: string;
-  season?: string;
-  media: { alt: string; url: string }[];
-  status: "inStock" | "lowStock" | "outOfStock";
-  visibility: boolean;
-  isPopular: boolean;
-  lowStockThreshold: number;
-  unit: ProductUnit;
-  discount?: ProductDiscunt;
-  category: string;
-}
+import { useState } from "react";
+import { ProductCreateInput } from "@/lib/schemas";
 
 export default function NewProductPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     form,
     onSubmit,
@@ -91,8 +24,18 @@ export default function NewProductPage() {
     variantImagePreviews,
     handleVariantImageUpload,
     removeVariantImage,
-    isSubmitting,
   } = useProducts();
+
+  const handleSubmit = async (data: ProductCreateInput) => {
+    try {
+      setIsSubmitting(true);
+      await onSubmit(data);
+    } catch (error) {
+      console.error("Error creating product:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -112,7 +55,7 @@ export default function NewProductPage() {
           </Button>
           <Button
             className="bg-primary hover:bg-primary/90 cursor-pointer"
-            onClick={form.handleSubmit(onSubmit)}
+            onClick={form.handleSubmit(handleSubmit)}
             disabled={isSubmitting}
           >
             <Save className="mr-2 h-4 w-4" />
@@ -123,14 +66,16 @@ export default function NewProductPage() {
 
       <CreateProductForm
         form={form}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
         handleTitleChange={handleTitleChange}
         categoryOpen={categoryOpen}
         setCategoryOpen={setCategoryOpen}
         append={append}
         remove={remove}
         fields={fields}
-        variantImagePreviews={variantImagePreviews}
+        variantImagePreviews={fields.map(
+          (_, index) => variantImagePreviews[index] || []
+        )}
         handleVariantImageUpload={handleVariantImageUpload}
         removeVariantImage={removeVariantImage}
       />

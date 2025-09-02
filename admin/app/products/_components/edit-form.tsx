@@ -1,7 +1,24 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
+
+import { useState, useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
@@ -16,66 +33,193 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  CheckCheck,
-  ChevronsUpDown,
-  Plus,
-  Trash2,
   Upload,
   X,
+  Plus,
+  Trash2,
+  ChevronsUpDown,
+  CheckCheck,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { RichTextEditor } from "@/components/rich-text-editor";
-import useCategory from "@/app/categories/_hook/useCategory";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { RichTextEditor } from "@/components/rich-text-editor";
+import { productSchemaZ, type ProductUpdateInput } from "@/lib/schemas";
+import type { IProduct } from "@/interfaces/products";
 
-interface CreateProductFormProps {
-  form: any;
-  onSubmit: (data: any) => void;
-  handleTitleChange: (title: string) => void;
-  setCategoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  categoryOpen: boolean;
-  append: (value: any) => void;
-  remove: (index: number) => void;
-  fields: any[];
-  variantImagePreviews: string[][];
-  handleVariantImageUpload: (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => void;
-  removeVariantImage: (index: number, variantIndex: number) => void;
+interface EditProductFormProps {
+  product: IProduct;
+  onSubmit: (data: ProductUpdateInput) => Promise<void>;
+  isLoading: boolean;
+  categories: Array<{ _id: string; name: string }>;
 }
 
-export function CreateProductForm({
-  form,
+export function EditProductForm({
+  product,
   onSubmit,
-  handleTitleChange,
-  categoryOpen,
-  setCategoryOpen,
-  append,
-  remove,
-  fields,
-  variantImagePreviews,
-  handleVariantImageUpload,
-  removeVariantImage,
-}: CreateProductFormProps) {
-  const { categories } = useCategory();
+  isLoading,
+  categories,
+}: EditProductFormProps) {
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<{
+    [key: number]: string[];
+  }>({});
+  const [inputValue, setInputValue] = useState("");
+
+  const form = useForm({
+    resolver: zodResolver(productSchemaZ),
+    defaultValues: {
+      title: product.title || "",
+      slug: product.slug || "",
+      description: product.description,
+      categories:
+        product.categories?.map((cat) =>
+          typeof cat === "string" ? cat : cat._id
+        ) || [],
+      images: [], // Will be handled separately for existing images
+      variants: product.variants?.map((variant) => ({
+        size: variant.size || "",
+        color: variant.color || "",
+        stock: variant.stock || 0,
+        price: variant.price || 0,
+        images: [], // Will be handled separately for existing images
+      })) || [{ size: "", color: "", stock: 0, price: 0, images: [] }],
+      fabric: product.fabric || "",
+      valueAddition: product.valueAddition || "",
+      cutFit: product.cutFit || "",
+      collarNeck: product.collarNeck || "",
+      sleeve: product.sleeve || "",
+      length: product.length || "",
+      washCare: product.washCare || "",
+      sideCut: product.sideCut || "",
+      isFeatured: product.isFeatured || false,
+      isActive: product.isActive !== undefined ? product.isActive : true,
+      tags: product.tags || [],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
+  });
+
+  useEffect(() => {
+    if (product.variants) {
+      const previews: { [key: number]: string[] } = {};
+      product.variants.forEach((variant, index) => {
+        if (variant.images && variant.images.length > 0) {
+          previews[index] = variant.images.map((img) =>
+            typeof img === "string" ? img : img.url || ""
+          );
+        }
+      });
+      setVariantImagePreviews(previews);
+    }
+  }, [product]);
+
+  useEffect(() => {
+    setInputValue(form.getValues("tags")?.join(", ") || "");
+  }, [form.getValues("tags")]);
+
   const getCategoryName = (categoryId: string) => {
     return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
   };
+
+  // Generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  // Handle title change and auto-generate slug
+  const handleTitleChange = (value: string) => {
+    form.setValue("title", value);
+    if (value) {
+      form.setValue("slug", generateSlug(value));
+    }
+  };
+
+  // Handle variant image upload
+  const handleVariantImageUpload = (
+    variantIndex: number,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const invalidFiles = files.filter(
+      (file) => !validTypes.includes(file.type)
+    );
+
+    if (invalidFiles.length > 0) {
+      toast.error("Invalid file type", {
+        description: "Please upload only JPEG, PNG, or WebP images.",
+      });
+      return;
+    }
+
+    // Get current variant images
+    const currentVariant = form.getValues(`variants.${variantIndex}`);
+    const currentImages: File[] = currentVariant.images || [];
+
+    // Filter duplicates (check by name + size)
+    const newFiles = files.filter(
+      (file) =>
+        !currentImages.some(
+          (img: File) => img.name === file.name && img.size === file.size
+        )
+    );
+
+    if (newFiles.length === 0) {
+      toast.warning("Duplicate images ignored", {
+        description: "You tried to upload images that already exist.",
+      });
+      return;
+    }
+
+    // Add new images to variant
+    form.setValue(`variants.${variantIndex}.images`, [
+      ...currentImages,
+      ...newFiles,
+    ]);
+
+    // Create previews for new variant images
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setVariantImagePreviews((prev) => ({
+          ...prev,
+          [variantIndex]: [
+            ...(prev[variantIndex] || []),
+            e.target?.result as string,
+          ],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+    const currentImages =
+      form.getValues(`variants.${variantIndex}.images`) || [];
+    const updatedImages = currentImages.filter((_, i) => i !== imageIndex);
+    form.setValue(`variants.${variantIndex}.images`, updatedImages);
+
+    setVariantImagePreviews((prev) => ({
+      ...prev,
+      [variantIndex]: (prev[variantIndex] || []).filter(
+        (_, i) => i !== imageIndex
+      ),
+    }));
+  };
+
+  console.log("Product Form Values: ", form.getValues());
+  console.log("Product: ", product);
 
   return (
     <Form {...form}>
@@ -157,27 +301,44 @@ export function CreateProductForm({
               </CardContent>
             </Card>
 
-            {/* Product Images */}
             <Card>
               <CardHeader>
-                <CardTitle>Product Images</CardTitle>
+                <CardTitle>Current Product Images</CardTitle>
               </CardHeader>
               <CardContent>
+                {product.images && product.images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                    {product.images.map((image: any, index: number) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={typeof image === "string" ? image : image.url}
+                          alt={`Current ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs">Current</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <FormField
                   control={form.control}
                   name="images"
                   render={({ field }) => (
                     <FormItem>
+                      <FormLabel>Add New Images</FormLabel>
                       <FormControl>
                         <div>
                           <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
                             <div className="flex flex-col items-center justify-center pt-5 pb-6">
                               <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
                               <p className="text-sm text-muted-foreground">
-                                Click to upload images
+                                Click to upload new images
                               </p>
                             </div>
-                            <Input
+                            <input
                               type="file"
                               className="hidden"
                               multiple
@@ -187,8 +348,6 @@ export function CreateProductForm({
                                   e.target.files || []
                                 );
                                 const existing = field.value || [];
-
-                                // Duplicate check (name + size + lastModified)
                                 const filtered = newFiles.filter(
                                   (file) =>
                                     !existing.some(
@@ -198,22 +357,6 @@ export function CreateProductForm({
                                         f.lastModified === file.lastModified
                                     )
                                 );
-
-                                if (
-                                  filtered.length === 0 &&
-                                  newFiles.length > 0
-                                ) {
-                                  toast.warning("Duplicate images ignored", {
-                                    description:
-                                      "You tried to upload images that already exist.",
-                                  });
-                                } else if (filtered.length < newFiles.length) {
-                                  toast.warning("Some duplicates ignored", {
-                                    description:
-                                      "Only new images have been added.",
-                                  });
-                                }
-
                                 field.onChange([...existing, ...filtered]);
                               }}
                             />
@@ -224,8 +367,11 @@ export function CreateProductForm({
                               {field.value.map((file: File, index: number) => (
                                 <div key={index} className="relative group">
                                   <img
-                                    src={URL.createObjectURL(file)}
-                                    alt={`Preview ${index + 1}`}
+                                    src={
+                                      URL.createObjectURL(file) ||
+                                      "/placeholder.svg"
+                                    }
+                                    alt={`New ${index + 1}`}
                                     className="w-full h-24 object-cover rounded-lg"
                                   />
                                   <button
@@ -434,7 +580,7 @@ export function CreateProductForm({
               </CardContent>
             </Card>
 
-            {/* Product Details */}
+            {/* Product Details - Same as create form */}
             <Card>
               <CardHeader>
                 <CardTitle>Product Details</CardTitle>
@@ -743,48 +889,38 @@ export function CreateProductForm({
                 <FormField
                   control={form.control}
                   name="tags"
-                  render={({ field }) => {
-                    const [inputValue, setInputValue] = useState(
-                      field.value?.join(", ") || ""
-                    );
-
-                    useEffect(() => {
-                      setInputValue(field.value?.join(", ") || "");
-                    }, [field.value]);
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter tags (comma-separated)"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onBlur={() => {
-                              const tags = inputValue
-                                .split(",")
-                                .map((tag: string) => tag.trim())
-                                .filter((tag: string) => tag.length > 0);
-                              field.onChange(tags);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Add tags to help customers find your product
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter tags (comma-separated)"
+                          value={inputValue}
+                          onChange={(e) => setInputValue(e.target.value)}
+                          onBlur={() => {
+                            const tags = inputValue
+                              .split(",")
+                              .map((tag: string) => tag.trim())
+                              .filter((tag: string) => tag.length > 0);
+                            field.onChange(tags);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Add tags to help customers find your product
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </CardContent>
             </Card>
-          </div>
 
-          <Button className="sr-only" type="submit">
-            Submit
-          </Button>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? "Updating Product..." : "Update Product"}
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

@@ -14,28 +14,14 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 function useProducts() {
-  const [selectedItem, setSelectedItem] = useState<IProduct | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [products, setProducts] = useState<IProduct[] | []>([]);
   const [variantImagePreviews, setVariantImagePreviews] = useState<{
     [key: number]: string[];
   }>({});
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    null
-  );
-  const [product, setProduct] = useState<ProductCreateInput | null>(null);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [search, setSearch] = useState<string>("");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [pagination, setPagination] = useState<IPagination>(defaultPagination);
-  const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [featuredFilter, setFeaturedFilter] = useState("all");
 
   const form = useForm({
     resolver: zodResolver(productSchemaZ),
-    defaultValues: product ?? {
+    defaultValues: {
       title: "",
       slug: "",
       description: "",
@@ -188,15 +174,7 @@ function useProducts() {
         throw new Error(response.data.error.message || "Something with wrong!");
       }
 
-      setProducts(response.data.data);
-
-      setPagination(() => ({
-        page: response.data.pagination.page,
-        total: response.data.pagination.total,
-        totalPages: response.data.pagination.totalPages,
-        nextPage: response.data.pagination.nextPage || null,
-        prevPage: response.data.pagination.prevPage || null,
-      }));
+      return response.data;
     } catch (error: any) {
       console.log(error);
     }
@@ -204,7 +182,6 @@ function useProducts() {
 
   // SUBMIT HANDLER
   const onSubmit = async (data: ProductCreateInput) => {
-    setIsSubmitting(true);
     try {
       const formData = new FormData();
 
@@ -303,148 +280,104 @@ function useProducts() {
         description:
           error instanceof Error ? error.message : "Please try again.",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const onUpdate = async (data: ProductUpdateInput) => {
-    setIsSubmitting(true);
+  // const onUpdate = async (id: string, productData: ProductUpdateInput) => {
+  //   try {
+  //     const formData = new FormData();
+
+  //     // Append simple fields
+  //     formData.append("title", productData.title);
+  //     formData.append("slug", productData.slug);
+  //     formData.append(
+  //       "description",
+  //       typeof productData.description === "string"
+  //         ? productData.description
+  //         : JSON.stringify(productData.description ?? {})
+  //     );
+  //     formData.append("fabric", productData.fabric ?? "");
+  //     formData.append("valueAddition", productData.valueAddition ?? "");
+  //     formData.append("cutFit", productData.cutFit ?? "");
+  //     formData.append("collarNeck", productData.collarNeck ?? "");
+  //     formData.append("sleeve", productData.sleeve ?? "");
+  //     formData.append("length", productData.length ?? "");
+  //     formData.append("washCare", productData.washCare ?? "");
+  //     formData.append("sideCut", productData.sideCut ?? "");
+  //     formData.append("isFeatured", productData.isFeatured.toString());
+  //     formData.append("isActive", productData.isActive.toString());
+
+  //     // Append arrays as JSON strings
+  //     formData.append("categories", JSON.stringify(productData.categories));
+  //     formData.append("tags", JSON.stringify(productData.tags));
+
+  //     // Append main product images (only new ones)
+  //     if (productData.images && productData.images.length > 0) {
+  //       productData.images.forEach((image) => {
+  //         formData.append("images", image);
+  //       });
+  //     }
+
+  //     // Append variants
+  //     productData.variants.forEach((variant, index) => {
+  //       formData.append(`variants[${index}][size]`, variant.size);
+  //       formData.append(`variants[${index}][color]`, variant.color);
+  //       formData.append(`variants[${index}][stock]`, variant.stock.toString());
+  //       formData.append(`variants[${index}][price]`, variant.price.toString());
+
+  //       // Append variant images (only new ones)
+  //       variant.images?.forEach((image) => {
+  //         formData.append(`variants[${index}][images]`, image);
+  //       });
+  //     });
+
+  //     const response = await api.put(`/products/${id}`, formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     if (response.data.success) {
+  //       toast.success("Product updated successfully");
+  //       getProducts({
+  //         page: pagination.page,
+  //         searchQuery,
+  //         categoryFilter,
+  //         isActive: mapStatusToBoolean(statusFilter),
+  //         isFeatured: mapFeaturedToBoolean(featuredFilter),
+  //       });
+  //       return true;
+  //     } else {
+  //       toast.error("Failed to update product");
+  //       return false;
+  //     }
+  //   } catch (error: any) {
+  //     console.error("Error updating product:", error);
+  //     toast.error("Failed to update product");
+  //     return false;
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+  // // Function to delete a product
+
+  const onDelete = async (productId: string) => {
     try {
-      const formData = new FormData();
+      const result = await api.delete(`/products/${productId}`);
 
-      // Append simple fields
-      formData.append("title", data.title ?? "");
-      formData.append("slug", data.slug ?? "");
-      formData.append(
-        "description",
-        typeof data.description === "string"
-          ? data.description ?? ""
-          : JSON.stringify(data.description ?? {})
-      );
-      formData.append("fabric", data.fabric ?? "");
-      formData.append("valueAddition", data.valueAddition ?? "");
-      formData.append("cutFit", data.cutFit ?? "");
-      formData.append("collarNeck", data.collarNeck ?? "");
-      formData.append("sleeve", data.sleeve ?? "");
-      formData.append("length", data.length ?? "");
-      formData.append("washCare", data.washCare ?? "");
-      formData.append("sideCut", data.sideCut ?? "");
-      formData.append("isFeatured", (data.isFeatured ?? false).toString());
-      formData.append("isActive", (data.isActive ?? true).toString());
+      console.log("Delete product result:", result);
 
-      // Append arrays as JSON strings
-      formData.append("categories", JSON.stringify(data.categories ?? []));
-      formData.append("tags", JSON.stringify(data.tags ?? []));
-
-      // Append main product images
-      if (Array.isArray(data.images)) {
-        data.images.forEach((image: File) => {
-          formData.append("images", image);
-        });
+      if (!result.data.success) {
+        toast.error("Failed to delete product");
       }
 
-      // Append variants
-      data.variants?.forEach((variant, index) => {
-        formData.append(`variants[${index}][size]`, variant.size ?? "");
-        formData.append(`variants[${index}][color]`, variant.color ?? "");
-        formData.append(
-          `variants[${index}][stock]`,
-          variant.stock?.toString() ?? "0"
-        );
-        formData.append(
-          `variants[${index}][price]`,
-          variant.price?.toString() ?? "0"
-        );
+      toast.success("Product deleted successfully");
 
-        // Append variant images
-        variant.images?.forEach((image) => {
-          if (image instanceof File) {
-            formData.append(`variants[${index}][images]`, image);
-          }
-        });
-      });
-
-      // Send update request
-      const response = await axios.put(
-        `http://localhost:4000/api/v1/products/${selectedProductId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (!response.data.success) {
-        console.log("Failed to update product:", response.data.error);
-        toast.error(response.data.error.message || "Failed to update product.");
-        return;
-      }
-
-      toast.success(
-        response.data.success.message || "Product updated successfully."
-      );
-
-      // Reset form after successful update
-      form.reset({
-        title: "",
-        slug: "",
-        description: "",
-        fabric: "",
-        valueAddition: "",
-        cutFit: "",
-        collarNeck: "",
-        sleeve: "",
-        length: "",
-        washCare: "",
-        sideCut: "",
-        isFeatured: false,
-        isActive: false,
-        categories: [],
-        tags: [],
-        images: [],
-        variants: [],
-      });
-    } catch (error: any) {
-      console.error("Error updating product:", error);
-      if (error.response?.data?.success === false) {
-        error.response.data.fields.forEach((field: any) => {
-          form.setError(field.name, {
-            message: field.message,
-          });
-        });
-      }
-      toast.error("Error updating product", {
-        description:
-          error instanceof Error ? error.message : "Please try again.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await api.delete(`/products/${id}`);
-
-      if (!response.data.success) {
-        throw new Error(response.data.error.message || "Something with wrong!");
-      }
-
-      toast(response.data.message || "Product deleted successfully!");
-      getProducts({
-        page: pagination.page,
-        searchQuery,
-        categoryFilter,
-        isActive,
-        isFeatured,
-      });
-    } catch (error: any) {
-      console.log(error);
-
-      if (error.response.data.error.message)
-        toast(error.response.data.error.message);
+      return true;
+    } catch (error) {
+      toast.error("Failed to delete product");
+      return false;
     }
   };
 
@@ -459,8 +392,7 @@ function useProducts() {
       }
 
       if (response.data.success) {
-        setProduct(response.data.data);
-        return response.data.product;
+        return response.data;
       }
     } catch (error) {
       console.error("Error fetching product:", error);
@@ -468,56 +400,9 @@ function useProducts() {
     return null;
   };
 
-  // mapping helper
-  const mapStatusToBoolean = (status: string): boolean | undefined => {
-    if (status === "active") return true;
-    if (status === "inactive") return false;
-    return undefined; // "all"
-  };
-
-  const mapFeaturedToBoolean = (featured: string): boolean | undefined => {
-    if (featured === "featured") return true;
-    if (featured === "not-featured") return false;
-    return undefined; // "all"
-  };
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setSearchQuery(search);
-      setPagination((prev) => ({ ...prev, page: 1 }));
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [search]);
-
-  useEffect(() => {
-    getProducts({
-      page: pagination.page,
-      searchQuery,
-      categoryFilter,
-      isActive: mapStatusToBoolean(statusFilter),
-      isFeatured: mapFeaturedToBoolean(featuredFilter),
-    });
-  }, [
-    pagination.page,
-    searchQuery,
-    categoryFilter,
-    statusFilter,
-    featuredFilter,
-  ]);
-
-  useEffect(() => {
-    getProductById(selectedProductId ?? "");
-  }, [selectedProductId]);
-
   return {
     form,
-    isSubmitting,
-    setIsSubmitting,
     getProductById,
-    onUpdate,
     onSubmit,
     handleTitleChange,
     categoryOpen,
@@ -528,22 +413,9 @@ function useProducts() {
     variantImagePreviews,
     handleVariantImageUpload,
     removeVariantImage,
-    products,
-    pagination,
-    setPagination,
-    search,
-    setSearch,
-    categoryFilter,
-    setCategoryFilter,
-    deleteOpen,
-    setDeleteOpen,
-    handleDelete,
-    selectedItem,
-    setSelectedItem,
-    statusFilter,
-    setStatusFilter,
-    featuredFilter,
-    setFeaturedFilter,
+    onDelete,
+    // onUpdate,
+    getProducts,
   };
 }
 

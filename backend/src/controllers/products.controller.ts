@@ -225,21 +225,21 @@ export const getProduct = async (c: Context) => {
 };
 
 // // Delete user
-// export const deleteProduct = async (c: Context) => {
-//   const _id = c.req.param("_id");
+export const deleteProduct = async (c: Context) => {
+  const productId = c.req.param("productId");
 
-//   const response = await productService.deleteUsers(_id);
+  const response = await productService.deleteProduct(productId);
 
-//   if (response.error) {
-//     return badRequestHandler(c, response.error);
-//   }
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
 
-//   if (response.serverError) {
-//     return serverErrorHandler(c, response.serverError);
-//   }
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
 
-//   return c.json(response.success, 200);
-// };
+  return c.json(response.success, 200);
+};
 
 // // Get all products
 export const getProducts = async (c: Context) => {

@@ -554,32 +554,32 @@ export const getProduct = async (productId: string) => {
 //   }
 // };
 
-export const deleteProduct = async (_id: string) => {
+export const deleteProduct = async (productId: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = idSchemaZ.safeParse({ _id: productId });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
   try {
-    const category = await Category.findById(idValidation.data._id);
+    const product = await Product.findById(idValidation.data._id);
 
-    if (!category) {
+    if (!product) {
       return {
         error: {
-          message: `Admin not found with provided ID!`,
+          message: `Product not found with provided ID!`,
         },
       };
     }
 
-    // Delete admin
-    await category.deleteOne();
+    // Delete product
+    await product.deleteOne();
 
     // Response
     return {
       success: {
         success: true,
-        message: `Category deleted successfully!`,
+        message: "Product deleted successfully!",
       },
     };
   } catch (error: any) {
