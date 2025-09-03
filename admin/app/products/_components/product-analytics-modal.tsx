@@ -24,7 +24,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,6 +58,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
 import { formatPrice } from "@/utils";
+import useCategory from "@/app/categories/_hook/useCategory";
 
 // Types
 
@@ -191,8 +197,7 @@ const generateMockAnalytics = (product: IProduct): Analytics => {
 
 // Utility functions
 const formatCurrency = (amount: number) => `৳${amount.toLocaleString()}`;
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString("bn-BD");
+const formatDate = (dateString: string) => new Date(dateString).toDateString();
 
 // KPI Card Component
 interface KPICardProps {
@@ -257,6 +262,11 @@ export function ProductAnalyticsModal({
   const searchParams = useSearchParams();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
+  const { categories } = useCategory();
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
+  };
+
   // Generate analytics data when product changes
   useEffect(() => {
     if (product) {
@@ -308,10 +318,10 @@ export function ProductAnalyticsModal({
     }
   };
 
-  const handleCopyId = async () => {
+  const handleCopyId = async (id: string) => {
     if (!product) return;
-    await navigator.clipboard.writeText(product._id);
-    toast.success("Product ID copied to clipboard");
+    await navigator.clipboard.writeText(id);
+    toast.success("ID copied to clipboard");
   };
 
   if (!product || !analytics) return null;
@@ -337,13 +347,44 @@ export function ProductAnalyticsModal({
                     {product.title}
                   </DialogTitle>
                   <div className="flex items-center gap-2 mt-1">
-                    <Badge
-                      className="cursor-pointer"
-                      variant="outline"
-                      onClick={handleCopyId}
-                    >
-                      {product._id}
-                    </Badge>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge
+                          className="cursor-pointer"
+                          variant="outline"
+                          onClick={() => handleCopyId(product._id)}
+                        >
+                          {product._id}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Click to copy ID</p>
+                      </TooltipContent>
+                    </Tooltip>
+
+                    {product.categories && product.categories.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Categories:
+                        </span>
+                        {product.categories.map((categoryId, index) => (
+                          <Tooltip key={categoryId}>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="secondary"
+                                className="cursor-pointer"
+                                onClick={() => handleCopyId(categoryId)}
+                              >
+                                {getCategoryName(categoryId)}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Click to copy ID</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        ))}
+                      </div>
+                    )}
                     {product.fabric && (
                       <Badge variant="default">{product.fabric}</Badge>
                     )}
@@ -577,12 +618,191 @@ export function ProductAnalyticsModal({
               </div>
 
               {/* Tabs Section */}
-              <Tabs defaultValue="variants" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="variants">Variants</TabsTrigger>
                   <TabsTrigger value="orders">Orders</TabsTrigger>
                   <TabsTrigger value="customers">Customers</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="overview" className="space-y-4">
+                  {product.description &&
+                    (product.description.html || product.description.json) && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Product description</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {product.description.html ? (
+                            <div
+                              className="prose prose-sm max-w-none"
+                              dangerouslySetInnerHTML={{
+                                __html: product.description.html,
+                              }}
+                            />
+                          ) : product.description.json ? (
+                            <div className="text-sm text-muted-foreground">
+                              JSON description available (HTML could not be
+                              rendered)
+                            </div>
+                          ) : null}
+                        </CardContent>
+                      </Card>
+                    )}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Product Information</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium mb-2">
+                            Basic Information
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Product Name:
+                              </span>
+                              <span>{product.title}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                slug:
+                              </span>
+                              <span>{product.slug}</span>
+                            </div>
+                            {product.categories &&
+                              product.categories.length > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    Categories:
+                                  </span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {product.categories.map((categoryId) => (
+                                      <Tooltip key={categoryId}>
+                                        <TooltipTrigger asChild>
+                                          <Badge
+                                            variant="outline"
+                                            className="text-xs cursor-pointer"
+                                            onClick={() =>
+                                              handleCopyId(categoryId)
+                                            }
+                                          >
+                                            {getCategoryName(categoryId)}
+                                          </Badge>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Click to copy ID</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            {product.tags && product.tags.length > 0 && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Tags:
+                                </span>
+                                <div className="flex flex-wrap gap-1">
+                                  {product.tags.map((tag, index) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium mb-2">
+                            Others information
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            {product.fabric && (
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Fabric:
+                                </span>
+                                <span>{product.fabric}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Created At:
+                              </span>
+                              <span>
+                                {formatDate(product.createdAt.toString())}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Updated At:
+                              </span>
+                              <span>
+                                {formatDate(product.updatedAt.toString())}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Status:
+                              </span>
+                              <div className="flex gap-1">
+                                <Badge
+                                  variant={
+                                    product.isActive ? "default" : "secondary"
+                                  }
+                                >
+                                  {product.isActive ? "Active" : "Inactive"}
+                                </Badge>
+                                {product.isFeatured && (
+                                  <Badge className="bg-blue-100 text-blue-800">
+                                    Featured
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>মূল ইনসাইট</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2 text-sm">
+                        <li>
+                          • Facebook চ্যানেল মোট বিক্রির{" "}
+                          {(
+                            (analytics.channels[0].revenue /
+                              analytics.kpis.revenue) *
+                            100
+                          ).toFixed(0)}
+                          % অবদান রেখেছে
+                        </li>
+                        <li>
+                          • গত সপ্তাহে গড় অর্ডার ভ্যালু{" "}
+                          {formatCurrency(analytics.kpis.avgOrderValue)} ছিল
+                        </li>
+                        <li>
+                          • {lowStockVariants.length} টি ভ্যারিয়েন্টে কম স্টক
+                          রয়েছে
+                        </li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
                 <TabsContent value="variants">
                   <Card>

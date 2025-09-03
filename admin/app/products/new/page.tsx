@@ -4,7 +4,7 @@ import type React from "react";
 import Link from "next/link";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CreateProductForm } from "../_components/form";
+import { CreateProductForm } from "../_components/create-form";
 import useProducts from "../_hook/useProducts";
 import { useState } from "react";
 import { ProductCreateInput } from "@/lib/schemas";
@@ -18,7 +18,7 @@ export default function NewProductPage() {
     handleTitleChange,
     categoryOpen,
     setCategoryOpen,
-    append,
+    prepend,
     fields,
     remove,
     variantImagePreviews,
@@ -70,7 +70,7 @@ export default function NewProductPage() {
         handleTitleChange={handleTitleChange}
         categoryOpen={categoryOpen}
         setCategoryOpen={setCategoryOpen}
-        append={append}
+        prepend={prepend}
         remove={remove}
         fields={fields}
         variantImagePreviews={fields.map(

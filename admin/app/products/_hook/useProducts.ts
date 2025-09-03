@@ -24,7 +24,10 @@ function useProducts() {
     defaultValues: {
       title: "",
       slug: "",
-      description: "",
+      description: {
+        html: "",
+        json: null,
+      },
       categories: [],
       images: [],
       variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
@@ -42,7 +45,7 @@ function useProducts() {
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, prepend, remove } = useFieldArray({
     control: form.control,
     name: "variants",
   });
@@ -251,7 +254,10 @@ function useProducts() {
       form.reset({
         title: "",
         slug: "",
-        description: "",
+        description: {
+          html: "",
+          json: null,
+        },
         fabric: "",
         valueAddition: "",
         cutFit: "",
@@ -408,6 +414,7 @@ function useProducts() {
     categoryOpen,
     setCategoryOpen,
     append,
+    prepend,
     fields,
     remove,
     variantImagePreviews,

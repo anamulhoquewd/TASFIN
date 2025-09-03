@@ -43,7 +43,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { productSchemaZ, type ProductUpdateInput } from "@/lib/schemas";
+import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
 
 interface EditProductFormProps {
@@ -66,14 +66,17 @@ export function EditProductForm({
   const [inputValue, setInputValue] = useState("");
 
   const form = useForm({
-    resolver: zodResolver(productSchemaZ),
+    resolver: zodResolver(productUpdateZ),
     defaultValues: {
       title: product.title || "",
       slug: product.slug || "",
-      description: product.description,
+      description: {
+        json: product.description?.json || undefined,
+        html: product.description?.html || undefined,
+      },
       categories:
         product.categories?.map((cat) =>
-          typeof cat === "string" ? cat : cat._id
+          typeof cat === "string" ? cat : (cat as any)._id
         ) || [],
       images: [], // Will be handled separately for existing images
       variants: product.variants?.map((variant) => ({
@@ -362,33 +365,35 @@ export function EditProductForm({
                             />
                           </label>
 
-                          {field.value?.length > 0 && (
+                          {(field.value || []).length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-                              {field.value.map((file: File, index: number) => (
-                                <div key={index} className="relative group">
-                                  <img
-                                    src={
-                                      URL.createObjectURL(file) ||
-                                      "/placeholder.svg"
-                                    }
-                                    alt={`New ${index + 1}`}
-                                    className="w-full h-24 object-cover rounded-lg"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      field.onChange(
-                                        field.value.filter(
-                                          (_: any, i: number) => i !== index
+                              {(field.value || []).map(
+                                (file: File, index: number) => (
+                                  <div key={index} className="relative group">
+                                    <img
+                                      src={
+                                        URL.createObjectURL(file) ||
+                                        "/placeholder.svg"
+                                      }
+                                      alt={`New ${index + 1}`}
+                                      className="w-full h-24 object-cover rounded-lg"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        field.onChange(
+                                          (field.value || []).filter(
+                                            (_: any, i: number) => i !== index
+                                          )
                                         )
-                                      )
-                                    }
-                                    className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              ))}
+                                      }
+                                      className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )
+                              )}
                             </div>
                           )}
                         </div>

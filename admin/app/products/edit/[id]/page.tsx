@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
-  const { getProductById, onUpdate } = useProducts();
+  const { getProductById } = useProducts();
   const { categories } = useCategory();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function EditProductPage() {
   const handleSubmit = async (data: ProductUpdateInput) => {
     if (!product) return;
 
-    const success = await onUpdate(product._id, data);
+    // const success = await onUpdate(product._id, data);
     // if (success) {
     //   router.push("/admin");
     // }
@@ -66,7 +66,7 @@ export default function EditProductPage() {
               className="cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Admin
+              Back to Products
             </Button>
           </CardContent>
         </Card>
@@ -76,21 +76,21 @@ export default function EditProductPage() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="flex items-center gap-4 mb-8">
+      <div className="flex justify-between items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">Edit Product</h1>
+          <p className="text-muted-foreground">
+            Update on "{product.title}" information
+          </p>
+        </div>
         <Button
           variant="outline"
           onClick={() => router.push("/products")}
           className="cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Admin
+          Back to Products
         </Button>
-        <div>
-          <h1 className="text-3xl font-bold">Edit Product</h1>
-          <p className="text-muted-foreground">
-            Update "{product.title}" information
-          </p>
-        </div>
       </div>
 
       <EditProductForm
