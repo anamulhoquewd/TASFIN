@@ -45,180 +45,44 @@ import { cn } from "@/lib/utils";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
+import useCategory from "@/app/categories/_hook/useCategory";
 
 interface EditProductFormProps {
+  form: any;
   product: IProduct;
   onSubmit: (data: ProductUpdateInput) => Promise<void>;
   isLoading: boolean;
-  categories: Array<{ _id: string; name: string }>;
+  handleTitleChange: (title: string) => void;
+  setCategoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  categoryOpen: boolean;
+  prepend: (value: any) => void;
+  remove: (index: number) => void;
+  fields: any[];
+  variantImagePreviews: string[][];
+  handleVariantImageUpload: (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => void;
+  removeVariantImage: (index: number, variantIndex: number) => void;
 }
 
 export function EditProductForm({
   product,
+  form,
   onSubmit,
-  isLoading,
-  categories,
+  handleTitleChange,
+  categoryOpen,
+  setCategoryOpen,
+  remove,
+  prepend,
+  fields,
+  variantImagePreviews,
+  handleVariantImageUpload,
+  removeVariantImage,
 }: EditProductFormProps) {
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const [variantImagePreviews, setVariantImagePreviews] = useState<{
-    [key: number]: string[];
-  }>({});
-  const [inputValue, setInputValue] = useState("");
-
-  const form = useForm({
-    resolver: zodResolver(productUpdateZ),
-    defaultValues: {
-      title: product.title || "",
-      slug: product.slug || "",
-      description: {
-        json: product.description?.json || undefined,
-        html: product.description?.html || undefined,
-      },
-      categories:
-        product.categories?.map((cat) =>
-          typeof cat === "string" ? cat : (cat as any)._id
-        ) || [],
-      images: [], // Will be handled separately for existing images
-      variants: product.variants?.map((variant) => ({
-        size: variant.size || "",
-        color: variant.color || "",
-        stock: variant.stock || 0,
-        price: variant.price || 0,
-        images: [], // Will be handled separately for existing images
-      })) || [{ size: "", color: "", stock: 0, price: 0, images: [] }],
-      fabric: product.fabric || "",
-      valueAddition: product.valueAddition || "",
-      cutFit: product.cutFit || "",
-      collarNeck: product.collarNeck || "",
-      sleeve: product.sleeve || "",
-      length: product.length || "",
-      washCare: product.washCare || "",
-      sideCut: product.sideCut || "",
-      isFeatured: product.isFeatured || false,
-      isActive: product.isActive !== undefined ? product.isActive : true,
-      tags: product.tags || [],
-    },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "variants",
-  });
-
-  useEffect(() => {
-    if (product.variants) {
-      const previews: { [key: number]: string[] } = {};
-      product.variants.forEach((variant, index) => {
-        if (variant.images && variant.images.length > 0) {
-          previews[index] = variant.images.map((img) =>
-            typeof img === "string" ? img : img.url || ""
-          );
-        }
-      });
-      setVariantImagePreviews(previews);
-    }
-  }, [product]);
-
-  useEffect(() => {
-    setInputValue(form.getValues("tags")?.join(", ") || "");
-  }, [form.getValues("tags")]);
-
+  const { categories } = useCategory();
   const getCategoryName = (categoryId: string) => {
     return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
-  };
-
-  // Generate slug from title
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
-
-  // Handle title change and auto-generate slug
-  const handleTitleChange = (value: string) => {
-    form.setValue("title", value);
-    if (value) {
-      form.setValue("slug", generateSlug(value));
-    }
-  };
-
-  // Handle variant image upload
-  const handleVariantImageUpload = (
-    variantIndex: number,
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = Array.from(event.target.files || []);
-    if (files.length === 0) return;
-
-    // Validate file types
-    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    const invalidFiles = files.filter(
-      (file) => !validTypes.includes(file.type)
-    );
-
-    if (invalidFiles.length > 0) {
-      toast.error("Invalid file type", {
-        description: "Please upload only JPEG, PNG, or WebP images.",
-      });
-      return;
-    }
-
-    // Get current variant images
-    const currentVariant = form.getValues(`variants.${variantIndex}`);
-    const currentImages: File[] = currentVariant.images || [];
-
-    // Filter duplicates (check by name + size)
-    const newFiles = files.filter(
-      (file) =>
-        !currentImages.some(
-          (img: File) => img.name === file.name && img.size === file.size
-        )
-    );
-
-    if (newFiles.length === 0) {
-      toast.warning("Duplicate images ignored", {
-        description: "You tried to upload images that already exist.",
-      });
-      return;
-    }
-
-    // Add new images to variant
-    form.setValue(`variants.${variantIndex}.images`, [
-      ...currentImages,
-      ...newFiles,
-    ]);
-
-    // Create previews for new variant images
-    newFiles.forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setVariantImagePreviews((prev) => ({
-          ...prev,
-          [variantIndex]: [
-            ...(prev[variantIndex] || []),
-            e.target?.result as string,
-          ],
-        }));
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
-    const currentImages =
-      form.getValues(`variants.${variantIndex}.images`) || [];
-    const updatedImages = currentImages.filter((_, i) => i !== imageIndex);
-    form.setValue(`variants.${variantIndex}.images`, updatedImages);
-
-    setVariantImagePreviews((prev) => ({
-      ...prev,
-      [variantIndex]: (prev[variantIndex] || []).filter(
-        (_, i) => i !== imageIndex
-      ),
-    }));
   };
 
   console.log("Product Form Values: ", form.getValues());
@@ -415,7 +279,7 @@ export function EditProductForm({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      append({
+                      prepend({
                         size: "",
                         color: "",
                         stock: 0,
@@ -894,36 +758,46 @@ export function EditProductForm({
                 <FormField
                   control={form.control}
                   name="tags"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tags</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="Enter tags (comma-separated)"
-                          value={inputValue}
-                          onChange={(e) => setInputValue(e.target.value)}
-                          onBlur={() => {
-                            const tags = inputValue
-                              .split(",")
-                              .map((tag: string) => tag.trim())
-                              .filter((tag: string) => tag.length > 0);
-                            field.onChange(tags);
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Add tags to help customers find your product
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  render={({ field }) => {
+                    const [inputValue, setInputValue] = useState(
+                      field.value?.join(", ") || ""
+                    );
+
+                    useEffect(() => {
+                      setInputValue(field.value?.join(", ") || "");
+                    }, [field.value]);
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Tags</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            placeholder="Enter tags (comma-separated)"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onBlur={() => {
+                              const tags = inputValue
+                                .split(",")
+                                .map((tag: string) => tag.trim())
+                                .filter((tag: string) => tag.length > 0);
+                              field.onChange(tags);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Add tags to help customers find your product
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </CardContent>
             </Card>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Updating Product..." : "Update Product"}
+            <Button className="sr-only" type="submit">
+              Update Product
             </Button>
           </div>
         </div>

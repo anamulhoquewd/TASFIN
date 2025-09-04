@@ -8,9 +8,11 @@ import { CreateProductForm } from "../_components/create-form";
 import useProducts from "../_hook/useProducts";
 import { useState } from "react";
 import { ProductCreateInput } from "@/lib/schemas";
+import { useRouter } from "next/navigation";
 
 export default function NewProductPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const {
     form,
@@ -28,12 +30,12 @@ export default function NewProductPage() {
 
   const handleSubmit = async (data: ProductCreateInput) => {
     try {
-      setIsSubmitting(true);
+      setIsLoading(true);
       await onSubmit(data);
     } catch (error) {
       console.error("Error creating product:", error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
@@ -47,19 +49,21 @@ export default function NewProductPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/products">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Cancel
-            </Link>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/products")}
+            className="cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Products
           </Button>
           <Button
             className="bg-primary hover:bg-primary/90 cursor-pointer"
             onClick={form.handleSubmit(handleSubmit)}
-            disabled={isSubmitting}
+            disabled={isLoading}
           >
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? "Saving..." : "Save Product"}
+            {isLoading ? "Saving..." : "Save Product"}
           </Button>
         </div>
       </div>
