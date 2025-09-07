@@ -2,209 +2,269 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import type { IProduct } from "@/interfaces/products";
+import type { IImage, IProduct } from "@/interfaces/products";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
 import useProducts from "../../_hook/useProducts";
 import { EditProductForm } from "../../_components/edit-form";
-import { toast } from "sonner";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
+// EditProductPage.tsx
 export default function EditProductPage() {
   const params = useParams();
   const router = useRouter();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [existingImagesToKeep, setExistingImagesToKeep] = useState<
+    { alt: string; url: string }[]
+  >([]);
+  const [deleteImageUrls, setDeleteImageUrls] = useState<string[]>([]);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<
+    Record<string, string[]>
+  >({});
+  const [categoryOpen, setCategoryOpen] = useState(false);
 
   const { getProductById, updateProduct } = useProducts();
 
-  const {
-    handleTitleChange,
-    setCategoryOpen,
-    categoryOpen,
-    prepend,
-    remove,
-    fields,
-    variantImagePreviews,
-    handleVariantImageUpload,
-    removeVariantImage,
-  } = useProducts();
-
-  const form = useForm({
+  const form = useForm<ProductUpdateInput>({
     resolver: zodResolver(productUpdateZ),
-    defaultValues: {
-      title: product?.title || "",
-      slug: product?.slug || "",
-      description: {
-        json: (product?.description as any)?.json || null,
-        html: (product?.description as any)?.html || "",
-      },
-      categories:
-        product?.categories?.map((cat) =>
-          typeof cat === "string" ? cat : (cat as any)._id
-        ) || [],
-      images: [], // Will be handled separately for existing images
-      variants: product?.variants?.map((variant) => ({
-        size: variant.size || "",
-        color: variant.color || "",
-        stock: variant.stock || 0,
-        price: variant.price || 0,
-        images: [], // Will be handled separately for existing images
-      })) || [{ size: "", color: "", stock: 0, price: 0, images: [] }],
-      fabric: product?.fabric || "",
-      valueAddition: product?.valueAddition || "",
-      cutFit: product?.cutFit || "",
-      collarNeck: product?.collarNeck || "",
-      sleeve: product?.sleeve || "",
-      length: product?.length || "",
-      washCare: product?.washCare || "",
-      sideCut: product?.sideCut || "",
-      isFeatured: product?.isFeatured || false,
-      isActive: product?.isActive !== undefined ? product?.isActive : true,
-      tags: product?.tags || [],
-    },
+    defaultValues: { images: [], variants: [] },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
+  });
+
+  // Fetch Product
   useEffect(() => {
-    const fetchProduct = async () => {
+    (async () => {
       try {
         setIsLoading(true);
-        const result = await getProductById(params.id as string);
+        const res = await getProductById(params.id as string);
+        setProduct(res.data);
 
-        console.log("Fetched product:", result.data);
-
-        setProduct(result.data);
+        // Reset form values
         form.reset({
-          title: result.data.title || "",
-          slug: result.data.slug || "",
-          description: {
-            json: (result.data.description as any)?.json || null,
-            html: (result.data.description as any)?.html || "",
-          },
-          categories: result.data.categories || [],
-          images: [], // Will be handled separately for existing images
-          variants: result.data.variants?.map((variant: any) => ({
-            size: variant.size || "",
-            color: variant.color || "",
-            stock: variant.stock || 0,
-            price: variant.price || 0,
-            images: [], // Will be handled separately for existing images
-          })) || [{ size: "", color: "", stock: 0, price: 0, images: [] }],
-          fabric: result.data.fabric || "",
-          valueAddition: result.data.valueAddition || "",
-          cutFit: result.data.cutFit || "",
-          collarNeck: result.data.collarNeck || "",
-          sleeve: result.data.sleeve || "",
-          length: result.data.length || "",
-          washCare: result.data.washCare || "",
-          sideCut: result.data.sideCut || "",
-          isFeatured: result.data.isFeatured || false,
-          isActive:
-            result.data.isActive !== undefined ? result.data.isActive : true,
-          tags: result.data.tags || [],
+          title: res.data.title || "",
+          slug: res.data.slug || "",
+          description: res.data.description || { html: "", json: null },
+          categories: res.data.categories || [],
+          images: [],
+          variants:
+            res.data.variants?.map((v: any) => ({
+              _id: v._id,
+              size: v.size,
+              color: v.color,
+              stock: v.stock,
+              price: v.price,
+              images: [], // file uploads
+              existingImages: v.images?.map((img: IImage) => img.url) || [],
+              deleteImageUrls: [],
+            })) || [],
+          fabric: res.data.fabric || "",
+          valueAddition: res.data.valueAddition || "",
+          cutFit: res.data.cutFit || "",
+          collarNeck: res.data.collarNeck || "",
+          sleeve: res.data.sleeve || "",
+          length: res.data.length || "",
+          washCare: res.data.washCare || "",
+          sideCut: res.data.sideCut || "",
+          isFeatured: res.data.isFeatured || false,
+          isActive: res.data.isActive ?? true,
+          tags: res.data.tags || [],
         });
-      } catch (error) {
-        console.error("Error fetching product:", error);
+
+        setExistingImagesToKeep(
+          res.data.images?.map((img: IImage) => ({
+            alt: img.alt,
+            url: img.url,
+          })) || []
+        );
+        setDeleteImageUrls([]);
       } finally {
         setIsLoading(false);
       }
-    };
+    })();
+  }, [params.id]);
 
-    fetchProduct();
-  }, []);
+  // Variant Image Upload
+  const handleVariantImageUpload = (
+    variantIndex: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
 
-  const handleSubmit = async (data: ProductUpdateInput) => {
+    // Filter duplicates
+    const currentFiles: File[] =
+      form.getValues(`variants.${variantIndex}.images`) || [];
+    const newFiles = files.filter(
+      (f) =>
+        !currentFiles.some((cf) => cf.name === f.name && cf.size === f.size)
+    );
+    if (!newFiles.length) return;
+
+    form.setValue(`variants.${variantIndex}.images`, [
+      ...currentFiles,
+      ...newFiles,
+    ]);
+
+    // Previews
+    const variantId =
+      form.getValues(`variants.${variantIndex}._id`) || `new-${variantIndex}`;
+    newFiles.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setVariantImagePreviews((prev) => ({
+          ...prev,
+          [variantId]: [
+            ...(prev[variantId] || []),
+            ev.target?.result as string,
+          ],
+        }));
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeVariantImage = (variantIndex: number, imageIndex: number) => {
+    const variant = form.getValues(`variants.${variantIndex}`);
+    const variantId = variant._id || `new-${variantIndex}`;
+
+    // Remove from files
+    const currentFiles = variant.images || [];
+    form.setValue(
+      `variants.${variantIndex}.images`,
+      currentFiles.filter((_, i) => i !== imageIndex)
+    );
+
+    // Remove from previews
+    setVariantImagePreviews((prev) => ({
+      ...prev,
+      [variantId]: (prev[variantId] || []).filter((_, i) => i !== imageIndex),
+    }));
+  };
+
+  // Main Product Images Management
+  const handleMainImageRemove = (url: string) => {
+    setExistingImagesToKeep((prev) => prev.filter((img) => img.url !== url));
+    setDeleteImageUrls((prev) => {
+      if (!prev.includes(url)) {
+        return [...prev, url];
+      }
+      return prev;
+    });
+  };
+
+  const handleMainImageRestore = (url: string) => {
+    setExistingImagesToKeep((prev) => [...prev, { alt: "", url }]);
+    setDeleteImageUrls((prev) => prev.filter((deleteUrl) => deleteUrl !== url));
+  };
+
+  // Variant Image Management Functions
+  const handleVariantImageRemove = (variantIndex: number, imageUrl: string) => {
+    const variant = form.getValues(`variants.${variantIndex}`);
+    const currentDeleteUrls = variant.deleteImageUrls || [];
+
+    // Add URL to deleteImageUrls if not already present
+    if (!currentDeleteUrls.includes(imageUrl)) {
+      form.setValue(`variants.${variantIndex}.deleteImageUrls`, [
+        ...currentDeleteUrls,
+        imageUrl,
+      ]);
+    }
+  };
+
+  const handleVariantImageRestore = (
+    variantIndex: number,
+    imageUrl: string
+  ) => {
+    const variant = form.getValues(`variants.${variantIndex}`);
+    const currentDeleteUrls = variant.deleteImageUrls || [];
+
+    // Remove URL from deleteImageUrls
+    form.setValue(
+      `variants.${variantIndex}.deleteImageUrls`,
+      currentDeleteUrls.filter((url) => url !== imageUrl)
+    );
+  };
+
+  const isVariantImageRemoved = (variantIndex: number, imageUrl: string) => {
+    const variant = form.getValues(`variants.${variantIndex}`);
+    const deleteUrls = variant.deleteImageUrls || [];
+    return deleteUrls.includes(imageUrl);
+  };
+
+  // Submit
+  const handleSubmitForm = async (data: ProductUpdateInput) => {
     try {
       setIsLoading(true);
-      const result = await updateProduct(params.id as string, data);
 
-      if (result.success) {
-        // Optionally redirect to products list or refresh the page
-        router.push("/products");
-      }
-    } catch (error) {
-      console.error("Error updating product:", error);
+      // Handle Main Product Images Deletion
+      const mainProductDeleteImageUrls = deleteImageUrls;
+
+      // Process Variant Images - each variant has its own deleteImageUrls
+      const processedVariants =
+        data.variants?.map((variant: any) => ({
+          ...variant,
+          // Each variant manages its own image deletions independently
+          deleteImageUrls: variant.deleteImageUrls || [],
+        })) || [];
+
+      const payload = {
+        ...data,
+        variants: processedVariants,
+        // Main product images deletion URLs (separate from variant images)
+        deleteImageUrls: mainProductDeleteImageUrls,
+      };
+
+      // Call backend
+      // await updateProduct(product._id, payload);
+      console.log("Payload ready for backend:", payload);
+      console.log("Main product images to delete:", mainProductDeleteImageUrls);
+      console.log(
+        "Variant images deletions:",
+        processedVariants.map((v) => ({
+          variantId: v._id,
+          deleteUrls: v.deleteImageUrls,
+        }))
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!product) {
-    return (
-      <div className="container mx-auto py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Not Found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              The product you're looking for doesn't exist or has been deleted.
-            </p>
-            <Button
-              onClick={() => router.push("/products")}
-              className="cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Products
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  if (!product) return <div>Loading...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Edit Product</h1>
-          <p className="text-muted-foreground">
-            Update on "{product.title}" information
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/products")}
-            className="cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Products
-          </Button>
-          <Button
-            className="bg-primary hover:bg-primary/90 cursor-pointer"
-            onClick={form.handleSubmit(handleSubmit)}
-            disabled={isLoading}
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {isLoading ? "Updating..." : "Update Product"}
-          </Button>
-        </div>
-      </div>
-
-      <EditProductForm
-        form={form}
-        product={product}
-        onSubmit={handleSubmit}
-        isLoading={isLoading}
-        handleTitleChange={handleTitleChange}
-        setCategoryOpen={setCategoryOpen}
-        categoryOpen={categoryOpen}
-        prepend={prepend}
-        remove={remove}
-        fields={fields}
-        variantImagePreviews={fields.map(
-          (_, index) => variantImagePreviews[index] || []
-        )}
-        handleVariantImageUpload={handleVariantImageUpload}
-        removeVariantImage={removeVariantImage}
-      />
-    </div>
+    <EditProductForm
+      form={form}
+      product={product}
+      fields={fields}
+      prepend={append}
+      remove={remove}
+      handleVariantImageUpload={handleVariantImageUpload}
+      removeVariantImage={removeVariantImage}
+      existingImagesToKeep={existingImagesToKeep}
+      setExistingImagesToKeep={setExistingImagesToKeep}
+      variantImagePreviews={variantImagePreviews}
+      onSubmit={handleSubmitForm}
+      isLoading={isLoading}
+      handleTitleChange={(title) =>
+        form.setValue("slug", title.toLowerCase().replace(/\s+/g, "-"))
+      }
+      setCategoryOpen={setCategoryOpen}
+      categoryOpen={categoryOpen}
+      handleVariantImageRemove={handleVariantImageRemove}
+      handleVariantImageRestore={handleVariantImageRestore}
+      isVariantImageRemoved={isVariantImageRemoved}
+      handleMainImageRemove={handleMainImageRemove}
+      handleMainImageRestore={handleMainImageRestore}
+    />
   );
-
-  return <div className="container mx-auto py-8"></div>;
 }

@@ -3,8 +3,6 @@
 import type React from "react";
 
 import { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,17 +38,20 @@ import {
   ChevronsUpDown,
   CheckCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
+import { type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
 import useCategory from "@/app/categories/_hook/useCategory";
+import Image from "next/image";
 
 interface EditProductFormProps {
   form: any;
   product: IProduct;
-  onSubmit: (data: ProductUpdateInput) => Promise<void>;
+  onSubmit: (
+    data: ProductUpdateInput,
+    existingImagesToKeep: { alt: string; url: string }[]
+  ) => Promise<void>;
   isLoading: boolean;
   handleTitleChange: (title: string) => void;
   setCategoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -58,12 +59,21 @@ interface EditProductFormProps {
   prepend: (value: any) => void;
   remove: (index: number) => void;
   fields: any[];
-  variantImagePreviews: string[][];
+  variantImagePreviews: Record<string, string[]>;
   handleVariantImageUpload: (
     index: number,
     e: React.ChangeEvent<HTMLInputElement>
   ) => void;
   removeVariantImage: (index: number, variantIndex: number) => void;
+  setExistingImagesToKeep: React.Dispatch<
+    React.SetStateAction<{ alt: string; url: string }[]>
+  >;
+  existingImagesToKeep: { alt: string; url: string }[];
+  handleVariantImageRemove: (variantIndex: number, imageUrl: string) => void;
+  handleVariantImageRestore: (variantIndex: number, imageUrl: string) => void;
+  isVariantImageRemoved: (variantIndex: number, imageUrl: string) => boolean;
+  handleMainImageRemove: (url: string) => void;
+  handleMainImageRestore: (url: string) => void;
 }
 
 export function EditProductForm({
@@ -79,19 +89,32 @@ export function EditProductForm({
   variantImagePreviews,
   handleVariantImageUpload,
   removeVariantImage,
+  setExistingImagesToKeep,
+  existingImagesToKeep,
+  handleVariantImageRemove,
+  handleVariantImageRestore,
+  isVariantImageRemoved,
+  handleMainImageRemove,
+  handleMainImageRestore,
 }: EditProductFormProps) {
   const { categories } = useCategory();
+
   const getCategoryName = (categoryId: string) => {
     return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
   };
 
-  console.log("Product Form Values: ", form.getValues());
-  console.log("Product: ", product);
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const formData = form.getValues();
+          onSubmit(formData, existingImagesToKeep || []);
+        }}
+        className="space-y-8"
+      >
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+          {/* Main Content */}
           <div className="md:col-span-2 space-y-6">
             {/* Basic Information */}
             <Card>
@@ -168,25 +191,80 @@ export function EditProductForm({
               </CardContent>
             </Card>
 
+            {/* Main Product Images */}
             <Card>
               <CardHeader>
-                <CardTitle>Current Product Images</CardTitle>
+                <CardTitle>Main Product Images</CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Main Product Existing Images Management */}
                 {product.images && product.images.length > 0 && (
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
-                    {product.images.map((image: any, index: number) => (
-                      <div key={index} className="relative group">
-                        <img
-                          src={typeof image === "string" ? image : image.url}
-                          alt={`Current ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs">Current</span>
-                        </div>
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <FormLabel className="text-sm font-medium">
+                        Current Images ({existingImagesToKeep.length} of{" "}
+                        {product.images.length} kept)
+                      </FormLabel>
+                      <div className="text-xs text-muted-foreground">
+                        Hover to see options
                       </div>
-                    ))}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                      {product.images.map((image: any, index: number) => {
+                        const imageUrl = image.url;
+
+                        const isRemoved = !existingImagesToKeep.some(
+                          (img) => img.url === imageUrl
+                        );
+
+                        return (
+                          <div
+                            key={index}
+                            className={`relative group cursor-pointer ${
+                              isRemoved ? "opacity-50" : ""
+                            }`}
+                            onClick={() => {
+                              if (isRemoved) {
+                                handleMainImageRestore(imageUrl);
+                              } else {
+                                handleMainImageRemove(imageUrl);
+                              }
+                            }}
+                          >
+                            <img
+                              src={imageUrl}
+                              alt={`Current ${index + 1}`}
+                              className="w-full h-24 object-cover rounded-lg"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <span className="text-white flex flex-col items-center justify-center">
+                                {isRemoved ? (
+                                  <>
+                                    <span>Removed</span>
+                                    <span className="text-xs">
+                                      Click to restore
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>Current</span>
+                                    <span className="text-xs">
+                                      Click to remove
+                                    </span>
+                                  </>
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {existingImagesToKeep.length === 0 && (
+                      <div className="text-center py-4 text-sm text-muted-foreground">
+                        All current images will be removed. Add new images below
+                        or restore some current ones.
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -195,77 +273,105 @@ export function EditProductForm({
                   name="images"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Add New Images</FormLabel>
+                      <FormLabel>Add New Main Product Images</FormLabel>
                       <FormControl>
-                        <div>
-                          <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50">
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                              <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
-                              <p className="text-sm text-muted-foreground">
-                                Click to upload new images
-                              </p>
-                            </div>
-                            <input
-                              type="file"
-                              className="hidden"
-                              multiple
-                              accept="image/*"
-                              onChange={(e) => {
-                                const newFiles = Array.from(
-                                  e.target.files || []
-                                );
-                                const existing = field.value || [];
-                                const filtered = newFiles.filter(
-                                  (file) =>
-                                    !existing.some(
-                                      (f: File) =>
-                                        f.name === file.name &&
-                                        f.size === file.size &&
-                                        f.lastModified === file.lastModified
-                                    )
-                                );
-                                field.onChange([...existing, ...filtered]);
-                              }}
-                            />
-                          </label>
-
-                          {(field.value || []).length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-                              {(field.value || []).map(
-                                (file: File, index: number) => (
-                                  <div key={index} className="relative group">
-                                    <img
-                                      src={
-                                        URL.createObjectURL(file) ||
-                                        "/placeholder.svg"
-                                      }
-                                      alt={`New ${index + 1}`}
-                                      className="w-full h-24 object-cover rounded-lg"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        field.onChange(
-                                          (field.value || []).filter(
-                                            (_: any, i: number) => i !== index
-                                          )
-                                        )
-                                      }
-                                      className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
-                                  </div>
+                        <input
+                          id="images-upload"
+                          type="file"
+                          className="hidden"
+                          multiple
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={(e) => {
+                            const newFiles = Array.from(e.target.files || []);
+                            const existing = field.value || [];
+                            const filtered = newFiles.filter(
+                              (file) =>
+                                !existing.some(
+                                  (f: File) =>
+                                    f.name === file.name &&
+                                    f.size === file.size &&
+                                    f.lastModified === file.lastModified
                                 )
-                              )}
-                            </div>
+                            );
+                            field.onChange([...existing, ...filtered]);
+                          }}
+                        />
+                      </FormControl>
+
+                      {/* clickable UI */}
+                      <label
+                        htmlFor="images-upload"
+                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50"
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
+                            Click to upload new images
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Supports JPEG, PNG, WebP (max 5MB each)
+                          </p>
+                        </div>
+                      </label>
+
+                      {(field.value || []).length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+                          {(field.value || []).map(
+                            (file: File, index: number) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={
+                                    URL.createObjectURL(file) ||
+                                    "/placeholder.svg"
+                                  }
+                                  alt={`New ${index + 1}`}
+                                  className="w-full h-24 object-cover rounded-lg"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    field.onChange(
+                                      (field.value || []).filter(
+                                        (_: any, i: number) => i !== index
+                                      )
+                                    )
+                                  }
+                                  className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )
                           )}
                         </div>
-                      </FormControl>
+                      )}
+
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Main Product Images Summary */}
+                <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="text-sm font-medium mb-1">
+                    Main Product Images Summary
+                  </div>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>
+                      • Current main images to keep:{" "}
+                      {existingImagesToKeep.length}
+                    </div>
+                    <div>
+                      • New main images to upload:{" "}
+                      {(form.getValues("images") || []).length}
+                    </div>
+                    <div>
+                      • Total main images after update:{" "}
+                      {existingImagesToKeep.length +
+                        (form.getValues("images") || []).length}
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
@@ -295,156 +401,250 @@ export function EditProductForm({
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {fields.map((field: any, index: number) => (
-                    <div
-                      key={field.id}
-                      className="p-4 border border-border rounded-lg"
-                    >
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium">Variant {index + 1}</h4>
-                        {fields.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => remove(index)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.size`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Size</FormLabel>
-                              <FormControl>
-                                <Input placeholder="S, M, L, XL" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                  {fields.map((field: any, index: number) => {
+                    console.log("Filed: ", field);
+                    return (
+                      <div
+                        key={field.id}
+                        className="p-4 border border-border rounded-lg"
+                      >
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-medium">Variant {index + 1}</h4>
+                          {fields.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => remove(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.color`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Color</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Red, Blue, etc."
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.stock`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Stock</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      Number.parseInt(e.target.value) || 0
-                                    )
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.price`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="0"
-                                  step="0.01"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      Number.parseFloat(e.target.value) || 0
-                                    )
-                                  }
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <FormLabel>Variant Images</FormLabel>
-                          <label className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md cursor-pointer hover:bg-muted/50">
-                            <Upload className="w-4 h-4" />
-                            Upload Images
-                            <input
-                              type="file"
-                              className="hidden"
-                              multiple
-                              accept="image/*"
-                              onChange={(e) =>
-                                handleVariantImageUpload(index, e)
-                              }
-                            />
-                          </label>
                         </div>
 
-                        {variantImagePreviews[index] &&
-                          variantImagePreviews[index].length > 0 && (
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2">
-                              {variantImagePreviews[index].map(
-                                (preview: string, imageIndex: number) => (
-                                  <div
-                                    key={imageIndex}
-                                    className="relative group"
-                                  >
-                                    <img
-                                      src={preview || "/placeholder.svg"}
-                                      alt={`Variant ${index + 1} Image ${
-                                        imageIndex + 1
-                                      }`}
-                                      className="w-full h-20 object-cover rounded-md"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        removeVariantImage(index, imageIndex)
-                                      }
-                                      className="cursor-pointer absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.size`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Size</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="S, M, L, XL" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.color`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Color</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Red, Blue, etc."
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.stock`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Stock</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    {...field}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        Number.parseInt(e.target.value) || 0
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.price`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Price</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    {...field}
+                                    onChange={(e) =>
+                                      field.onChange(
+                                        Number.parseFloat(e.target.value) || 0
+                                      )
+                                    }
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <FormLabel>
+                              Variant Images (Separate from Main Product Images)
+                            </FormLabel>
+                            <label className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-md cursor-pointer hover:bg-muted/50">
+                              <Upload className="w-4 h-4" />
+                              Upload Images
+                              <input
+                                type="file"
+                                className="hidden"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) =>
+                                  handleVariantImageUpload(index, e)
+                                }
+                              />
+                            </label>
+                          </div>
+
+                          {/* Existing Variant Images - Independent from Main Product Images */}
+                          {fields[index].existingImages &&
+                            fields[index].existingImages.length > 0 && (
+                              <div className="mb-4">
+                                <FormLabel className="text-sm font-medium mb-2 block">
+                                  Existing Variant Images (
+                                  {fields[index].existingImages.length})
+                                </FormLabel>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                  {fields[index].existingImages.map(
+                                    (url: string, imgIndex: number) => {
+                                      const isRemoved = isVariantImageRemoved(
+                                        index,
+                                        url
+                                      );
+
+                                      return (
+                                        <div
+                                          key={imgIndex}
+                                          className={`relative group cursor-pointer ${
+                                            isRemoved ? "opacity-50" : ""
+                                          }`}
+                                          onClick={() => {
+                                            if (isRemoved) {
+                                              handleVariantImageRestore(
+                                                index,
+                                                url
+                                              );
+                                            } else {
+                                              handleVariantImageRemove(
+                                                index,
+                                                url
+                                              );
+                                            }
+                                          }}
+                                        >
+                                          <img
+                                            src={url || ""}
+                                            alt={`Variant ${index + 1} Image ${
+                                              imgIndex + 1
+                                            }`}
+                                            className="w-full h-24 object-cover rounded-lg"
+                                          />
+                                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                            <span className="text-white flex flex-col items-center justify-center">
+                                              {isRemoved ? (
+                                                <>
+                                                  <span>Removed</span>
+                                                  <span className="text-xs">
+                                                    Click to restore
+                                                  </span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <span>Current</span>
+                                                  <span className="text-xs">
+                                                    Click to remove
+                                                  </span>
+                                                </>
+                                              )}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      );
+                                    }
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                          {/* New Variant Images Preview - Independent from Main Product Images */}
+                          {(() => {
+                            const variantId =
+                              fields[index]._id || `new-${index}`;
+                            const previews =
+                              variantImagePreviews[variantId] || [];
+                            const uploadedFiles =
+                              form.getValues(`variants.${index}.images`) || [];
+
+                            return (
+                              previews.length > 0 && (
+                                <div className="mb-4">
+                                  <FormLabel className="text-sm font-medium mb-2 block">
+                                    New Variant Images ({previews.length})
+                                  </FormLabel>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                                    {previews.map(
+                                      (preview: string, imageIndex: number) => (
+                                        <div
+                                          key={imageIndex}
+                                          className="relative group"
+                                        >
+                                          <img
+                                            src={preview || "/placeholder.svg"}
+                                            alt={`Variant ${
+                                              index + 1
+                                            } New Image ${imageIndex + 1}`}
+                                            className="w-full h-24 object-cover rounded-lg"
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={() =>
+                                              removeVariantImage(
+                                                index,
+                                                imageIndex
+                                              )
+                                            }
+                                            className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                          >
+                                            <X className="w-3 h-3" />
+                                          </button>
+                                        </div>
+                                      )
+                                    )}
                                   </div>
-                                )
-                              )}
-                            </div>
-                          )}
+                                </div>
+                              )
+                            );
+                          })()}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>

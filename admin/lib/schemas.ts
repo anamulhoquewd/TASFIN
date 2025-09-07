@@ -7,7 +7,7 @@ export const imageZ = z.object({
 });
 
 const fileSchema = z
-  .instanceof(File) // File object কিনা চেক করবে
+  .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, {
     message: "File size must be <= 5MB",
   })
@@ -83,6 +83,9 @@ export const productVariantSchemaZ = z.object({
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(fileSchema).optional(),
+  existingImages: z.array(z.string()).optional(),
+  deleteImageUrls: z.array(z.string()).optional(),
+  _id: z.string().optional(),
 });
 
 // If you want a separate update schema where fields can be optional:

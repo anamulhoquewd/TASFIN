@@ -406,146 +406,277 @@ function useProducts() {
     return null;
   };
 
-  // Comprehensive updateProduct function
-  const updateProduct = async (
-    productId: string,
-    updateData: ProductUpdateInput
-  ): Promise<{ success: boolean; data?: IProduct; error?: string }> => {
-    try {
-      // 1. Validate product exists
-      const existingProduct = await getProductById(productId);
-      if (!existingProduct?.data) {
-        throw new Error("Product not found");
+  async function updateProduct(productId: string, updateData: any) {
+    const formData = new FormData();
+
+    console.log("Update data:", updateData);
+
+    // ----- Basic fields -----
+    if (updateData.name) {
+      formData.append("name", updateData.name);
+    }
+    if (updateData.description !== undefined) {
+      formData.append("description", updateData.description || "");
+    }
+    if (updateData.price !== undefined) {
+      formData.append("price", String(updateData.price));
+    }
+
+    // ----- Main Images -----
+    // নতুন images
+    updateData?.newImages?.forEach((file: File) => {
+      if (file) formData.append("images", file);
+    });
+
+    // যেসব পুরোনো image delete হবে
+    if (
+      Array.isArray(updateData.deleteImageUrls) &&
+      updateData.deleteImageUrls.length > 0
+    ) {
+      formData.append(
+        "deleteImageUrls",
+        JSON.stringify(updateData.deleteImageUrls)
+      );
+    }
+
+    // ----- Variants -----
+    updateData?.variants?.forEach((variant: any, index: number) => {
+      if (variant.id) {
+        formData.append(`variants[${index}][id]`, variant.id);
       }
 
-      const currentProduct = existingProduct.data;
+      formData.append(`variants[${index}][size]`, variant.size || "");
+      formData.append(`variants[${index}][color]`, variant.color || "");
+      formData.append(`variants[${index}][stock]`, String(variant.stock ?? 0));
+      formData.append(`variants[${index}][price]`, String(variant.price ?? 0));
 
-      // 2. Prepare FormData for multipart/form-data request
-      const formData = new FormData();
-
-      // 3. Handle Basic Product Fields Update
-      if (updateData.title !== undefined) {
-        formData.append("title", updateData.title);
-      }
-      if (updateData.slug !== undefined) {
-        formData.append("slug", updateData.slug);
-      }
-      if (updateData.description !== undefined) {
-        formData.append(
-          "description",
-          typeof updateData.description === "string"
-            ? updateData.description
-            : JSON.stringify(updateData.description)
-        );
-      }
-
-      // Handle optional string fields
-      const optionalFields = [
-        "fabric",
-        "valueAddition",
-        "cutFit",
-        "collarNeck",
-        "sleeve",
-        "length",
-        "washCare",
-        "sideCut",
-      ] as const;
-
-      optionalFields.forEach((field) => {
-        if (updateData[field] !== undefined) {
-          formData.append(field, updateData[field] || "");
-        }
+      // নতুন variant images
+      variant?.newImages?.forEach((image: File) => {
+        if (image) formData.append(`variants[${index}][images]`, image);
       });
 
-      // Handle boolean fields
-      if (updateData.isFeatured !== undefined) {
-        formData.append("isFeatured", updateData.isFeatured.toString());
-      }
-      if (updateData.isActive !== undefined) {
-        formData.append("isActive", updateData.isActive.toString());
-      }
-
-      // 4. Handle Categories Management
-      if (updateData.categories !== undefined) {
-        formData.append("categories", JSON.stringify(updateData.categories));
-      }
-
-      // 5. Handle Tags
-      if (updateData.tags !== undefined) {
-        formData.append("tags", JSON.stringify(updateData.tags));
-      }
-
-      // 6. Handle Product Images Management
-      if (updateData.images !== undefined) {
-        // Add new images (Files)
-        updateData.images.forEach((image: File) => {
-          formData.append("images", image);
-        });
-      }
-
-      // 7. Handle Variants Management
-      if (updateData.variants !== undefined) {
-        updateData.variants.forEach((variant, index) => {
-          // Basic variant fields
-          formData.append(`variants[${index}][size]`, variant.size || "");
-          formData.append(`variants[${index}][color]`, variant.color || "");
-          formData.append(
-            `variants[${index}][stock]`,
-            variant.stock.toString()
-          );
-          formData.append(
-            `variants[${index}][price]`,
-            variant.price.toString()
-          );
-
-          // Handle variant images
-          if (variant.images && variant.images.length > 0) {
-            variant.images.forEach((image: File) => {
-              formData.append(`variants[${index}][images]`, image);
-            });
-          }
-        });
-      }
-
-      // 8. Send update request
-      const response = await axios.put(
-        `http://localhost:4000/api/v1/products/${productId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (!response.data.success) {
-        throw new Error(
-          response.data.error?.message || "Failed to update product"
+      // ডিলিট করার জন্য variant image urls
+      if (
+        Array.isArray(variant.deleteImageUrls) &&
+        variant.deleteImageUrls.length > 0
+      ) {
+        formData.append(
+          `variants[${index}][deleteImageUrls]`,
+          JSON.stringify(variant.deleteImageUrls)
         );
       }
+    });
 
-      toast.success("Product updated successfully");
+    // ----- Categories -----
+    updateData?.categories?.forEach((catId: string) => {
+      if (catId) formData.append("categories", catId);
+    });
+
+    try {
+      // ----- API Call -----
+      const response = await api.put("/products/" + productId, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      if (!response.data.success) {
+        console.log("Failed to create product:", response.data.error);
+        toast.error(response.data.error.message || "Failed to create product.");
+      }
+
+      toast.success(
+        response.data.success.message || "Product created successfully."
+      );
+
+      // Reset form after successful submission
+      form.reset({
+        title: "",
+        slug: "",
+        description: {
+          html: "",
+          json: null,
+        },
+        fabric: "",
+        valueAddition: "",
+        cutFit: "",
+        collarNeck: "",
+        sleeve: "",
+        length: "",
+        washCare: "",
+        sideCut: "",
+        isFeatured: false,
+        isActive: false,
+        categories: [],
+        tags: [],
+        images: [],
+        variants: [],
+      });
+
       return { success: true, data: response.data.data };
     } catch (error: any) {
-      console.error("Error updating product:", error);
-
-      // Handle validation errors
-      if (error.response?.data?.fields) {
+      console.error("Error creating product:", error);
+      if (error.response.data.success === false) {
         error.response.data.fields.forEach((field: any) => {
           form.setError(field.name, {
             message: field.message,
           });
         });
       }
-
-      const errorMessage = error.message || "Failed to update product";
-      toast.error("Error updating product", {
-        description: errorMessage,
+      toast.error("Error creating product", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
       });
-
-      return { success: false, error: errorMessage };
     }
-  };
+  }
+
+  // Comprehensive updateProduct function
+  // const updateProduct = async (
+  //   productId: string,
+  //   updateData: ProductUpdateInput,
+  //   existingImagesToKeep?: string[]
+  // ): Promise<{ success: boolean; data?: IProduct; error?: string }> => {
+  //   try {
+  //     // 1. Validate product exists
+  //     const existingProduct = await getProductById(productId);
+  //     if (!existingProduct?.data) {
+  //       throw new Error("Product not found");
+  //     }
+
+  //     // 2. Prepare FormData for multipart/form-data request
+  //     const formData = new FormData();
+
+  //     // 3. Handle Basic Product Fields Update
+  //     if (updateData.title !== undefined) {
+  //       formData.append("title", updateData.title);
+  //     }
+  //     if (updateData.slug !== undefined) {
+  //       formData.append("slug", updateData.slug);
+  //     }
+  //     if (updateData.description !== undefined) {
+  //       formData.append(
+  //         "description",
+  //         typeof updateData.description === "string"
+  //           ? updateData.description
+  //           : JSON.stringify(updateData.description)
+  //       );
+  //     }
+
+  //     // Handle optional string fields
+  //     const optionalFields = [
+  //       "fabric",
+  //       "valueAddition",
+  //       "cutFit",
+  //       "collarNeck",
+  //       "sleeve",
+  //       "length",
+  //       "washCare",
+  //       "sideCut",
+  //     ] as const;
+
+  //     optionalFields.forEach((field) => {
+  //       if (updateData[field] !== undefined) {
+  //         formData.append(field, updateData[field] || "");
+  //       }
+  //     });
+
+  //     // Handle boolean fields
+  //     if (updateData.isFeatured !== undefined) {
+  //       formData.append("isFeatured", updateData.isFeatured.toString());
+  //     }
+  //     if (updateData.isActive !== undefined) {
+  //       formData.append("isActive", updateData.isActive.toString());
+  //     }
+
+  //     // 4. Handle Categories Management
+  //     if (updateData.categories !== undefined) {
+  //       formData.append("categories", JSON.stringify(updateData.categories));
+  //     }
+
+  //     // 5. Handle Tags
+  //     if (updateData.tags !== undefined) {
+  //       formData.append("tags", JSON.stringify(updateData.tags));
+  //     }
+
+  //     // 6. Handle Product Images Management
+  //     if (updateData.images !== undefined) {
+  //       // Add new images (Files)
+  //       updateData.images.forEach((image: File) => {
+  //         formData.append("images", image);
+  //       });
+  //     }
+
+  //     // Handle existing images to keep
+  //     if (existingImagesToKeep !== undefined) {
+  //       formData.append(
+  //         "existingImagesToKeep",
+  //         JSON.stringify(existingImagesToKeep)
+  //       );
+  //     }
+
+  //     // 7. Handle Variants Management
+  //     if (updateData.variants !== undefined) {
+  //       updateData.variants.forEach((variant, index) => {
+  //         // Basic variant fields
+  //         formData.append(`variants[${index}][size]`, variant.size || "");
+  //         formData.append(`variants[${index}][color]`, variant.color || "");
+  //         formData.append(
+  //           `variants[${index}][stock]`,
+  //           variant.stock.toString()
+  //         );
+  //         formData.append(
+  //           `variants[${index}][price]`,
+  //           variant.price.toString()
+  //         );
+
+  //         // Handle variant images
+  //         if (variant.images && variant.images.length > 0) {
+  //           variant.images.forEach((image: File) => {
+  //             formData.append(`variants[${index}][images]`, image);
+  //           });
+  //         }
+  //       });
+  //     }
+
+  //     // 8. Send update request
+  //     const response = await axios.put(
+  //       `http://localhost:4000/api/v1/products/${productId}`,
+  //       formData,
+  //       {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //       }
+  //     );
+
+  //     if (!response.data.success) {
+  //       throw new Error(
+  //         response.data.error?.message || "Failed to update product"
+  //       );
+  //     }
+
+  //     toast.success("Product updated successfully");
+  //     return { success: true, data: response.data.data };
+  //   } catch (error: any) {
+  //     console.error("Error updating product:", error);
+
+  //     // Handle validation errors
+  //     if (error.response?.data?.fields) {
+  //       error.response.data.fields.forEach((field: any) => {
+  //         form.setError(field.name, {
+  //           message: field.message,
+  //         });
+  //       });
+  //     }
+
+  //     const errorMessage = error.message || "Failed to update product";
+  //     toast.error("Error updating product", {
+  //       description: errorMessage,
+  //     });
+
+  //     return { success: false, error: errorMessage };
+  //   }
+  // };
 
   // Helper function to handle variant image operations
   const handleVariantImageOperations = (

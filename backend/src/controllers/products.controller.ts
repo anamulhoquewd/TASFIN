@@ -91,7 +91,6 @@ export const register = async (c: Context) => {
 export const updateProduct = async (c: Context) => {
   try {
     const formData = await c.req.formData();
-
     const productId = c.req.param("productId");
     if (!productId) return c.json({ message: "Product ID is required" }, 400);
 
@@ -109,65 +108,52 @@ export const updateProduct = async (c: Context) => {
     const isFeatured = formData.get("isFeatured") === "true";
     const isActive = formData.get("isActive") === "true";
 
-    // Parse array fields
+    // Parse arrays
     const categories = JSON.parse(
       (formData.get("categories") as string) || "[]"
     );
     const tags = JSON.parse((formData.get("tags") as string) || "[]");
-
-    // Parse description (TipTap JSON)
     const description = JSON.parse(
       (formData.get("description") as string) || "{}"
     );
 
-    // New main images
+    // Main images
     const mainImages = formData.getAll("images") as File[];
-
-    // Images to delete (URLs sent from frontend)
     const deleteImageUrls = JSON.parse(
       (formData.get("deleteImageUrls") as string) || "[]"
     );
 
-    // Variant updates
+    // Variants
     const variants: any[] = [];
-    const variantImages: Record<number, File[]> = {};
-    const deleteVariantImageUrls: Record<number, string[]> = {};
+    const variantImages: Record<string, File[]> = {};
+    const deleteVariantImageUrls: Record<string, string[]> = {};
 
-    let variantIndex = 0;
-    while (formData.get(`variants[${variantIndex}][size]`)) {
-      const size = formData.get(`variants[${variantIndex}][size]`) as string;
-      const color = formData.get(`variants[${variantIndex}][color]`) as string;
+    let index = 0;
+    while (formData.get(`variants[${index}][size]`)) {
+      const size = formData.get(`variants[${index}][size]`) as string;
+      const color = formData.get(`variants[${index}][color]`) as string;
       const stock = parseInt(
-        formData.get(`variants[${variantIndex}][stock]`) as string
+        formData.get(`variants[${index}][stock]`) as string
       );
       const price = parseFloat(
-        formData.get(`variants[${variantIndex}][price]`) as string
+        formData.get(`variants[${index}][price]`) as string
       );
-      const variantId = formData.get(`variants[${variantIndex}][id]`) as
-        | string
-        | null;
+      const variantId = formData.get(`variants[${index}][id]`) as string | null;
 
-      // Push variant data
       variants.push({ id: variantId, size, color, stock, price });
 
-      // New images for this variant
-      const vImages = formData.getAll(
-        `variants[${variantIndex}][images]`
-      ) as File[];
-      if (vImages.length > 0) variantImages[variantIndex] = vImages;
+      const vImages = formData.getAll(`variants[${index}][images]`) as File[];
+      if (vImages.length) variantImages[variantId || `new-${index}`] = vImages;
 
-      // Images to delete for this variant
       const vDeleteUrls = JSON.parse(
-        (formData.get(`variants[${variantIndex}][deleteImages]`) as string) ||
-          "[]"
+        (formData.get(`variants[${index}][deleteImages]`) as string) || "[]"
       );
-      if (vDeleteUrls.length > 0)
-        deleteVariantImageUrls[variantIndex] = vDeleteUrls;
+      if (vDeleteUrls.length)
+        deleteVariantImageUrls[variantId || `new-${index}`] = vDeleteUrls;
 
-      variantIndex++;
+      index++;
     }
 
-    // Prepare update input
     const updateInput: UpdateProductInput = {
       productId,
       data: {
@@ -186,7 +172,7 @@ export const updateProduct = async (c: Context) => {
         isFeatured,
         isActive,
         tags,
-        variants, // variant fields only, images handled separately
+        variants,
       },
       mainImages,
       variantImages,
@@ -194,11 +180,9 @@ export const updateProduct = async (c: Context) => {
       deleteVariantImageUrls,
     };
 
-    // Call update service
     const response = await productService.updateProduct(updateInput);
 
     if (response.error) return badRequestHandler(c, response.error);
-
     if (response.serverError)
       return serverErrorHandler(c, response.serverError);
 

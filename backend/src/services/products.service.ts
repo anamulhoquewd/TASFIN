@@ -1,5 +1,6 @@
 import s3 from "@/config/s3";
 import { schemaValidationError } from "@/error";
+import { IProduct } from "@/interfaces";
 import Category from "@/models/categorise.model";
 import Product from "@/models/products.model";
 import { uploadAvatar } from "@/utils";
@@ -164,6 +165,141 @@ export const register = async ({
   }
 };
 
+async function handleMainImages(
+  product: IProduct,
+  mainImages: File[],
+  deleteImageUrls: string[],
+  title: string,
+  uploadedUrls: string[]
+) {
+  // Delete old images
+  if (deleteImageUrls.length) {
+    await Promise.all(deleteImageUrls.map((url) => deleteFromS3(url)));
+    product.images = product.images.filter(
+      (img: { url: string }) => !deleteImageUrls.includes(img.url)
+    );
+  }
+
+  // Upload new images
+  if (mainImages.length) {
+    const filenames = mainImages.map(
+      (f, idx) => `${Date.now()}-${idx}-${f.name}`
+    );
+    const res = await uploadMultipleFiles({
+      body: { images: mainImages },
+      folder: "products",
+      filenames,
+    });
+    if (!res.success) throw new Error("Failed to upload main images");
+    const newUrls = res.success?.data || [];
+    uploadedUrls.push(...newUrls);
+    product.images.push(
+      ...newUrls.map((url) => ({ url, alt: title || product.title }))
+    );
+  }
+}
+
+async function handleVariants(
+  product: any,
+  variants: any[],
+  variantImages: Record<string, File[]>,
+  deleteVariantImageUrls: Record<string, string[]>,
+  uploadedVariantUrls: Record<string, string[]>
+) {
+  for (const variantUpdate of variants) {
+    const variantId = variantUpdate._id;
+    let existingVariant = product.variants.find(
+      (v: any) => v._id.toString() === variantId
+    );
+
+    if (existingVariant) {
+      // Update fields
+      Object.assign(existingVariant, {
+        ...variantUpdate,
+        images: existingVariant.images || [],
+      });
+
+      // Delete images
+      if (deleteVariantImageUrls[variantId]?.length) {
+        existingVariant.images = existingVariant.images.filter(
+          (img: any) => !deleteVariantImageUrls[variantId].includes(img.url)
+        );
+        await Promise.all(
+          deleteVariantImageUrls[variantId].map((url) => deleteFromS3(url))
+        );
+      }
+
+      // Upload new images
+      if (variantImages[variantId]?.length) {
+        const filenames = variantImages[variantId].map(
+          (f, i) => `${Date.now()}-${i}-${f.name}`
+        );
+        const res = await uploadMultipleFiles({
+          body: { images: variantImages[variantId] },
+          folder: "products/variants",
+          filenames,
+        });
+        if (!res.success) throw new Error("Failed to upload variant images");
+        uploadedVariantUrls[variantId] = res.success.data || [];
+        existingVariant.images.push(
+          ...uploadedVariantUrls[variantId].map((url) => ({
+            url,
+            alt: variantUpdate.color || "variant image",
+          }))
+        );
+      }
+    } else {
+      // New variant
+      const newVariant = { ...variantUpdate, images: [] };
+      if (variantImages[variantId]?.length) {
+        const filenames = variantImages[variantId].map(
+          (f, i) => `${Date.now()}-${i}-${f.name}`
+        );
+        const res = await uploadMultipleFiles({
+          body: { images: variantImages[variantId] },
+          folder: "products/variants",
+          filenames,
+        });
+        if (!res.success) throw new Error("Failed to upload variant images");
+        uploadedVariantUrls[variantId] = res.success.data || [];
+        newVariant.images.push(
+          ...uploadedVariantUrls[variantId].map((url) => ({
+            url,
+            alt: variantUpdate.color || "variant image",
+          }))
+        );
+      }
+      product.variants.push(newVariant);
+    }
+  }
+}
+
+function updateProductFields(product: any, data: any) {
+  const updatableFields = [
+    "title",
+    "description",
+    "categories",
+    "fabric",
+    "valueAddition",
+    "cutFit",
+    "collarNeck",
+    "sleeve",
+    "length",
+    "washCare",
+    "sideCut",
+    "isFeatured",
+    "isActive",
+    "tags",
+  ];
+
+  updatableFields.forEach((key) => {
+    if (key in data) product[key] = data[key];
+  });
+
+  // Optional slug
+  if (data.slug) product.slug = data.slug;
+}
+
 export const updateProduct = async ({
   productId,
   data,
@@ -173,176 +309,45 @@ export const updateProduct = async ({
   deleteVariantImageUrls = {},
 }: UpdateProductInput) => {
   let uploadedMainUrls: string[] = [];
-  let uploadedVariantUrls: Record<number, string[]> = {};
+  const uploadedVariantUrls: Record<string, string[]> = {};
 
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id: productId });
-  if (!idValidation.success) {
+  if (!idValidation.success)
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
-  }
 
   try {
-    // Step 1: Fetch existing product
     const product = await Product.findById(productId);
-    if (!product) {
-      return {
-        error: {
-          message: `Product not found with provided ID!`,
-        },
-      };
-    }
+    if (!product) return { error: { message: "Product not found!" } };
 
-    // Step 2: Handle main images
-    // 2a: Delete images from S3 and from product
-    if (deleteImageUrls.length > 0) {
-      await Promise.all(deleteImageUrls.map((url) => deleteFromS3(url)));
-      product.images = product.images.filter(
-        (img) => !deleteImageUrls.includes(img.url)
-      );
-    }
+    // --- Main Images ---
+    await handleMainImages(
+      product,
+      mainImages,
+      deleteImageUrls,
+      data.title,
+      uploadedMainUrls
+    );
 
-    // 2b: Upload new main images
-    if (mainImages.length > 0) {
-      const mainFilenames = mainImages.map(
-        (f, idx) => `${Date.now()}-${idx}-${f.name}`
-      );
-      const uploadResult = await uploadMultipleFiles({
-        body: { images: mainImages },
-        folder: "products",
-        filenames: mainFilenames,
-      });
+    // --- Variants ---
+    await handleVariants(
+      product,
+      data.variants || [],
+      variantImages,
+      deleteVariantImageUrls,
+      uploadedVariantUrls
+    );
 
-      if (!uploadResult.success) {
-        throw new Error(
-          uploadResult.error?.message || "Failed to upload main images"
-        );
-      }
+    // --- Other Product Fields ---
+    updateProductFields(product, data);
 
-      uploadedMainUrls = uploadResult.success?.data || [];
-      const newImageObjects = uploadedMainUrls.map((url) => ({
-        alt: data.title || product.title,
-        url,
-      }));
-      product.images.push(...newImageObjects);
-    }
-
-    // Step 3: Handle variants
-    if (data.variants && Array.isArray(data.variants)) {
-      data.variants.forEach(async (variantUpdate: any, idx: number) => {
-        let existingVariant = product.variants[idx];
-
-        if (existingVariant) {
-          // Update existing variant
-          Object.assign(existingVariant, {
-            ...variantUpdate,
-            // keep images if not explicitly replacing
-            images: existingVariant.images || [],
-          });
-
-          // Delete variant images
-          if (deleteVariantImageUrls[idx]?.length) {
-            existingVariant.images = existingVariant.images?.filter(
-              (img: any) => !deleteVariantImageUrls[idx].includes(img.url)
-            );
-            await Promise.all(
-              deleteVariantImageUrls[idx].map((url) => deleteFromS3(url))
-            );
-          }
-
-          // Add new variant images
-          if (variantImages[idx]?.length) {
-            const filenames = variantImages[idx].map(
-              (f, i) => `${Date.now()}-${idx}-${i}-${f.name}`
-            );
-            const uploadRes = await uploadMultipleFiles({
-              body: { images: variantImages[idx] },
-              folder: "products/variants",
-              filenames,
-            });
-            if (!uploadRes.success)
-              throw new Error(
-                uploadRes.error?.message || "Failed to upload variant images"
-              );
-            uploadedVariantUrls[idx] = uploadRes.success?.data || [];
-
-            const newVariantImageObjects = uploadedVariantUrls[idx].map(
-              (url) => ({
-                url,
-                alt: variantUpdate.color || "variant image",
-              })
-            );
-            existingVariant.images?.push(...newVariantImageObjects);
-          }
-        } else {
-          // New variant
-          const newVariant = { ...variantUpdate, images: [] };
-
-          // Upload variant images if provided
-          if (variantImages[idx]?.length) {
-            const filenames = variantImages[idx].map(
-              (f, i) => `${Date.now()}-${idx}-${i}-${f.name}`
-            );
-            const uploadRes = await uploadMultipleFiles({
-              body: { images: variantImages[idx] },
-              folder: "products/variants",
-              filenames,
-            });
-            if (!uploadRes.success)
-              throw new Error(
-                uploadRes.error?.message || "Failed to upload variant images"
-              );
-
-            const newVariantImageObjects =
-              uploadRes.success?.data.map((url) => ({
-                url,
-                alt: variantUpdate.color || "variant image",
-              })) || [];
-            newVariant.images.push(...newVariantImageObjects);
-          }
-
-          product.variants.push(newVariant);
-        }
-      });
-    }
-
-    // Step 4: Update other info
-    const updatableFields = [
-      "title",
-      "description",
-      "categories",
-      "fabric",
-      "valueAddition",
-      "cutFit",
-      "collarNeck",
-      "sleeve",
-      "length",
-      "washCare",
-      "sideCut",
-      "isFeatured",
-      "isActive",
-      "tags",
-    ];
-
-    updatableFields.forEach((key) => {
-      if (key in data) (product as any)[key] = data[key];
-    });
-
-    // Optional: slug update
-    // Decide if you allow slug to change; usually better to keep it immutable for SEO
-    if (data.slug) product.slug = data.slug;
-
-    // Step 5: Save
+    // Save
     const updated = await product.save();
-
     return {
-      success: {
-        success: true,
-        message: "Update successful",
-        data: updated,
-      },
+      success: { success: true, message: "Update successful", data: updated },
     };
   } catch (error: any) {
-    // Rollback uploaded files if needed
+    // Rollback uploaded files
     if (uploadedMainUrls.length)
       await Promise.all(uploadedMainUrls.map(deleteFromS3));
     Object.values(uploadedVariantUrls).flat().forEach(deleteFromS3);
