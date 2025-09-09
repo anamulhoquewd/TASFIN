@@ -137,3 +137,22 @@ export const parseFormValue = (key: string, value: any) => {
     return value;
   }
 };
+
+export function parseDeleteUrls(
+  formData: FormData,
+  key = "deleteImageUrl"
+): string[] {
+  const allValues = formData.getAll(key);
+
+  if (allValues.length === 1) {
+    const raw = allValues[0] as string;
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      return [raw];
+    }
+  }
+
+  return allValues.map((v) => v as string);
+}

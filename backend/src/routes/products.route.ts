@@ -12,6 +12,22 @@ productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
 productRoutes.put("/:productId", (c) => productController.updateProduct(c));
 
+productRoutes.patch("/:productId/general", (c) =>
+  productController.updateGeneralInfo(c)
+);
+
+productRoutes.patch("/:productId/v/:variantId/info", (c) =>
+  productController.updateVariantInfo(c)
+);
+
+productRoutes.patch("/:productId/main-images", (c) =>
+  productController.updateMainImages(c)
+);
+
+productRoutes.patch("/:productId/v/:variantId/images", (c) =>
+  productController.updateVImages(c)
+);
+
 productRoutes.delete("/:productId", (c) => productController.deleteProduct(c));
 
 export default productRoutes;

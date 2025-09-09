@@ -202,6 +202,8 @@ export default function EditProductPage() {
 
   // Submit
   const handleSubmitForm = async (data: ProductUpdateInput) => {
+    if (!product) return;
+
     try {
       setIsLoading(true);
 
@@ -224,7 +226,7 @@ export default function EditProductPage() {
       };
 
       // Call backend
-      // await updateProduct(product._id, payload);
+      await updateProduct(product._id, payload);
       console.log("Payload ready for backend:", payload);
       console.log("Main product images to delete:", mainProductDeleteImageUrls);
       console.log(

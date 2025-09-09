@@ -71,6 +71,8 @@ export const getCategory = async (c: Context) => {
 // Update category
 export const updateCategory = async (c: Context) => {
   const _id = c.req.param("_id");
+  if (!_id) return badRequestHandler(c, { message: "Category ID is required" });
+
   const body = await c.req.json();
 
   const response = await categoryService.updateCategory({ _id, body });

@@ -1,6 +1,7 @@
 import { badRequestHandler, serverErrorHandler } from "@/error";
 import { productService } from "@/services";
 import { UpdateProductInput } from "@/services/products.service";
+import { parseDeleteUrls } from "@/utils";
 import { Context } from "hono";
 
 export const register = async (c: Context) => {
@@ -109,13 +110,13 @@ export const updateProduct = async (c: Context) => {
     const isActive = formData.get("isActive") === "true";
 
     // Parse arrays
-    const categories = JSON.parse(
-      (formData.get("categories") as string) || "[]"
-    );
     const tags = JSON.parse((formData.get("tags") as string) || "[]");
-    const description = JSON.parse(
-      (formData.get("description") as string) || "{}"
-    );
+    // const categories = JSON.parse(
+    //   (formData.get("categories") as string) || "[]"
+    // );
+    const description = (formData.get("description") as string) || {};
+    console.log("Parsed description:", description);
+    // console.log("Parsed categories:", categories);
 
     // Main images
     const mainImages = formData.getAll("images") as File[];
@@ -138,9 +139,11 @@ export const updateProduct = async (c: Context) => {
       const price = parseFloat(
         formData.get(`variants[${index}][price]`) as string
       );
-      const variantId = formData.get(`variants[${index}][id]`) as string | null;
+      const variantId = formData.get(`variants[${index}][_id]`) as
+        | string
+        | null;
 
-      variants.push({ id: variantId, size, color, stock, price });
+      variants.push({ _id: variantId, size, color, stock, price });
 
       const vImages = formData.getAll(`variants[${index}][images]`) as File[];
       if (vImages.length) variantImages[variantId || `new-${index}`] = vImages;
@@ -159,8 +162,8 @@ export const updateProduct = async (c: Context) => {
       data: {
         title,
         slug,
-        description,
-        categories,
+        // description,
+        // categories,
         fabric,
         valueAddition,
         cutFit,
@@ -180,6 +183,8 @@ export const updateProduct = async (c: Context) => {
       deleteVariantImageUrls,
     };
 
+    console.log("Update Input:", updateInput);
+
     const response = await productService.updateProduct(updateInput);
 
     if (response.error) return badRequestHandler(c, response.error);
@@ -188,6 +193,7 @@ export const updateProduct = async (c: Context) => {
 
     return c.json(response.success, 200);
   } catch (err: any) {
+    console.error("Update Product Error:", err);
     return c.json({ message: err.message || "Something went wrong" }, 500);
   }
 };
@@ -196,6 +202,118 @@ export const getProduct = async (c: Context) => {
   const productId = c.req.param("productId");
 
   const response = await productService.getProduct(productId);
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};
+
+// Update general info
+export const updateGeneralInfo = async (c: Context) => {
+  const productId = c.req.param("productId");
+  if (!productId)
+    return badRequestHandler(c, { message: "Proudct ID is required" });
+  const body = await c.req.json();
+
+  const response = await productService.updateGeneralInfo({
+    productId,
+    data: body,
+  });
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+  return c.json(response.success, 200);
+};
+
+// Update variant info
+export const updateVariantInfo = async (c: Context) => {
+  const productId = c.req.param("productId");
+  const variantId = c.req.param("variantId");
+  if (!productId || !variantId)
+    return badRequestHandler(c, {
+      message: "Product & Variant ID is required",
+    });
+
+  const body = await c.req.json();
+
+  const response = await productService.updateVariantInfo({
+    productId,
+    variantId,
+    data: body,
+  });
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+  return c.json(response.success, 200);
+};
+
+// Update main iamges
+export const updateMainImages = async (c: Context) => {
+  const productId = c.req.param("productId");
+  if (!productId) return c.json({ message: "Product ID is required" }, 400);
+
+  const formData = await c.req.formData();
+
+  // Main images
+  const mainImages = (formData.getAll("images") as File[]).filter(
+    (f) => f && (f as File).name
+  );
+
+  const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+
+  const response = await productService.updateMainImages({
+    productId,
+    data: { mainImages, deleteImageUrls },
+  });
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};
+
+// Update variant iamges
+export const updateVImages = async (c: Context) => {
+  const productId = c.req.param("productId");
+  const variantId = c.req.param("variantId");
+  if (!productId || !variantId)
+    return badRequestHandler(c, {
+      message: "Product & Variant ID is required",
+    });
+
+  const formData = await c.req.formData();
+
+  // Main images
+  const images = (formData.getAll("images") as File[]).filter(
+    (f) => f && (f as File).name
+  );
+
+  const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+
+  const response = await productService.updateVImages({
+    productId,
+    variantId,
+    data: { images, deleteImageUrls },
+  });
 
   if (response.error) {
     return badRequestHandler(c, response.error);
