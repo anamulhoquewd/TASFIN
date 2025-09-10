@@ -10,8 +10,6 @@ productRoutes.get("/", (c) => productController.getProducts(c));
 
 productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
-productRoutes.put("/:productId", (c) => productController.updateProduct(c));
-
 productRoutes.patch("/:productId/general", (c) =>
   productController.updateGeneralInfo(c)
 );
@@ -26,6 +24,14 @@ productRoutes.patch("/:productId/main-images", (c) =>
 
 productRoutes.patch("/:productId/v/:variantId/images", (c) =>
   productController.updateVImages(c)
+);
+
+productRoutes.patch("/:productId/v/:variantId", (c) =>
+  productController.deleteVariant(c)
+);
+
+productRoutes.patch("/:productId/variant", (c) =>
+  productController.createVariant(c)
 );
 
 productRoutes.delete("/:productId", (c) => productController.deleteProduct(c));
