@@ -48,7 +48,6 @@ import {
   Heading1,
   Heading2,
   Heading3,
-  Smile,
 } from "lucide-react";
 
 interface RichTextEditorProps {
@@ -63,7 +62,6 @@ export const RichTextEditor = ({
   placeholder = "Write something...",
 }: RichTextEditorProps) => {
   const [mounted, setMounted] = useState(false);
-  const [showEmoji, setShowEmoji] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -101,7 +99,9 @@ export const RichTextEditor = ({
       Placeholder.configure({ placeholder }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
-    content: value?.json || value?.html || "",
+    content: value?.json
+      ? JSON.parse(JSON.stringify(value.json))
+      : value?.html || "",
     onUpdate: ({ editor }) => {
       onChange({
         html: editor.getHTML(),

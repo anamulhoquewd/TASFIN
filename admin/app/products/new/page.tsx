@@ -20,7 +20,7 @@ export default function NewProductPage() {
     handleTitleChange,
     categoryOpen,
     setCategoryOpen,
-    prepend,
+    append,
     fields,
     remove,
     variantImagePreviews,
@@ -74,7 +74,7 @@ export default function NewProductPage() {
         handleTitleChange={handleTitleChange}
         categoryOpen={categoryOpen}
         setCategoryOpen={setCategoryOpen}
-        prepend={prepend}
+        append={append}
         remove={remove}
         fields={fields}
         variantImagePreviews={fields.map(

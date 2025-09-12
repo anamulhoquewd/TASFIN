@@ -48,7 +48,7 @@ interface CreateProductFormProps {
   handleTitleChange: (title: string) => void;
   setCategoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
   categoryOpen: boolean;
-  prepend: (value: any) => void;
+  append: (value: any) => void;
   remove: (index: number) => void;
   fields: any[];
   variantImagePreviews: string[][];
@@ -66,7 +66,7 @@ export function CreateProductForm({
   categoryOpen,
   setCategoryOpen,
   remove,
-  prepend,
+  append,
   fields,
   variantImagePreviews,
   handleVariantImageUpload,
@@ -264,7 +264,7 @@ export function CreateProductForm({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      prepend({
+                      append({
                         size: "",
                         color: "",
                         stock: 0,
@@ -364,7 +364,6 @@ export function CreateProductForm({
                                 <Input
                                   type="number"
                                   min="0"
-                                  step="0.01"
                                   {...field}
                                   onChange={(e) =>
                                     field.onChange(

@@ -49,6 +49,30 @@ import { IProduct } from "@/interfaces/products";
 import { defaultPagination } from "@/utils/details";
 import { IPagination } from "@/interfaces/global";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ProductEditDialogs } from "./product-edit-dialogs";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ProductsTable() {
   const { isOpen, selectedProductId, openModal, closeModal } =
@@ -63,6 +87,15 @@ export function ProductsTable() {
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
   const [deletedProductId, setDeletedProductId] = useState<string | null>(null);
+  const [editModal, setEditModal] = useState<{
+    open: boolean;
+    type: string | null;
+    product: IProduct | null;
+  }>({
+    open: false,
+    type: null,
+    product: null,
+  });
 
   const { getProducts, onDelete } = useProducts();
 
@@ -171,11 +204,50 @@ export function ProductsTable() {
     }
   };
 
+  const openEditModal = (type: string, product: IProduct) => {
+    setEditModal({
+      open: true,
+      type,
+      product,
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditModal({
+      open: false,
+      type: null,
+      product: null,
+    });
+  };
+
+  const handleDeleteProduct = async () => {
+    if (!deletedProductId) return;
+
+    try {
+      const response = await fetch(`/api/products/${deletedProductId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        setProducts(products.filter((p) => p._id !== deletedProductId));
+        toast.success("Product deleted successfully");
+      } else {
+        const error = await response.json();
+        toast.error(error.message || "Failed to delete product");
+      }
+    } catch (error) {
+      toast.error("Failed to delete product");
+    } finally {
+      setDeleteOpen(false);
+      setDeletedProductId(null);
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <KPICard
             title="Total Products"
             value={pagination.total.toString()}
@@ -210,7 +282,7 @@ export function ProductsTable() {
             description="Only on this page"
             icon={<Package className="h-4 w-4" />}
           />
-        </div>
+        </div> */}
 
         {/* Filters and Search */}
         <Card>
@@ -394,6 +466,7 @@ export function ProductsTable() {
 
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            {/* View Button */}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -402,13 +475,65 @@ export function ProductsTable() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="cursor-pointer"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+
+                            {/* Edit Dropdown */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="cursor-pointer"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("general", product)
+                                  }
+                                >
+                                  General Info
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("images", product)
+                                  }
+                                >
+                                  Main Images
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("variantInfo", product)
+                                  }
+                                >
+                                  Variant Info
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("variantImages", product)
+                                  }
+                                >
+                                  Variant Images
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("createVariant", product)
+                                  }
+                                >
+                                  Create New Variant
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    openEditModal("deleteVariant", product)
+                                  }
+                                >
+                                  Delete Variant
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            {/* Delete Button */}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -446,13 +571,52 @@ export function ProductsTable() {
             </CardFooter>
           )}
         </Card>
-
-        <ProductAnalyticsModal
-          product={products.find((p) => p._id === selectedProductId) || null}
-          open={isOpen}
-          onOpenChange={closeModal}
-        />
       </div>
+
+      <ProductAnalyticsModal
+        product={products.find((p) => p._id === selectedProductId) || null}
+        open={isOpen}
+        onOpenChange={closeModal}
+      />
+
+      {/* Edit Dialog */}
+      <Dialog open={editModal.open} onOpenChange={closeEditModal}>
+        <DialogTitle>Edit the general info</DialogTitle>
+        <DialogContent className="w-[80vh] max-h-[90vh] overflow-y-auto">
+          {/* Content Part (Dynamic Render) */}
+          <div className="mt-4">
+            {editModal.product && editModal.type !== null && (
+              <ProductEditDialogs
+                type={editModal.type}
+                product={editModal.product}
+                onClose={closeEditModal}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              product and all of its variants from your catalog.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProduct}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Product
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DeleteConfirmation
         open={deleteOpen}

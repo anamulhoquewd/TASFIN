@@ -2,6 +2,7 @@ import { badRequestHandler, serverErrorHandler } from "@/error";
 import { productService } from "@/services";
 import { parseDeleteUrls } from "@/utils";
 import { Context } from "hono";
+import { json } from "zod";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
@@ -103,25 +104,69 @@ export const getProduct = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Update general info
+// update general info
 export const updateGeneralInfo = async (c: Context) => {
   const productId = c.req.param("productId");
-  if (!productId)
-    return badRequestHandler(c, { message: "Proudct ID is required" });
-  const body = await c.req.json();
-
-  const response = await productService.updateGeneralInfo({
-    productId,
-    data: body,
-  });
-
-  if (response.error) {
-    return badRequestHandler(c, response.error);
+  if (!productId) {
+    return badRequestHandler(c, { message: "Product ID is required" });
   }
-  if (response.serverError) {
-    return serverErrorHandler(c, response.serverError);
+
+  try {
+    // form-data
+    const formData = await c.req.parseBody();
+
+    // description parse
+    let description = { html: "", json: null };
+    try {
+      description = JSON.parse(formData["description"] as string);
+    } catch (err) {
+      description = {
+        html: (formData["description"] as string) || "",
+        json: null,
+      };
+    }
+
+    // categories / tags
+    const categories = formData["categories"]
+      ? JSON.parse(formData["categories"] as string)
+      : [];
+    const tags = formData["tags"] ? JSON.parse(formData["tags"] as string) : [];
+
+    const data = {
+      title: formData["title"] || "",
+      slug: formData["slug"] || "",
+      description,
+      fabric: formData["fabric"] || "",
+      valueAddition: formData["valueAddition"] || "",
+      cutFit: formData["cutFit"] || "",
+      collarNeck: formData["collarNeck"] || "",
+      sleeve: formData["sleeve"] || "",
+      length: formData["length"] || "",
+      washCare: formData["washCare"] || "",
+      sideCut: formData["sideCut"] || "",
+      isFeatured: formData["isFeatured"] === "true",
+      isActive: formData["isActive"] === "true",
+      categories,
+      tags,
+    };
+
+    const response = await productService.updateGeneralInfo({
+      productId,
+      data,
+    });
+
+    if (response.error) {
+      return badRequestHandler(c, response.error);
+    }
+    if (response.serverError) {
+      return serverErrorHandler(c, response.serverError);
+    }
+
+    return c.json({ success: true, data: response.success }, 200);
+  } catch (err: any) {
+    console.error("Update General Info Error:", err);
+    return serverErrorHandler(c, { message: err.message || "Server error" });
   }
-  return c.json(response.success, 200);
 };
 
 // Update variant info
@@ -133,7 +178,15 @@ export const updateVariantInfo = async (c: Context) => {
       message: "Product & Variant ID is required",
     });
 
-  const body = await c.req.json();
+  // form-data
+  const formData = await c.req.parseBody();
+
+  const body = {
+    color: formData["color"] || "",
+    size: formData["size"] || "",
+    price: parseInt(formData["price"]) || 0,
+    stock: parseInt(formData["stock"]) || 0,
+  };
 
   const response = await productService.updateVariantInfo({
     productId,
@@ -272,7 +325,7 @@ export const createVariant = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// // Delete user
+// // Delete product
 export const deleteProduct = async (c: Context) => {
   const productId = c.req.param("productId");
 

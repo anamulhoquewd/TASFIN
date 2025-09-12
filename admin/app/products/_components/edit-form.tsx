@@ -43,7 +43,6 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
 import useCategory from "@/app/categories/_hook/useCategory";
-import Image from "next/image";
 
 interface EditProductFormProps {
   form: any;
@@ -487,7 +486,6 @@ export function EditProductForm({
                                   <Input
                                     type="number"
                                     min="0"
-                                    step="0.01"
                                     {...field}
                                     onChange={(e) =>
                                       field.onChange(
