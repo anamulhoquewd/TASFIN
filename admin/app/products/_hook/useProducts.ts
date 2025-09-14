@@ -406,7 +406,7 @@ function useProducts() {
     return null;
   };
 
-  async function updateProduct(productId: string, updateData: any) {
+ async function updateProduct(productId: string, updateData: any) {
     const formData = new FormData();
 
     console.log("Update data:", updateData);

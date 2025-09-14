@@ -4,7 +4,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -20,7 +19,6 @@ import { Progress } from "@/components/ui/progress";
 import {
   X,
   Upload,
-  Trash2,
   AlertTriangle,
   Plus,
   ImageIcon,
@@ -72,6 +70,11 @@ interface EditModalProps {
   onClose: () => void;
 }
 
+interface FormProps {
+  product: IProduct;
+  onClose: () => void;
+}
+
 export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
   if (!product) return null;
 
@@ -81,7 +84,7 @@ export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
     case "general":
       return <GeneralInfoForm onClose={onClose} product={product} />;
     case "images":
-      return <MainImagesForm product={product} onUpdate={onUpdate} />;
+      return <MainImagesForm product={product} onClose={onClose} />;
     case "variantInfo":
       return <VariantInfoForm product={product} onClose={onClose} />;
     case "variantImages":
@@ -102,13 +105,7 @@ export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
 }
 
 // General Info Form
-function GeneralInfoForm({
-  product,
-  onClose,
-}: {
-  product: IProduct;
-  onClose: () => void;
-}) {
+function GeneralInfoForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const { categories } = useCategory();
@@ -663,453 +660,294 @@ function GeneralInfoForm({
 }
 
 // Main Images Form
-function MainImagesForm({
-  product,
-  onClose,
-  onUpdate,
-}: {
-  product: IProduct;
-  onClose: () => void;
-  onUpdate: () => void;
-}) {
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [deleteImages, setDeleteImages] = useState<string[]>([]);
+export function MainImagesForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [existingImagesToDelete, setExistingImagesToDelete] = useState<
+    string[]
+  >([]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles([...selectedFiles, ...files]);
-    }
-  };
-
-  const removeSelectedFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
-  };
-
-  const toggleDeleteImage = (imageUrl: string) => {
-    if (deleteImages.includes(imageUrl)) {
-      setDeleteImages(deleteImages.filter((url) => url !== imageUrl));
-    } else {
-      setDeleteImages([...deleteImages, imageUrl]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setUploadProgress(0);
-
-    const formData = new FormData();
-    selectedFiles.forEach((file) => formData.append("images", file));
-    deleteImages.forEach((url) => formData.append("deleteImageUrl", url));
-
-    try {
-      const response = await fetch(`/api/products/${product._id}/images`, {
-        method: "PUT",
-        body: formData,
-      });
-
-      if (response.ok) {
-        toast.success("Main images updated successfully");
-        onUpdate();
-        onClose();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to update images");
-      }
-    } catch (error) {
-      toast.error("Failed to update images");
-    } finally {
-      setIsLoading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Current Images */}
-      <div className="space-y-2">
-        <Label>Current Images</Label>
-        <div className="grid grid-cols-3 gap-4">
-          {product.images?.map((image, index) => (
-            <Card
-              key={index}
-              className={`relative ${
-                deleteImages.includes(image) ? "opacity-50" : ""
-              }`}
-            >
-              <CardContent className="p-2">
-                <img
-                  src={image}
-                  alt={`Product ${index + 1}`}
-                  className="w-full h-20 object-cover rounded"
-                />
-                <Button
-                  type="button"
-                  variant={
-                    deleteImages.includes(image) ? "default" : "destructive"
-                  }
-                  size="sm"
-                  className="absolute top-1 right-1"
-                  onClick={() => toggleDeleteImage(image)}
-                >
-                  {deleteImages.includes(image) ? (
-                    <Plus className="h-3 w-3 rotate-45" />
-                  ) : (
-                    <X className="h-3 w-3" />
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <Separator />
-
-      {/* Upload New Images */}
-      <div className="space-y-2">
-        <Label htmlFor="images">Upload New Images</Label>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="mt-4">
-            <Input
-              id="images"
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById("images")?.click()}
-            >
-              Select Images
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Selected Files Preview */}
-      {selectedFiles.length > 0 && (
-        <div className="space-y-2">
-          <Label>Selected Files</Label>
-          <div className="space-y-2">
-            {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded"
-              >
-                <span className="text-sm">{file.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSelectedFile(index)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="space-y-2">
-          <Label>Upload Progress</Label>
-          <Progress value={uploadProgress} />
-        </div>
-      )}
-
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Updating..." : "Update Images"}
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-// Variant Info Form
-function VariantInfoForm0({
-  product,
-  onClose,
-}: {
-  product: IProduct;
-  onClose: () => void;
-}) {
-  const [selectedVariant, setSelectedVariant] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-
-  const form = useForm<ProductVariantUpdateInput>({
-    resolver: zodResolver(productVariantUpdateZ),
-    defaultValues: {
-      size: "",
-      color: "",
-      price: 0,
-      stock: 0,
-    },
+  const form = useForm<ProductUpdateInput>({
+    resolver: zodResolver(productUpdateZ),
+    defaultValues: { images: [] },
   });
 
-  const onSubmit = async (data: ProductUpdateInput) => {
-    setIsLoading(true);
+  const onSubmit = async (data: any) => {
+    if (!product) return;
+
     try {
+      setIsLoading(true);
+
+      // create formData
+      const formData = new FormData();
+
+      // append new images (files)
+      (data.images || []).forEach((file: File) => {
+        formData.append("images", file);
+      });
+
+      // append delete image urls
+      existingImagesToDelete.forEach((url) => {
+        formData.append("deleteImageUrl", url);
+      });
+
+      console.log("FormData ready:", {
+        images: (data.images || []).map((f: File) => f.name),
+        deleteUrls: existingImagesToDelete,
+      });
+      // ----- API Call -----
       const response = await api.patch(
-        `/products/${product._id}/v/${selectedVariant}/general`,
-        data,
+        `/products/${product._id}/main-images`,
+        formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      if (response.data.success) {
-        toast.success("Variant updated successfully");
-        console.log("Data: ", response.data);
-      } else {
-        toast.error("Failed to update varinat");
-        return false;
+      if (!response.data.success) {
+        console.log("Failed Main images updated:", response.data.error);
+        toast.error(
+          response.data.error.message || "Failed Main images updated."
+        );
       }
 
-      // ✅ reset with object, not stringify
-      form.reset({
-        size: "",
-        color: "",
-        price: 0,
-        stock: 0,
-      });
+      toast.success(
+        response.data.success.message || "Main images updated successfully."
+      );
 
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      form.reset({ images: [] });
+
+      onClose();
+      return { success: true, data: response.data.data };
     } catch (error: any) {
-      console.error("Error updating general information:", error);
-
-      if (error.response?.data?.success === false) {
+      console.error("Error creating product:", error);
+      if (error.response.data.success === false) {
         error.response.data.fields.forEach((field: any) => {
           form.setError(field.name, {
             message: field.message,
           });
         });
       }
+      toast.error("Error creating product", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVariantSelect = (variantId: string) => {
-    const variant = product.variants.find((v) => v._id === variantId);
-    if (variant) {
-      setSelectedVariant(variantId);
-      form.reset({
-        size: variant.size,
-        color: variant.color,
-        price: variant.price,
-        stock: variant.stock,
-      });
-    }
+  const handleMainImageRemove = (url: string) => {
+    setExistingImagesToDelete((prev) =>
+      prev.includes(url) ? prev : [...prev, url]
+    );
+  };
+
+  const handleMainImageRestore = (url: string) => {
+    setExistingImagesToDelete((prev) =>
+      prev.filter((deleteUrl) => deleteUrl !== url)
+    );
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Select Variant to Edit</Label>
-        <Select value={selectedVariant} onValueChange={handleVariantSelect}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a variant" />
-          </SelectTrigger>
-          <SelectContent>
-            {product.variants?.map((variant) => (
-              <SelectItem key={variant._id} value={variant._id}>
-                {variant.size} - {variant.color} (${variant.price})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <Form {...form}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const formData = form.getValues();
+          onSubmit(formData);
+        }}
+        className="space-y-8"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Main Product Images</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {product.images && product.images.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <FormLabel className="text-sm font-medium">
+                    Current Images (
+                    {product.images.length - existingImagesToDelete.length} of{" "}
+                    {product.images.length} kept)
+                  </FormLabel>
+                  <div className="text-xs text-muted-foreground">
+                    Hover to see options
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                  {product.images.map((image: any, index: number) => {
+                    const imageUrl = image.url;
+                    const isRemoved = existingImagesToDelete.includes(imageUrl);
 
-      {selectedVariant && (
-        <>
-          <Separator />
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="size"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fabric</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Cotton, Polyester, etc."
-                          {...field}
+                    return (
+                      <div
+                        key={index}
+                        className={`relative group cursor-pointer ${
+                          isRemoved ? "opacity-50" : ""
+                        }`}
+                        onClick={() => {
+                          if (isRemoved) {
+                            handleMainImageRestore(imageUrl);
+                          } else {
+                            handleMainImageRemove(imageUrl);
+                          }
+                        }}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={`Current ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg"
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Value Addition</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Special features" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cut & Fit</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Slim, Regular, Loose" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="stock"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Collar/Neck</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Round neck, V-neck, etc."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <span className="text-white flex flex-col items-center justify-center">
+                            {isRemoved ? (
+                              <>
+                                <span>Removed</span>
+                                <span className="text-xs">
+                                  Click to restore
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Current</span>
+                                <span className="text-xs">Click to remove</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {existingImagesToDelete.length === product.images.length && (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    All current images will be removed. Add new images below or
+                    restore some.
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Details</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="size"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fabric</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Cotton, Polyester, etc."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            <FormField
+              control={form.control}
+              name="images"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Add New Main Product Images</FormLabel>
+                  <FormControl>
+                    <input
+                      id="images-upload"
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => {
+                        const newFiles = Array.from(e.target.files || []);
+                        const existing = field.value || [];
+                        const filtered = newFiles.filter(
+                          (file) =>
+                            !existing.some(
+                              (f: File) =>
+                                f.name === file.name &&
+                                f.size === file.size &&
+                                f.lastModified === file.lastModified
+                            )
+                        );
+                        field.onChange([...existing, ...filtered]);
+                      }}
+                    />
+                  </FormControl>
 
-                <FormField
-                  control={form.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Value Addition</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Special features" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <label
+                    htmlFor="images-upload"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50"
+                  >
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Click to upload new images
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Supports JPEG, PNG, WebP (max 5MB each)
+                      </p>
+                    </div>
+                  </label>
 
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cut & Fit</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Slim, Regular, Loose" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
+                  {(field.value || []).length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+                      {(field.value || []).map((file: File, index: number) => (
+                        <div key={index} className="relative group">
+                          <img
+                            src={
+                              URL.createObjectURL(file) || "/placeholder.svg"
+                            }
+                            alt={`New ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              field.onChange(
+                                (field.value || []).filter(
+                                  (_: any, i: number) => i !== index
+                                )
+                              )
+                            }
+                            className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="stock"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Collar/Neck</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Round neck, V-neck, etc."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+              <div className="text-sm font-medium mb-1">
+                Main Product Images Summary
               </div>
-            </CardContent>
-          </Card>
-        </>
-      )}
+              <div className="text-xs text-muted-foreground space-y-1">
+                <div>
+                  • Current main images to keep:{" "}
+                  {product.images.length - existingImagesToDelete.length}
+                </div>
+                <div>
+                  • New main images to upload:{" "}
+                  {(form.getValues("images") || []).length}
+                </div>
+                <div>
+                  • Total main images after update:{" "}
+                  {product.images.length -
+                    existingImagesToDelete.length +
+                    (form.getValues("images") || []).length}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading || !selectedVariant}>
-          {isLoading ? "Updating..." : "Update Variant Info"}
-        </Button>
-      </div>
-    </form>
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Updating..." : "Update Images"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 
-interface VariantFormValues {
-  size: string;
-  color: string;
-  price: number;
-  stock: number;
-}
-
-interface VariantFormProps {
-  product: any;
-  onClose: () => void;
-}
-
-export default function VariantInfoForm({
-  product,
-  onClose,
-}: VariantFormProps) {
+export default function VariantInfoForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProductVariantUpdateInput>({
