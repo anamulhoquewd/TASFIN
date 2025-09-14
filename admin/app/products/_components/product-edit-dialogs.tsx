@@ -88,7 +88,7 @@ export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
     case "variantInfo":
       return <VariantInfoForm product={product} onClose={onClose} />;
     case "variantImages":
-      return <VariantImagesForm product={product} onUpdate={onUpdate} />;
+      return <VariantImagesForm product={product} onClose={onClose} />;
     case "createVariant":
       return <CreateVariantForm product={product} onUpdate={onUpdate} />;
     case "deleteVariant":
@@ -721,7 +721,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
       onClose();
       return { success: true, data: response.data.data };
     } catch (error: any) {
-      console.error("Error creating product:", error);
+      console.error("Error updating product:", error);
       if (error.response.data.success === false) {
         error.response.data.fields.forEach((field: any) => {
           form.setError(field.name, {
@@ -729,7 +729,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
           });
         });
       }
-      toast.error("Error creating product", {
+      toast.error("Error updating product", {
         description:
           error instanceof Error ? error.message : "Please try again.",
       });
@@ -738,13 +738,13 @@ export function MainImagesForm({ product, onClose }: FormProps) {
     }
   };
 
-  const handleMainImageRemove = (url: string) => {
+  const handleRemove = (url: string) => {
     setExistingImagesToDelete((prev) =>
       prev.includes(url) ? prev : [...prev, url]
     );
   };
 
-  const handleMainImageRestore = (url: string) => {
+  const handleRestore = (url: string) => {
     setExistingImagesToDelete((prev) =>
       prev.filter((deleteUrl) => deleteUrl !== url)
     );
@@ -790,9 +790,9 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                         }`}
                         onClick={() => {
                           if (isRemoved) {
-                            handleMainImageRestore(imageUrl);
+                            handleRestore(imageUrl);
                           } else {
-                            handleMainImageRemove(imageUrl);
+                            handleRemove(imageUrl);
                           }
                         }}
                       >
@@ -947,7 +947,8 @@ export function MainImagesForm({ product, onClose }: FormProps) {
   );
 }
 
-export default function VariantInfoForm({ product, onClose }: FormProps) {
+// Variant Info Form
+function VariantInfoForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<ProductVariantUpdateInput>({
@@ -1141,202 +1142,337 @@ export default function VariantInfoForm({ product, onClose }: FormProps) {
 function VariantImagesForm({
   product,
   onClose,
-  onUpdate,
 }: {
   product: IProduct;
   onClose: () => void;
-  onUpdate: () => void;
 }) {
-  const [selectedVariant, setSelectedVariant] = useState<string>("");
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [deleteImages, setDeleteImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<string>("");
+  const [existingImagesToDelete, setExistingImagesToDelete] = useState<
+    string[]
+  >([]);
+
+  const form = useForm<ProductUpdateInput>({
+    resolver: zodResolver(productUpdateZ),
+    defaultValues: { images: [] },
+  });
 
   const selectedVariantData = product.variants.find(
     (v) => v._id === selectedVariant
   );
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles([...selectedFiles, ...files]);
-    }
+  // Handlers
+  const handleRemove = (url: string) => {
+    setExistingImagesToDelete((prev) => [...prev, url]);
   };
 
-  const removeSelectedFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  const handleRestore = (url: string) => {
+    setExistingImagesToDelete((prev) => prev.filter((u) => u !== url));
   };
 
-  const toggleDeleteImage = (imageUrl: string) => {
-    if (deleteImages.includes(imageUrl)) {
-      setDeleteImages(deleteImages.filter((url) => url !== imageUrl));
-    } else {
-      setDeleteImages([...deleteImages, imageUrl]);
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Submit
+  const onSubmit = async (data: any) => {
     if (!selectedVariant) return;
 
-    setIsLoading(true);
-
-    const formData = new FormData();
-    selectedFiles.forEach((file) => formData.append("images", file));
-    deleteImages.forEach((url) => formData.append("deleteImageUrl", url));
-
     try {
-      const response = await fetch(
-        `/api/products/${product._id}/variants/${selectedVariant}/images`,
+      setIsLoading(true);
+
+      // create formData
+      const formData = new FormData();
+
+      // append new images (files)
+      (data.images || []).forEach((file: File) => {
+        formData.append("images", file);
+      });
+
+      // append delete image urls
+      existingImagesToDelete.forEach((url) => {
+        formData.append("deleteImageUrl", url);
+      });
+
+      console.log("FormData ready:", {
+        images: (data.images || []).map((f: File) => f.name),
+        deleteUrls: existingImagesToDelete,
+      });
+
+      // ----- API Call -----
+      const response = await api.patch(
+        `/products/${product._id}/v/${selectedVariant}/images`,
+        formData,
         {
-          method: "PUT",
-          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      if (response.ok) {
-        toast.success("Variant images updated successfully");
-        onUpdate();
-        onClose();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to update variant images");
+      if (!response.data.success) {
+        console.log("Failed Variant images updated:", response.data.error);
+        toast.error(
+          response.data.error.message || "Failed Variant images updated."
+        );
       }
-    } catch (error) {
-      toast.error("Failed to update variant images");
+
+      toast.success(
+        response.data.success.message || "Variant images updated successfully."
+      );
+
+      form.reset({ images: [] });
+
+      onClose();
+      return { success: true, data: response.data.data };
+    } catch (error: any) {
+      console.error("Error updating product:", error);
+      if (error.response.data.success === false) {
+        error.response.data.fields.forEach((field: any) => {
+          form.setError(field.name, {
+            message: field.message,
+          });
+        });
+      }
+      toast.error("Error updating product", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label>Select Variant</Label>
-        <Select value={selectedVariant} onValueChange={setSelectedVariant}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a variant" />
-          </SelectTrigger>
-          <SelectContent>
-            {product.variants?.map((variant) => (
-              <SelectItem key={variant._id} value={variant._id}>
-                {variant.size} - {variant.color}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {selectedVariantData && (
-        <>
-          <Separator />
-
-          {/* Current Variant Images */}
-          {selectedVariantData.images &&
-            selectedVariantData.images.length > 0 && (
-              <div className="space-y-2">
-                <Label>Current Variant Images</Label>
-                <div className="grid grid-cols-3 gap-4">
-                  {selectedVariantData.images.map((image, index) => (
-                    <Card
-                      key={index}
-                      className={`relative ${
-                        deleteImages.includes(image) ? "opacity-50" : ""
-                      }`}
-                    >
-                      <CardContent className="p-2">
-                        <img
-                          src={image}
-                          alt={`Variant ${index + 1}`}
-                          className="w-full h-20 object-cover rounded"
-                        />
-                        <Button
-                          type="button"
-                          variant={
-                            deleteImages.includes(image)
-                              ? "default"
-                              : "destructive"
-                          }
-                          size="sm"
-                          className="absolute top-1 right-1"
-                          onClick={() => toggleDeleteImage(image)}
-                        >
-                          {deleteImages.includes(image) ? (
-                            <Plus className="h-3 w-3 rotate-45" />
-                          ) : (
-                            <X className="h-3 w-3" />
-                          )}
-                        </Button>
-                      </CardContent>
-                    </Card>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Variant select */}
+        <FormField
+          control={form.control}
+          name="images"
+          render={() => (
+            <FormItem>
+              <FormLabel>Select Variant</FormLabel>
+              <Select
+                value={selectedVariant}
+                onValueChange={setSelectedVariant}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a variant" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {product.variants?.map((variant) => (
+                    <SelectItem key={variant._id} value={variant._id}>
+                      {variant.size} - {variant.color}
+                    </SelectItem>
                   ))}
-                </div>
-              </div>
-            )}
-
-          {/* Upload New Images */}
-          <div className="space-y-2">
-            <Label htmlFor="variant-images">Upload New Images</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-              <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-              <div className="mt-4">
-                <Input
-                  id="variant-images"
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() =>
-                    document.getElementById("variant-images")?.click()
-                  }
-                >
-                  Select Images
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Selected Files Preview */}
-          {selectedFiles.length > 0 && (
-            <div className="space-y-2">
-              <Label>Selected Files</Label>
-              <div className="space-y-2">
-                {selectedFiles.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-2 bg-gray-50 rounded"
-                  >
-                    <span className="text-sm">{file.name}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSelectedFile(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            </div>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
           )}
-        </>
-      )}
+        />
 
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading || !selectedVariant}>
-          {isLoading ? "Updating..." : "Update Variant Images"}
-        </Button>
-      </div>
-    </form>
+        {selectedVariantData && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Main Product Images</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedVariantData.images &&
+                selectedVariantData.images.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <FormLabel className="text-sm font-medium">
+                        Current Images (
+                        {selectedVariantData.images.length -
+                          existingImagesToDelete.length}{" "}
+                        of {selectedVariantData.images.length} kept)
+                      </FormLabel>
+                      <div className="text-xs text-muted-foreground">
+                        Hover to see options
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                      {selectedVariantData.images.map(
+                        (image: any, index: number) => {
+                          const imageUrl = image.url;
+                          const isRemoved =
+                            existingImagesToDelete.includes(imageUrl);
+
+                          return (
+                            <div
+                              key={index}
+                              className={`relative group cursor-pointer ${
+                                isRemoved ? "opacity-50" : ""
+                              }`}
+                              onClick={() => {
+                                if (isRemoved) {
+                                  handleRestore(imageUrl);
+                                } else {
+                                  handleRemove(imageUrl);
+                                }
+                              }}
+                            >
+                              <img
+                                src={imageUrl}
+                                alt={image.alt}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                <span className="text-white flex flex-col items-center justify-center">
+                                  {isRemoved ? (
+                                    <>
+                                      <span>Removed</span>
+                                      <span className="text-xs">
+                                        Click to restore
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>Current</span>
+                                      <span className="text-xs">
+                                        Click to remove
+                                      </span>
+                                    </>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+                      )}
+                    </div>
+                    {existingImagesToDelete.length ===
+                      selectedVariantData.images.length && (
+                      <div className="text-center py-4 text-sm text-muted-foreground">
+                        All current images will be removed. Add new images below
+                        or restore some.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Add New Main Product Images</FormLabel>
+                    <FormControl>
+                      <input
+                        id="images-upload"
+                        type="file"
+                        className="hidden"
+                        multiple
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={(e) => {
+                          const newFiles = Array.from(e.target.files || []);
+                          const existing = field.value || [];
+                          const filtered = newFiles.filter(
+                            (file) =>
+                              !existing.some(
+                                (f: File) =>
+                                  f.name === file.name &&
+                                  f.size === file.size &&
+                                  f.lastModified === file.lastModified
+                              )
+                          );
+                          field.onChange([...existing, ...filtered]);
+                        }}
+                      />
+                    </FormControl>
+
+                    <label
+                      htmlFor="images-upload"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload new images
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supports JPEG, PNG, WebP (max 5MB each)
+                        </p>
+                      </div>
+                    </label>
+
+                    {(field.value || []).length > 0 && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
+                        {(field.value || []).map(
+                          (file: File, index: number) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={
+                                  URL.createObjectURL(file) ||
+                                  "/placeholder.svg"
+                                }
+                                alt={`New ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  field.onChange(
+                                    (field.value || []).filter(
+                                      (_: any, i: number) => i !== index
+                                    )
+                                  )
+                                }
+                                className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {selectedVariantData.images &&
+                selectedVariantData.images.length > 0 && (
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm font-medium mb-1">
+                      Main Product Images Summary
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>
+                        • Current main images to keep:{" "}
+                        {selectedVariantData?.images.length -
+                          existingImagesToDelete.length}
+                      </div>
+                      <div>
+                        • New main images to upload:{" "}
+                        {(form.getValues("images") || []).length}
+                      </div>
+                      <div>
+                        • Total main images after update:{" "}
+                        {selectedVariantData.images.length -
+                          existingImagesToDelete.length +
+                          (form.getValues("images") || []).length}
+                      </div>
+                    </div>
+                  </div>
+                )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Footer */}
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading || !selectedVariant}>
+            {isLoading ? "Updating..." : "Update Variant Images"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 
