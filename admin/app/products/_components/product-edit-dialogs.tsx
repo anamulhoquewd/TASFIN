@@ -15,18 +15,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import {
   X,
   Upload,
   AlertTriangle,
-  Plus,
-  ImageIcon,
   ChevronsUpDown,
   CheckCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { IImage, IProduct } from "@/interfaces/products";
+import { IProduct } from "@/interfaces/products";
 import {
   Form,
   FormControl,
@@ -36,8 +33,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import z from "zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ProductUpdateInput,
@@ -63,6 +59,18 @@ import {
 import { cn } from "@/lib/utils";
 import useCategory from "@/app/categories/_hook/useCategory";
 import api from "@/axios/interceptor";
+import z from "zod";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface EditModalProps {
   type: string;
@@ -90,15 +98,9 @@ export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
     case "variantImages":
       return <VariantImagesForm product={product} onClose={onClose} />;
     case "createVariant":
-      return <CreateVariantForm product={product} onUpdate={onUpdate} />;
+      return <CreateVariantForm product={product} onClose={onClose} />;
     case "deleteVariant":
-      return (
-        <DeleteVariantForm
-          product={product}
-          onClose={onClose}
-          onUpdate={onUpdate}
-        />
-      );
+      return <DeleteVariantForm product={product} onClose={onClose} />;
     default:
       return null;
   }
@@ -119,7 +121,7 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
     defaultValues: {
       title: "",
       slug: "",
-      description: { html: "", json: null }, // ✅ proper object
+      description: { html: "", json: null },
       fabric: "",
       valueAddition: "",
       cutFit: "",
@@ -1476,194 +1478,262 @@ function VariantImagesForm({
   );
 }
 
+// ----------------- Schema -----------------
+const createVariantSchema = z.object({
+  size: z.string().min(1, "Size is required"),
+  color: z.string().min(1, "Color is required"),
+  stock: z.number().min(0),
+  price: z.number().min(0),
+  images: z.array(z.instanceof(File)).min(1, "At least one image is required"),
+});
+
+type CreateVariantValues = z.infer<typeof createVariantSchema>;
+
 // Create Variant Form
 function CreateVariantForm({
   product,
   onClose,
-  onUpdate,
 }: {
   product: IProduct;
   onClose: () => void;
-  onUpdate: () => void;
 }) {
-  const [formData, setFormData] = useState({
-    size: "",
-    color: "",
-    price: 0,
-    stock: 0,
-  });
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  const form = useForm<CreateVariantValues>({
+    resolver: zodResolver(createVariantSchema),
+    defaultValues: {
+      size: "",
+      color: "",
+      stock: 0,
+      price: 0,
+      images: [],
+    },
+  });
+
+  // Handle file select
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      setSelectedFiles([...selectedFiles, ...files]);
+      setSelectedFiles((prev) => [...prev, ...files]);
+      form.setValue("images", [...form.getValues("images"), ...files]);
     }
   };
 
   const removeSelectedFile = (index: number) => {
-    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+    const updated = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(updated);
+    form.setValue("images", updated);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    const formPayload = new FormData();
-    formPayload.append("size", formData.size);
-    formPayload.append("color", formData.color);
-    formPayload.append("price", formData.price.toString());
-    formPayload.append("stock", formData.stock.toString());
-
-    selectedFiles.forEach((file) => formPayload.append("images", file));
-
+  // Submit
+  const onSubmit = async (data: CreateVariantValues) => {
     try {
-      const response = await fetch(`/api/products/${product._id}/variants`, {
-        method: "POST",
-        body: formPayload,
+      setIsLoading(true);
+
+      const formData = new FormData();
+      formData.append("size", data.size);
+      formData.append("color", data.color);
+      formData.append("stock", String(data.stock));
+      formData.append("price", String(data.price));
+
+      data.images.forEach((file) => {
+        formData.append("images", file);
+      });
+      const { images, size, color, stock, price } = data;
+
+      console.log("Form Values: ", {
+        images: (images || []).map((f: File) => f.name),
+        data: { size, color, stock, price },
       });
 
-      if (response.ok) {
-        toast.success("New variant created successfully");
-        onUpdate();
+      const response = await api.patch(
+        `/products/${product._id}/variant`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success("Variant added successfully");
+        form.reset();
+        setSelectedFiles([]);
         onClose();
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to create variant");
+        toast.error("Failed to add variant");
       }
-    } catch (error) {
-      toast.error("Failed to create variant");
+    } catch (error: any) {
+      console.error("Error updating product:", error);
+      if (error.response.data.success === false) {
+        error.response.data.fields.forEach((field: any) => {
+          form.setError(field.name, {
+            message: field.message,
+          });
+        });
+      }
+      toast.error("Error updating product", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="size">Size</Label>
-          <Input
-            id="size"
-            value={formData.size}
-            onChange={(e) => setFormData({ ...formData, size: e.target.value })}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="color">Color</Label>
-          <Input
-            id="color"
-            value={formData.color}
-            onChange={(e) =>
-              setFormData({ ...formData, color: e.target.value })
-            }
-            required
-          />
-        </div>
-      </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Size */}
+        <FormField
+          control={form.control}
+          name="size"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Size</FormLabel>
+              <FormControl>
+                <Input placeholder="S, M, L, XL" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="price">Price</Label>
-          <Input
-            id="price"
-            type="number"
-            value={formData.price}
-            onChange={(e) =>
-              setFormData({ ...formData, price: parseFloat(e.target.value) })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="stock">Stock</Label>
-          <Input
-            id="stock"
-            type="number"
-            value={formData.stock}
-            onChange={(e) =>
-              setFormData({ ...formData, stock: parseInt(e.target.value) })
-            }
-            required
-          />
-        </div>
-      </div>
+        {/* Color */}
+        <FormField
+          control={form.control}
+          name="color"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Color</FormLabel>
+              <FormControl>
+                <Input placeholder="Red, Blue, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      <Separator />
+        {/* Stock */}
+        <FormField
+          control={form.control}
+          name="stock"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Stock</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="0"
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(Number.parseInt(e.target.value) || 0)
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Upload Images */}
-      <div className="space-y-2">
-        <Label htmlFor="variant-images">Upload Variant Images (Optional)</Label>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="mt-4">
-            <Input
-              id="variant-images"
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => document.getElementById("variant-images")?.click()}
-            >
-              Select Images
-            </Button>
-          </div>
-        </div>
-      </div>
+        {/* Price */}
+        <FormField
+          control={form.control}
+          name="price"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Price</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min="0"
+                  {...field}
+                  onChange={(e) =>
+                    field.onChange(Number.parseFloat(e.target.value) || 0)
+                  }
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-      {/* Selected Files Preview */}
-      {selectedFiles.length > 0 && (
-        <div className="space-y-2">
-          <Label>Selected Files</Label>
-          <div className="space-y-2">
+        {/* Images */}
+        <FormField
+          control={form.control}
+          name="images"
+          render={() => (
+            <FormItem>
+              <FormLabel>Variant Images</FormLabel>
+              <FormControl>
+                <>
+                  <input
+                    id="variant-images-upload"
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    onChange={handleFileSelect}
+                  />
+                  <label
+                    htmlFor="variant-images-upload"
+                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50"
+                  >
+                    <Upload className="w-8 h-8 mb-2 text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      Click to upload images
+                    </p>
+                  </label>
+                </>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Preview */}
+        {selectedFiles.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {selectedFiles.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded"
-              >
-                <span className="text-sm">{file.name}</span>
-                <Button
+              <div key={index} className="relative group">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`New ${index + 1}`}
+                  className="w-full h-24 object-cover rounded-lg"
+                />
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
                   onClick={() => removeSelectedFile(index)}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
+                  <X className="w-3 h-3" />
+                </button>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Creating..." : "Create Variant"}
-        </Button>
-      </div>
-    </form>
+        {/* Footer */}
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Adding..." : "Add Variant"}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }
 
 // Delete Variant Form
-function DeleteVariantForm({
+export default function DeleteVariantForm({
   product,
   onClose,
-  onUpdate,
 }: {
   product: IProduct;
   onClose: () => void;
-  onUpdate: () => void;
 }) {
   const [selectedVariant, setSelectedVariant] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
@@ -1672,45 +1742,45 @@ function DeleteVariantForm({
     (v) => v._id === selectedVariant
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // ---- Actual Delete ----
+  const handleDelete = async () => {
     if (!selectedVariant) return;
-
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        `/api/products/${product._id}/variants/${selectedVariant}`,
-        {
-          method: "DELETE",
-        }
+      const response = await api.patch(
+        `/products/${product._id}/v/${selectedVariant}`
       );
 
-      if (response.ok) {
+      if (response.data.success) {
         toast.success("Variant deleted successfully");
-        onUpdate();
         onClose();
+        setSelectedVariant("");
       } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to delete variant");
+        toast.error("Failed to delete variant");
       }
-    } catch (error) {
-      toast.error("Failed to delete variant");
+    } catch (error: any) {
+      console.error("Error updating product:", error);
+
+      toast.error("Error updating product", {
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
       <Alert>
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
-          This action cannot be undone. This will permanently delete the
-          selected variant and all its associated data.
+          This action cannot be undone. Select a variant below to delete.
         </AlertDescription>
       </Alert>
 
+      {/* Variant Select */}
       <div className="space-y-2">
         <Label>Select Variant to Delete</Label>
         <Select value={selectedVariant} onValueChange={setSelectedVariant}>
@@ -1728,7 +1798,8 @@ function DeleteVariantForm({
         </Select>
       </div>
 
-      {selectedVariantData && (
+      {/* Variant Preview */}
+      {selectedVariantData && selectedVariantData.images && (
         <Card className="border-red-200">
           <CardHeader>
             <CardTitle className="text-red-600 text-lg">
@@ -1753,29 +1824,55 @@ function DeleteVariantForm({
                 <span className="font-medium">Stock:</span>
                 <span>{selectedVariantData.stock} units</span>
               </div>
-              {selectedVariantData.images &&
-                selectedVariantData.images.length > 0 && (
-                  <div className="flex justify-between">
-                    <span className="font-medium">Images:</span>
-                    <span>{selectedVariantData.images.length} images</span>
-                  </div>
-                )}
+              {selectedVariantData.images?.length > 0 && (
+                <div className="flex justify-between">
+                  <span className="font-medium">Images:</span>
+                  <span>{selectedVariantData.images.length} images</span>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       )}
 
+      {/* Footer with Confirmation */}
       <div className="flex justify-end space-x-2 pt-4">
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button
-          type="submit"
-          variant="destructive"
-          disabled={isLoading || !selectedVariant}
-        >
-          {isLoading ? "Deleting..." : "Delete Variant"}
-        </Button>
+
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isLoading || !selectedVariant}
+            >
+              {isLoading ? "Deleting..." : "Delete Variant"}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete{" "}
+                <strong>
+                  {selectedVariantData?.size} - {selectedVariantData?.color}
+                </strong>{" "}
+                and all its associated data. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Confirm Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </form>
   );
