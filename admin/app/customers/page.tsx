@@ -34,10 +34,10 @@ import {
 import api from "@/axios/interceptor";
 import { defaultPagination } from "@/utils/details";
 import Paginations, { Pagination } from "@/components/pagination";
-import { DeleteDialog } from "../_components/delete-dialong";
 import { ICustomer } from "@/interfaces/users";
 import useCustomer from "./_hook/useCustomer";
 import UpdateDialog from "./_component/update-dialog";
+import { DeleteDialog } from "@/components/delete-dialong";
 
 export default function CustomersPage() {
   const {

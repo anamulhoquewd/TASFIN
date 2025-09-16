@@ -28,10 +28,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Paginations from "@/components/pagination";
-import { DeleteDialog } from "../_components/delete-dialong";
 import { IAdmin } from "@/interfaces/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useAdmin from "./_hook/useAdmin";
+import { DeleteDialog } from "@/components/delete-dialong";
 
 export default function UsersPage() {
   const {

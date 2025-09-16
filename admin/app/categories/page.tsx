@@ -41,7 +41,7 @@ import NewCategory from "./_component/new-category-dialog";
 import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
 import Image from "next/image";
-import { DeleteDialog } from "../admin/_components/delete-dialong";
+import { DeleteDialog } from "../../components/delete-dialong";
 
 export default function Categories() {
   const {

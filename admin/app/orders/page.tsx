@@ -80,8 +80,8 @@ import StatusDialog, {
 } from "./_components/status-dialog";
 import { IOrder } from "@/interfaces/orders";
 import ShowItems from "./_components/show-items";
-import { DeleteDialog } from "../_components/delete-dialong";
 import useOrder from "./_hook/useOrder";
+import { DeleteDialog } from "@/components/delete-dialong";
 
 export default function OrdersPage() {
   // Function to copy the access key to clipboard
@@ -526,9 +526,15 @@ export default function OrdersPage() {
             </Table>
           </div>
         </CardContent>
-        <CardFooter className="flex items-center justify-end">
-          <Paginations pagination={pagination} setPagination={setPagination} />
-        </CardFooter>
+
+        {orders.length !== 0 && (
+          <CardFooter className="flex items-center justify-end">
+            <Paginations
+              pagination={pagination}
+              setPagination={setPagination}
+            />
+          </CardFooter>
+        )}
       </Card>
 
       {selectedItem && (

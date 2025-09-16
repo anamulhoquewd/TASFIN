@@ -41,7 +41,7 @@ import api from "@/axios/interceptor";
 import Paginations from "@/components/pagination";
 import UpdateDialog from "./_component/update-dialog";
 import NewCategory from "./_component/new-category-dialog";
-import { DeleteDialog } from "../_components/delete-dialong";
+import { DeleteDialog } from "../../../components/delete-dialong";
 import { toast } from "sonner";
 import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
