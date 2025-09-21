@@ -13,7 +13,7 @@ userRoutes.post("/upload-avatar", authenticatedUser, (c) =>
   userController.changeAvatar(c)
 );
 
-userRoutes.get("/", authenticatedAdmin, (c) => userController.getUsers(c));
+userRoutes.get("/", (c) => userController.getUsers(c));
 
 userRoutes.patch("/by-admin/:_id", authenticatedAdmin, (c) =>
   userController.updateUser(c)

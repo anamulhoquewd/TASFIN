@@ -18,6 +18,10 @@ const COOKIE_SECRET = process.env.COOKIE_SECRET;
 if (!COOKIE_SECRET) {
   throw new Error("COOKIE_SECRET is not defined");
 }
+
+// Validate query parameters
+export const isValidDate = (val: string) => !isNaN(Date.parse(val));
+
 // Upload Avatar to S3
 export const uploadAvatar = async ({
   s3,

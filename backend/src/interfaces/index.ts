@@ -55,7 +55,7 @@ export interface ICategory extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface IAddress extends mongoose.Document {
+export interface IAddress {
   street: string;
   city: string;
   state: string;
@@ -134,23 +134,12 @@ export interface ICoupon extends mongoose.Document {
 }
 
 export interface IOrderProduct extends mongoose.Document {
-  _id: string;
+  productId: string;
   variantId: string;
   title: string;
   image: IImage;
-  priceAtPurchase: number;
+  price: number;
   quantity: number;
-  discountApplied?: {
-    discountId: string;
-    value: number;
-    type: "percentage" | "fixed";
-  };
-}
-
-export interface IDiscountApplied {
-  discountId: string;
-  value: number;
-  type: "percentage" | "fixed";
 }
 
 export interface IOrder extends mongoose.Document {

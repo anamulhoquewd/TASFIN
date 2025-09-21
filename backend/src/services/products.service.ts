@@ -715,6 +715,7 @@ export const getProducts = async (queryParams: {
 
   isFeatured: string;
   isActive: string;
+  priceRange: { min: number; max: number };
 }) => {
   // Safe Parse for better error handling
   const validData = z
@@ -738,6 +739,12 @@ export const getProducts = async (queryParams: {
         .transform((val) =>
           val === "true" ? true : val === "false" ? false : undefined
         ),
+      priceRange: z
+        .object({
+          min: z.number().min(0).optional().default(0),
+          max: z.number().min(0).optional().default(10000),
+        })
+        .optional(),
     })
     .safeParse(queryParams);
 
@@ -748,11 +755,17 @@ export const getProducts = async (queryParams: {
     };
   }
 
-  const { sortBy, search, isFeatured, isActive } = validData.data;
+  const { sortBy, search, isFeatured, isActive, priceRange } = validData.data;
 
   try {
     // Build query
     const query: any = {};
+    if (priceRange) {
+      query["variants.price"] = {
+        $gte: priceRange.min,
+        $lte: priceRange.max,
+      };
+    }
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },

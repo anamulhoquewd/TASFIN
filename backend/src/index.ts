@@ -10,6 +10,7 @@ import userRoutes from "./routes/users.route";
 import { adminService } from "./services";
 import categoryRoutes from "./routes/categorise.route";
 import productRoutes from "./routes/products.route";
+import orderRoutes from "./routes/orders.route";
 
 const app = new Hono().basePath("/api/v1");
 
@@ -52,6 +53,9 @@ app.route("/categories", categoryRoutes);
 
 // Product routes
 app.route("/products", productRoutes);
+
+// Order routes
+app.route("/orders", orderRoutes);
 
 // Global Error Handler
 app.onError((error: any, c) => {

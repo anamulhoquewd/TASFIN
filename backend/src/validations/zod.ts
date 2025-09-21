@@ -1,4 +1,5 @@
 // validation/admin.validation.ts
+import { isValidDate } from "@/utils";
 import mongoose from "mongoose";
 import { z } from "zod";
 
@@ -261,3 +262,105 @@ export const categoryUpdateZ = categoryCreateZ.partial().refine(
 // Input Type inferred from Zod
 export type CategoryCreateInput = z.infer<typeof categoryCreateZ>;
 export type CategoryUpdateInput = z.infer<typeof categoryUpdateZ>;
+
+/** OrderProduct schema */
+export const orderProductSchemaZ = z.object({
+  productId: objectIdSchemaZ,
+  variantId: objectIdSchemaZ,
+  quantity: z.number().int().min(1),
+});
+
+/** Payment status and order status enums */
+export const paymentStatusEnumZ = z.enum(["unpaid", "paid"]);
+export const orderStatusEnumZ = z.enum([
+  "pending",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+]);
+
+/** Main Order schema */
+export const orderSchemaZ = z.object({
+  // mongoose এ user ছিল ObjectId ref; যদি present হয়, এটা 24-char hex string হওয়া ভাল
+  user: objectIdSchemaZ,
+
+  products: z
+    .array(orderProductSchemaZ)
+    .min(1, "Order must contain at least one product"),
+
+  shippingAddress: addressZ,
+  billingAddress: addressZ,
+
+  paymentStatus: paymentStatusEnumZ.default("unpaid"),
+
+  status: orderStatusEnumZ.default("pending"),
+
+  // orderDate কমনলি Date; অ্যাপ থেকে string আনার সম্ভাবনা থাকলে coerce ব্যবহার করুন
+  orderDate: z.coerce
+    .date()
+    .optional()
+    .default(() => new Date()),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const orderUpdateZ = orderSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+/** TypeScript types inferred from schemas */
+export type OrderProductInput = z.infer<typeof orderProductSchemaZ>;
+export type OrderInput = z.infer<typeof orderSchemaZ>;
+export type OrderUpdateInput = z.infer<typeof orderUpdateZ>;
+
+export const orderFetchQuerySchema = z.object({
+  sortBy: z.string().optional().default("createdAt"),
+  sortType: z.enum(["asc", "desc"]).optional().default("desc"),
+
+  dateRange: z
+    .object({
+      from: z
+        .string()
+        .optional()
+        .refine((val) => val === undefined || isValidDate(val), {
+          message: "Invalid from date",
+        }),
+      to: z
+        .string()
+        .optional()
+        .refine((val) => val === undefined || isValidDate(val), {
+          message: "Invalid to date",
+        }),
+    })
+    .optional(),
+  date: z
+    .string()
+    .refine((val) => isValidDate(val), { message: "Invalid date" })
+    .optional(),
+
+  user: z
+    .string()
+    .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+      message: "Invalid MongoDB User ID format",
+    })
+    .optional(),
+
+  variantId: z
+    .string()
+    .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+      message: "Invalid MongoDB Variant ID format",
+    })
+    .optional(),
+
+  status: z
+    .enum(["pending", "processing", "shipped", "delivered", "cancelled"])
+    .optional(),
+
+  search: z.string().optional(),
+
+  paymentStatus: z.enum(["paid", "unpaid"]).optional(),
+});

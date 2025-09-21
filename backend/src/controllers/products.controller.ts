@@ -184,8 +184,8 @@ export const updateVariantInfo = async (c: Context) => {
   const body = {
     color: formData["color"] || "",
     size: formData["size"] || "",
-    price: parseInt(formData["price"]) || 0,
-    stock: parseInt(formData["stock"]) || 0,
+    price: parseInt(formData["price"] as string) || 0,
+    stock: parseInt(formData["stock"] as string) || 0,
   };
 
   const response = await productService.updateVariantInfo({
@@ -351,6 +351,9 @@ export const getProducts = async (c: Context) => {
   const search = c.req.query("search") as string;
   const isFeatured = c.req.query("isFeatured") as string;
   const isActive = c.req.query("isActive") as string;
+  // priceRange in format min-max, e.g., 100-500
+  const minPrice = parseInt(c.req.query("minPrice") as string, 10) || 0;
+  const maxPrice = parseInt(c.req.query("maxPrice") as string, 10) || 10000;
 
   const response = await productService.getProducts({
     page,
@@ -362,6 +365,7 @@ export const getProducts = async (c: Context) => {
 
     isFeatured,
     isActive,
+    priceRange: { min: minPrice, max: maxPrice },
   });
 
   if (response.error) {
