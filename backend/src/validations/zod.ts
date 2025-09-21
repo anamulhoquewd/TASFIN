@@ -342,7 +342,7 @@ export const orderFetchQuerySchema = z.object({
     .refine((val) => isValidDate(val), { message: "Invalid date" })
     .optional(),
 
-  user: z
+  userId: z
     .string()
     .refine((val) => mongoose.Types.ObjectId.isValid(val), {
       message: "Invalid MongoDB User ID format",

@@ -10,9 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -21,13 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Minus, Trash2, Package } from "lucide-react";
-import { IOrderItem } from "@/interfaces/orders";
+import { IOrder, IOrderItem } from "@/interfaces/orders";
 
 export interface ShowItemsProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: { _id: string; items: IOrderItem[]; amount: number };
+  order: IOrder;
 }
 
 export default function ShowItems({
@@ -35,11 +31,13 @@ export default function ShowItems({
   onOpenChange,
   order,
 }: ShowItemsProps) {
-  const [items, setItems] = useState<IOrderItem[]>([]);
+  const [products, setProducts] = useState<IOrderItem[]>([]);
 
   useEffect(() => {
-    setItems(order?.items || []);
+    setProducts(order?.products || []);
   }, [order]);
+
+  console.log("order items:", products);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -62,7 +60,7 @@ export default function ShowItems({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.length === 0 ? (
+              {products.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={5}
@@ -72,24 +70,24 @@ export default function ShowItems({
                   </TableCell>
                 </TableRow>
               ) : (
-                items.map((item) => (
-                  <TableRow key={item.product}>
+                products.map((product) => (
+                  <TableRow key={product.variantId}>
                     <TableCell>
-                      <div className="font-medium">{item.name}</div>
+                      <div className="font-medium">{product.title}</div>
 
                       <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                        ID: {item.product}
+                        ID: {product.variantId}
                       </code>
                     </TableCell>
-                    <TableCell className="text-right font-medium">
-                      ৳{item?.price.toLocaleString() || "0.00"}
+                    {/* <TableCell className="text-right font-medium">
+                      ৳{product?.price?.toLocaleString() || "0.00"}
                     </TableCell>
                     <TableCell className="text-center font-medium">
-                      {item.quantity.toLocaleString()}
+                      {product.quantity?.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      ৳{item.total.toLocaleString() || "0.00"}
-                    </TableCell>
+                      ৳{product?.total?.toLocaleString() || "0.00"}
+                    </TableCell> */}
                   </TableRow>
                 ))
               )}

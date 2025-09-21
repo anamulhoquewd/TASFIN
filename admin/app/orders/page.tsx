@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -112,8 +111,6 @@ export default function OrdersPage() {
     setFilterBy,
     getActiveFiltersCount,
     clearAllFilters,
-    minRange,
-    maxRange,
     orders,
     handleDelete,
     handleUpdate,
@@ -128,7 +125,7 @@ export default function OrdersPage() {
       case "adjustment":
         setAdjustmentOpen(true);
         break;
-      case "items":
+      case "products":
         setItemsOpen(true);
         break;
       case "delete":
@@ -179,7 +176,16 @@ export default function OrdersPage() {
               <Select
                 value={filterBy.status}
                 onValueChange={(value) =>
-                  setFilterBy((prev) => ({ ...prev, status: value }))
+                  setFilterBy((prev) => ({
+                    ...prev,
+                    status: value as
+                      | "all"
+                      | "pending"
+                      | "processing"
+                      | "shipped"
+                      | "delivered"
+                      | "cancelled",
+                  }))
                 }
               >
                 <SelectTrigger className="w-full md:w-40">
@@ -198,7 +204,10 @@ export default function OrdersPage() {
               <Select
                 value={filterBy.paymentStatus}
                 onValueChange={(value) =>
-                  setFilterBy((prev) => ({ ...prev, paymentStatus: value }))
+                  setFilterBy((prev) => ({
+                    ...prev,
+                    paymentStatus: value as "all" | "paid" | "unpaid",
+                  }))
                 }
               >
                 <SelectTrigger className="w-full md:w-40">
@@ -206,10 +215,8 @@ export default function OrdersPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Pay Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -250,7 +257,7 @@ export default function OrdersPage() {
           {/* Advanced Filters */}
           {showAdvancedFilters && (
             <div className="mb-6 p-4 border rounded-lg bg-muted/50">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Date Range Filter */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Date Range</Label>
@@ -293,70 +300,43 @@ export default function OrdersPage() {
                   </Popover>
                 </div>
 
-                {/* Customer ID Filter */}
+                {/* User ID Filter */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Customer ID</Label>
+                  <Label className="text-sm font-medium">User ID</Label>
                   <div className="relative">
                     <User className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Enter Customer ID"
+                      placeholder="Enter user ID"
                       className="pl-8"
                       type="search"
-                      value={search.customerId}
+                      value={search.userId}
                       onChange={(e) =>
                         setSearch((prev) => ({
                           ...prev,
-                          customerId: e.target.value,
+                          userId: e.target.value,
                         }))
                       }
                     />
                   </div>
                 </div>
 
-                {/* Product ID Filter */}
+                {/* Variant ID Filter */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Product ID</Label>
+                  <Label className="text-sm font-medium">Variant ID</Label>
                   <div className="relative">
                     <ShoppingCart className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Enter Product ID"
+                      placeholder="Enter Variant ID"
                       className="pl-8"
                       type="search"
-                      value={search.productId}
+                      value={search.variantId}
                       onChange={(e) =>
                         setSearch((prev) => ({
                           ...prev,
-                          productId: e.target.value,
+                          variantId: e.target.value,
                         }))
                       }
                     />
-                  </div>
-                </div>
-
-                {/* Amount Range Filter */}
-                <div className="space-y-2 md:col-span-2">
-                  <Label className="text-sm font-medium">
-                    Amount Range: ৳{filterBy.amountRange[0]?.toLocaleString()} -
-                    ৳{filterBy.amountRange[1]?.toLocaleString()}
-                  </Label>
-                  <div className="px-2">
-                    <Slider
-                      value={filterBy.amountRange}
-                      onValueChange={(value) =>
-                        setFilterBy((prev) => ({
-                          ...prev,
-                          amountRange: [value[0], value[1]] as [number, number],
-                        }))
-                      }
-                      max={10000}
-                      min={0}
-                      step={100}
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>৳{minRange.toLocaleString()}</span>
-                    <span>৳{maxRange.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -369,8 +349,8 @@ export default function OrdersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order ID</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Products</TableHead>
+                  <TableHead>User</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Payment</TableHead>
@@ -407,9 +387,7 @@ export default function OrdersPage() {
                                   onClick={() => copyToClipboard(order._id)}
                                 >
                                   <Copy className="h-3 w-3" />
-                                  <span className="sr-only">
-                                    Copy Customer ID
-                                  </span>
+                                  <span className="sr-only">Copy User ID</span>
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -429,29 +407,27 @@ export default function OrdersPage() {
                           }}
                           className="cursor-pointer"
                         >
-                          Show Items
-                          <span className="sr-only">Show Items</span>
+                          Show Products
+                          <span className="sr-only">Show Products</span>
                         </Button>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>
-                              {order.customer.name.toUpperCase().charAt(0)}
+                              {order.user.name.toUpperCase().charAt(0)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">
-                              {order.customer.name}
-                            </div>
+                            <div className="font-medium">{order.user.name}</div>
                             <div className="text-xs text-muted-foreground">
-                              {order.customer.phone}
+                              {order.user.phone}
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(order.createdAt).toLocaleDateString()}
+                        {new Date(order.orderDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -463,7 +439,7 @@ export default function OrdersPage() {
                         {getPaymentStatusBadge(order.paymentStatus)}
                       </TableCell>
                       <TableCell className="text-right">
-                        ৳{order.amount.toLocaleString()}
+                        ৳{order.totalAmount.toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -501,7 +477,7 @@ export default function OrdersPage() {
                               onClick={() => openDialog(order, "items")}
                             >
                               <Package className="mr-2 h-4 w-4" />
-                              Update Items
+                              Update Products
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>

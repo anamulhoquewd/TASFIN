@@ -22,12 +22,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Plus, Minus, Trash2, Package } from "lucide-react";
-import { IOrderItem } from "@/interfaces/orders";
+import { IOrder, IOrderItem } from "@/interfaces/orders";
 
 export interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  order: { _id: string; items: IOrderItem[]; amount: number };
+  order: IOrder;
   onUpdate: (data: any) => void;
 }
 
@@ -45,7 +45,7 @@ export default function ItemsDialog({
 
     setItems((prevItems) =>
       prevItems.map((item) =>
-        item.product === itemId
+        item.variantId === itemId
           ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
           : item
       )
@@ -54,7 +54,7 @@ export default function ItemsDialog({
 
   const removeItem = (itemId: string) => {
     setItems((prevItems) =>
-      prevItems.filter((item) => item.product !== itemId)
+      prevItems.filter((item) => item.variantId !== itemId)
     );
   };
 
@@ -82,7 +82,7 @@ export default function ItemsDialog({
   };
 
   useEffect(() => {
-    setItems(order?.items || []);
+    setItems(order?.products || []);
   }, [order]);
 
   return (
@@ -126,12 +126,12 @@ export default function ItemsDialog({
                     </TableRow>
                   ) : (
                     items.map((item) => (
-                      <TableRow key={item.product}>
+                      <TableRow key={item.variantId}>
                         <TableCell>
-                          <div className="font-medium">{item.name}</div>
+                          <div className="font-medium">{item.title}</div>
 
                           <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                            ID: {item.product}
+                            ID: {item.variantId}
                           </code>
                         </TableCell>
                         <TableCell className="text-right">
@@ -145,7 +145,10 @@ export default function ItemsDialog({
                               size="icon"
                               className="h-8 w-8 cursor-pointer"
                               onClick={() =>
-                                updateQuantity(item.product, item.quantity - 1)
+                                updateQuantity(
+                                  item.variantId,
+                                  item.quantity - 1
+                                )
                               }
                               disabled={item.quantity <= 0}
                             >
@@ -156,7 +159,7 @@ export default function ItemsDialog({
                               value={item.quantity}
                               onChange={(e) =>
                                 updateQuantity(
-                                  item.product,
+                                  item.variantId,
                                   parseInt(e.target.value) || 0
                                 )
                               }
@@ -169,7 +172,10 @@ export default function ItemsDialog({
                               size="icon"
                               className="h-8 w-8 cursor-pointer"
                               onClick={() =>
-                                updateQuantity(item.product, item.quantity + 1)
+                                updateQuantity(
+                                  item.variantId,
+                                  item.quantity + 1
+                                )
                               }
                             >
                               <Plus className="h-4 w-4" />
@@ -185,7 +191,7 @@ export default function ItemsDialog({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-red-500 hover:text-red-700 cursor-pointer"
-                            onClick={() => removeItem(item.product)}
+                            onClick={() => removeItem(item.variantId)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -205,7 +211,7 @@ export default function ItemsDialog({
                   Original Amount
                 </div>
                 <div className="font-medium">
-                  ৳{order?.amount.toLocaleString()}
+                  ৳{order?.totalAmount.toLocaleString()}
                 </div>
               </div>
               <div className="space-y-1 text-right">
@@ -216,7 +222,7 @@ export default function ItemsDialog({
               </div>
             </div>
 
-            {calculateOrderTotal() !== order?.amount && (
+            {calculateOrderTotal() !== order?.totalAmount && (
               <div className="p-3 border rounded-md bg-yellow-50 border-yellow-200">
                 <div className="flex items-center gap-2 text-yellow-800">
                   <Badge
@@ -228,9 +234,9 @@ export default function ItemsDialog({
                   <span className="text-sm">
                     Difference: ৳
                     {Math.abs(
-                      calculateOrderTotal() - (order?.amount || 0)
+                      calculateOrderTotal() - (order?.totalAmount || 0)
                     ).toLocaleString()}
-                    {calculateOrderTotal() > (order?.amount || 0)
+                    {calculateOrderTotal() > (order?.totalAmount || 0)
                       ? " increase"
                       : " decrease"}
                   </span>

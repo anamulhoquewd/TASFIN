@@ -25,11 +25,11 @@ export interface GetOrderServiceProps {
     to: string | Date | undefined;
   };
   date?: string;
-  user?: string;
+  userId?: string;
+  variantId?: string;
   status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus?: "paid" | "unpaid";
   search?: string;
-  variantId?: string;
 }
 
 export const register = async (body: OrderInput) => {
@@ -199,8 +199,6 @@ function buildOrderQuery(filters: {
 }
 
 export const getOrders = async (queryParams: GetOrderServiceProps) => {
-  console.log("Query Params: ", queryParams);
-
   // Safe Parse for better error handling
   const queryValidation = orderFetchQuerySchema.safeParse(queryParams);
 
@@ -230,7 +228,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
       status: queryValidation.data.status,
       paymentStatus: queryValidation.data.paymentStatus,
 
-      userId: queryValidation.data.user,
+      userId: queryValidation.data.userId,
       variantId: queryValidation.data.variantId,
 
       search: queryValidation.data.search,

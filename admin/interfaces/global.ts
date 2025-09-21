@@ -5,3 +5,8 @@ export interface IPagination {
   nextPage: number | null;
   prevPage: number | null;
 }
+
+export interface IImage {
+  alt: string;
+  url: string;
+}

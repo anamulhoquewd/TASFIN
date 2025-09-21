@@ -65,7 +65,7 @@ export const getOrders = async (c: Context) => {
   const toDate = c.req.query("toDate") ?? undefined;
   const variantId = c.req.query("variantId") as string;
   const date = c.req.query("date") as string;
-  const user = c.req.query("user") as string;
+  const userId = c.req.query("userId") as string;
   const status = c.req.query("status") as
     | "pending"
     | "processing"
@@ -82,7 +82,7 @@ export const getOrders = async (c: Context) => {
     search,
     dateRange: { from: fromDate, to: toDate },
     date,
-    user,
+    userId,
     status,
     paymentStatus,
     variantId,

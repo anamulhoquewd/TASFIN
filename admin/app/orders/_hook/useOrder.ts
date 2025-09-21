@@ -7,35 +7,36 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 interface IFilter {
-  status: string;
-  paymentStatus: string;
+  status:
+    | "pending"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "all";
+  paymentStatus: "paid" | "unpaid" | "all";
   dateRange: { from: Date | undefined; to: Date | undefined } | undefined;
   singleDate: Date | undefined;
-  amountRange: [number, number] | number[];
 }
 interface ILoadOrder {
   search: {
     orderId: string;
-    customerId: string;
-    productId: string;
+    userId: string;
+    variantId: string;
   };
   filters: IFilter;
   page: number;
 }
 interface ISearch {
   orderId: string;
-  customerId: string;
-  productId: string;
+  userId: string;
+  variantId: string;
 }
 
 function useOrder() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
-
-  // Define the range for the amount filter
-  const minRange = 0;
-  const maxRange = 10000;
 
   // Dialogs
   const [selectedItem, setSelectedItem] = useState<IOrder | null>(null);
@@ -48,12 +49,12 @@ function useOrder() {
   // Search
   const [search, setSearch] = useState<ISearch>({
     orderId: "",
-    customerId: "",
-    productId: "",
+    userId: "",
+    variantId: "",
   });
   const [debouncedOrderId, setDebouncedOrderId] = useState<string>("");
-  const [debouncedCustomerId, setDebouncedCustomerId] = useState<string>("");
-  const [debouncedProductId, setDebouncedProductId] = useState<string>("");
+  const [debouncedUserId, setdebouncedUserId] = useState<string>("");
+  const [debouncedVariantId, setdebouncedVariantId] = useState<string>("");
   const [debouncedAmountRange, setDebouncedAmountRange] = useState<
     [number, number]
   >([0, 10000]);
@@ -61,13 +62,12 @@ function useOrder() {
   console.warn(orders);
 
   const [filterBy, setFilterBy] = useState<IFilter>({
-    status: "",
-    paymentStatus: "",
+    status: "all",
+    paymentStatus: "all",
     dateRange: undefined as
       | { from: Date | undefined; to: Date | undefined }
       | undefined,
     singleDate: undefined as Date | undefined,
-    amountRange: [minRange, maxRange] as [number, number],
   });
 
   const loadOrders = async ({ search, filters, page }: ILoadOrder) => {
@@ -75,8 +75,11 @@ function useOrder() {
       const response = await api.get("/orders", {
         params: {
           search: search?.orderId || undefined,
-          status: filters?.status || undefined,
-          paymentStatus: filters?.paymentStatus || undefined,
+          status: filters?.status === "all" ? undefined : filters?.status,
+          paymentStatus:
+            filters?.paymentStatus === "all"
+              ? undefined
+              : filters?.paymentStatus,
           fromDate: filters?.dateRange?.from
             ? format(filters.dateRange.from, "yyyy-MM-dd")
             : undefined,
@@ -86,16 +89,8 @@ function useOrder() {
           date: filters?.singleDate
             ? format(filters.singleDate, "yyyy-MM-dd")
             : undefined,
-          customer: search?.customerId || undefined,
-          product: search?.productId || undefined,
-          minAmount:
-            filters?.amountRange[0] !== minRange
-              ? filters?.amountRange[0]
-              : undefined,
-          maxAmount:
-            filters?.amountRange[0] !== minRange
-              ? filters?.amountRange[1]
-              : undefined,
+          userId: search?.userId || undefined,
+          variantId: search?.variantId || undefined,
           page: page === 1 ? undefined : page,
         },
       });
@@ -137,8 +132,8 @@ function useOrder() {
       loadOrders({
         search: {
           orderId: debouncedOrderId,
-          customerId: debouncedCustomerId,
-          productId: debouncedProductId,
+          userId: debouncedUserId,
+          variantId: debouncedVariantId,
         },
         filters: filterBy,
         page: pagination.page,
@@ -166,8 +161,8 @@ function useOrder() {
       loadOrders({
         search: {
           orderId: debouncedOrderId,
-          customerId: debouncedCustomerId,
-          productId: debouncedProductId,
+          userId: debouncedUserId,
+          variantId: debouncedVariantId,
         },
         filters: filterBy,
         page: pagination.page,
@@ -185,71 +180,59 @@ function useOrder() {
 
   const clearAllFilters = () => {
     setFilterBy({
-      status: "",
-      paymentStatus: "",
+      status: "all",
+      paymentStatus: "all",
       dateRange: { from: undefined, to: undefined },
       singleDate: undefined,
-      amountRange: [minRange, maxRange] as [number, number],
     });
     setSearch({
       orderId: "",
-      customerId: "",
-      productId: "",
+      userId: "",
+      variantId: "",
     });
   };
 
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (filterBy.status) count++;
-    if (filterBy.paymentStatus) count++;
+    if (filterBy.status !== "all") count++;
+    if (filterBy.paymentStatus !== "all") count++;
     if (filterBy.dateRange?.from && filterBy.dateRange?.to) count++;
     if (filterBy.singleDate) count++;
     if (debouncedOrderId) count++;
-    if (debouncedCustomerId) count++;
-    if (debouncedProductId) count++;
-    if (
-      filterBy.amountRange[0] !== minRange ||
-      filterBy.amountRange[1] !== maxRange
-    )
-      count++;
+    if (debouncedUserId) count++;
+    if (debouncedVariantId) count++;
+
     return count;
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedAmountRange(filterBy.amountRange as [number, number]);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [filterBy.amountRange]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
       setDebouncedOrderId(search.orderId);
-      setDebouncedCustomerId(search.customerId);
-      setDebouncedProductId(search.productId);
+      setdebouncedUserId(search.userId);
+      setdebouncedVariantId(search.variantId);
       setPagination((prev) => ({ ...prev, page: 1 }));
     }, 500);
 
     return () => {
       clearTimeout(timer);
     };
-  }, [search.customerId, search.orderId, search.productId]);
+  }, [search.userId, search.orderId, search.variantId]);
 
   // Fetch orders on initial load
   useEffect(() => {
     loadOrders({
       search: {
         orderId: debouncedOrderId,
-        customerId: debouncedCustomerId,
-        productId: debouncedProductId,
+        userId: debouncedUserId,
+        variantId: debouncedVariantId,
       },
       filters: filterBy,
       page: pagination.page,
     });
   }, [
     debouncedOrderId,
-    debouncedCustomerId,
-    debouncedProductId,
+    debouncedUserId,
+    debouncedVariantId,
     filterBy.status,
     filterBy.paymentStatus,
     filterBy.dateRange,
@@ -284,8 +267,6 @@ function useOrder() {
     setSearch,
     filterBy,
     setFilterBy,
-    minRange,
-    maxRange,
   };
 }
 

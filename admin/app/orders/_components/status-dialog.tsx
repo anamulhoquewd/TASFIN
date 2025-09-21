@@ -77,18 +77,10 @@ export const getPaymentStatusBadge = (paymentStatus: string) => {
           Paid
         </Badge>
       );
-    case "pending":
+    case "unpaid":
       return (
-        <Badge variant="outline" className="text-yellow-500 border-yellow-500">
-          Pending
-        </Badge>
-      );
-    case "failed":
-      return <Badge variant="destructive">Failed</Badge>;
-    case "refunded":
-      return (
-        <Badge variant="outline" className="text-blue-500 border-blue-500">
-          Refunded
+        <Badge variant="outline" className="text-orange-500 border-orange-500">
+          Unpaid
         </Badge>
       );
     default:
@@ -207,10 +199,8 @@ export default function StatusDialog({
                   <SelectValue placeholder="Select payment status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -224,6 +214,9 @@ export default function StatusDialog({
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
               />
+              <p className="text-sm text-destructive">
+                NOTE: Right now it's not working.
+              </p>
             </div>
           </div>
 

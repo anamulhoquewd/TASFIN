@@ -93,9 +93,9 @@ export default function AdjustmentDialog({
   const calculateNewTotal = () => {
     const adjustmentAmount = parseFloat(amount) || 0;
     if (adjustmentType === "discount" || adjustmentType === "refund") {
-      return order?.amount - adjustmentAmount;
+      return order?.totalAmount - adjustmentAmount;
     }
-    return order?.amount + adjustmentAmount;
+    return order?.totalAmount + adjustmentAmount;
   };
 
   return (
@@ -113,7 +113,7 @@ export default function AdjustmentDialog({
             <Label>Current Order Amount</Label>
             <div className="p-3 border rounded-md bg-muted/50">
               <div className="text-lg font-semibold">
-                ৳{order?.amount?.toLocaleString()}
+                ৳{order?.totalAmount?.toLocaleString()}
               </div>
             </div>
           </div>
