@@ -41,8 +41,6 @@ function useOrder() {
   // Dialogs
   const [selectedItem, setSelectedItem] = useState<IOrder | null>(null);
   const [statusOpen, setStatusOpen] = useState<boolean>(false);
-  const [adjustmentOpen, setAdjustmentOpen] = useState<boolean>(false);
-  const [itemsOpen, setItemsOpen] = useState<boolean>(false);
   const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
   const [showItemsOpen, setShowItemsOpen] = useState<boolean>(false);
 
@@ -113,16 +111,13 @@ function useOrder() {
     }
   };
 
-  const handleUpdate = async (data: any, type: string) => {
-    console.log("Update Product Data:", data, type);
+  const handleUpdate = async (data: any) => {
+    console.log("Update Product Data:", data);
 
     if (!selectedItem) return;
 
     try {
-      const response = await api.patch(
-        `/orders/${selectedItem._id}/${type}`,
-        data
-      );
+      const response = await api.patch(`/orders/${selectedItem._id}`, data);
 
       if (!response.data.success) {
         throw new Error("Failed to update order");
@@ -253,10 +248,6 @@ function useOrder() {
     setPagination,
     statusOpen,
     setStatusOpen,
-    adjustmentOpen,
-    setAdjustmentOpen,
-    itemsOpen,
-    setItemsOpen,
     showItemsOpen,
     setShowItemsOpen,
     deleteOpen,

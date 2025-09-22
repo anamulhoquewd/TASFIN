@@ -143,18 +143,18 @@ export default function StatusDialog({
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="current-payment">Current Payment</Label>
+              <Label htmlFor="current-payment">Current Payment Status</Label>
               <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
                 {getPaymentStatusBadge(order?.paymentStatus)}
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 col-span-1">
               <Label htmlFor="status">New Order Status</Label>
               <Select value={status} onValueChange={setStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select order status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -192,10 +192,10 @@ export default function StatusDialog({
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-1">
               <Label htmlFor="payment-status">Payment Status</Label>
               <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select payment status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -205,7 +205,7 @@ export default function StatusDialog({
               </Select>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <Label htmlFor="notes">Update Notes (Optional)</Label>
               <Textarea
                 id="notes"

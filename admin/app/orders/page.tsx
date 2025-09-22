@@ -1,20 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import {
   Search,
   Filter,
   MoreHorizontal,
-  Eye,
-  Download,
   Truck,
-  Package,
   X,
   Calendar,
   User,
   ShoppingCart,
   Copy,
-  CreditCard,
   Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -57,12 +52,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { format, set } from "date-fns";
-import api from "@/axios/interceptor";
-import { defaultPagination } from "@/utils/details";
-import Paginations, { Pagination } from "@/components/pagination";
+import { format } from "date-fns";
+import Paginations from "@/components/pagination";
 import {
   Tooltip,
   TooltipContent,
@@ -70,8 +62,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DateRangePicker } from "@/components/date-range-picker";
-import ItemsDialog from "./_components/items-dialog";
-import AdjustmentDialog from "./_components/adjustment-dialog";
 import StatusDialog, {
   getStatusBadge,
   getStatusIcon,
@@ -81,21 +71,13 @@ import { IOrder } from "@/interfaces/orders";
 import ShowItems from "./_components/show-items";
 import useOrder from "./_hook/useOrder";
 import { DeleteDialog } from "@/components/delete-dialong";
+import { copyToClipboard, formatPrice } from "@/utils";
 
 export default function OrdersPage() {
-  // Function to copy the access key to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
   const {
     setShowAdvancedFilters,
     statusOpen,
     setStatusOpen,
-    itemsOpen,
-    setItemsOpen,
-    setAdjustmentOpen,
-    adjustmentOpen,
     setDeleteOpen,
     deleteOpen,
     showAdvancedFilters,
@@ -116,17 +98,11 @@ export default function OrdersPage() {
     handleUpdate,
   } = useOrder();
 
-  const openDialog = (order: IOrder, dialogType: string) => {
+  const openDialog = (order: IOrder, dialogType: "update" | "delete") => {
     setSelectedItem(order);
     switch (dialogType) {
-      case "status":
+      case "update":
         setStatusOpen(true);
-        break;
-      case "adjustment":
-        setAdjustmentOpen(true);
-        break;
-      case "products":
-        setItemsOpen(true);
         break;
       case "delete":
         setDeleteOpen(true);
@@ -439,7 +415,7 @@ export default function OrdersPage() {
                         {getPaymentStatusBadge(order.paymentStatus)}
                       </TableCell>
                       <TableCell className="text-right">
-                        ৳{order.totalAmount.toLocaleString()}
+                        {formatPrice(order.totalAmount)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -454,43 +430,21 @@ export default function OrdersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/admin/orders/${order._id}`}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => openDialog(order, "status")}
+                              onClick={() => openDialog(order, "update")}
                             >
                               <Truck className="mr-2 h-4 w-4" />
                               Update Status
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => openDialog(order, "adjustment")}
-                            >
-                              <CreditCard className="mr-2 h-4 w-4" />
-                              Amount Adjustments
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => openDialog(order, "items")}
-                            >
-                              <Package className="mr-2 h-4 w-4" />
-                              Update Products
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                              <Download className="mr-2 h-4 w-4" />
-                              Download Invoice
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               onClick={() => openDialog(order, "delete")}
                               className="text-destructive"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Product
+                              Delete Order
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -520,23 +474,12 @@ export default function OrdersPage() {
             onOpenChange={setShowItemsOpen}
             order={selectedItem}
           />
+
           <StatusDialog
             open={statusOpen}
             onOpenChange={setStatusOpen}
             order={selectedItem}
-            onUpdate={(data) => handleUpdate(data, "status")}
-          />
-          <AdjustmentDialog
-            open={adjustmentOpen}
-            onOpenChange={setAdjustmentOpen}
-            order={selectedItem}
-            onUpdate={(data) => handleUpdate(data, "adjustment")}
-          />
-          <ItemsDialog
-            open={itemsOpen}
-            onOpenChange={setItemsOpen}
-            order={selectedItem}
-            onUpdate={(data) => handleUpdate(data, "items")}
+            onUpdate={(data) => handleUpdate(data)}
           />
 
           <DeleteDialog

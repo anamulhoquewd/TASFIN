@@ -67,8 +67,6 @@ export const register = async (body: OrderInput) => {
       const variant = product.variants.find(
         (v) => v._id.toString() === item.variantId
       );
-      console.log("Variant: ", variant);
-      console.log("Product: ", product);
       if (!variant)
         return {
           error: {

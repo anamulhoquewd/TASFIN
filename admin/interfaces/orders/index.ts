@@ -33,6 +33,5 @@ export interface IOrderItem {
   title: string;
   image: IImage;
   price: number;
-  total: number;
   quantity: number;
 }

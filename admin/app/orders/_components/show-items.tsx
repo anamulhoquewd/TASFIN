@@ -19,6 +19,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { IOrder, IOrderItem } from "@/interfaces/orders";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Copy } from "lucide-react";
+import { copyToClipboard, formatPrice } from "@/utils";
+import Image from "next/image";
 
 export interface ShowItemsProps {
   open: boolean;
@@ -53,6 +62,7 @@ export default function ShowItems({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Image</TableHead>
                 <TableHead>Product</TableHead>
                 <TableHead className="text-right">Price</TableHead>
                 <TableHead className="text-center">Quantity</TableHead>
@@ -73,21 +83,53 @@ export default function ShowItems({
                 products.map((product) => (
                   <TableRow key={product.variantId}>
                     <TableCell>
+                      <Image
+                        src={product.image.url || ""}
+                        width={48}
+                        height={48}
+                        alt={product.image.alt || product.title}
+                        className="object-cover rounded-md"
+                      />
+                    </TableCell>
+                    <TableCell>
                       <div className="font-medium">{product.title}</div>
 
-                      <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                        ID: {product.variantId}
-                      </code>
+                      <div className="flex items-center gap-2 flex-1">
+                        V-ID{" "}
+                        <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
+                          {product.variantId.substring(0, 8)}...
+                        </code>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 cursor-pointer"
+                                onClick={() =>
+                                  copyToClipboard(product.variantId)
+                                }
+                              >
+                                <Copy className="h-3 w-3" />
+                                <span className="sr-only">Copy Variant ID</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Copy Variant ID</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </TableCell>
-                    {/* <TableCell className="text-right font-medium">
-                      ৳{product?.price?.toLocaleString() || "0.00"}
+                    <TableCell className="text-right font-medium">
+                      {formatPrice(product.price)}
                     </TableCell>
                     <TableCell className="text-center font-medium">
                       {product.quantity?.toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right font-medium">
-                      ৳{product?.total?.toLocaleString() || "0.00"}
-                    </TableCell> */}
+                      {formatPrice(product.price * product.quantity)}
+                    </TableCell>
                   </TableRow>
                 ))
               )}
