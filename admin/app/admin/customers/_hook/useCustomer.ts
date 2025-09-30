@@ -45,7 +45,7 @@ function useCustomer() {
     search: string;
   }) => {
     try {
-      const response = await api.get("/customers", {
+      const response = await api.get("/users", {
         params: {
           page,
           search,

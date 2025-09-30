@@ -40,18 +40,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SidebarProvider>
-            <AppSidebar />
-
-            <div className="flex-1 min-h-screen flex-col">
-              <Header />
-              <main className="flex-1 overflow-auto">
-                <div className="container mx-auto p-4 md:p-6">
-                  <Suspense>{children}</Suspense>
-                </div>
-              </main>
-            </div>
-          </SidebarProvider>
+          {children}
         </ThemeProvider>
         <Toaster />
       </body>

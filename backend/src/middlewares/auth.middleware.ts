@@ -46,12 +46,12 @@ export const authenticatedUser = async (c: Context, next: Next) => {
 //  Check if admin is authenticated
 export const authenticatedAdmin = async (c: Context, next: Next) => {
   const token =
-    c.req.header("Authorization")?.replace("Bearer ", "") ||
-    (await getSignedCookie(
+    // c.req.header("Authorization")?.replace("Bearer ", "") ||
+    await getSignedCookie(
       c,
       process.env.COOKIE_SECRET as string,
       "accessToken"
-    ));
+    );
 
   if (!token) {
     return authenticationError(c);

@@ -3,6 +3,7 @@ import { ICategory } from "@/interfaces/categories";
 import { IPagination } from "@/interfaces/global";
 import { defaultPagination } from "@/utils/details";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,7 +39,7 @@ function useCategory() {
     },
   });
 
-  const loadCategories = async ({
+  const getCategories = async ({
     searchQuery,
     page = 1,
   }: {
@@ -73,7 +74,10 @@ function useCategory() {
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await api.post("/categories/register", data);
+      const response = await axios.post(
+        "http://localhost:4000/api/v1/categories/register",
+        data
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -86,6 +90,9 @@ function useCategory() {
       });
 
       toast(response.data.message || "Category created successfully!");
+      setNewDialogOpen(false);
+
+      getCategories({ page: pagination.page, searchQuery });
     } catch (error: any) {
       console.error("Error updating category:", error);
 
@@ -107,7 +114,10 @@ function useCategory() {
     setIsLoading(true);
 
     try {
-      const response = await api.put(`/categories/${selectedItem._id}`, data);
+      const response = await axios.patch(
+        `http://localhost:4000/api/v1/categories/${selectedItem._id}`,
+        data
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -120,7 +130,7 @@ function useCategory() {
       });
 
       setSelectedItem(null);
-      loadCategories({ page: pagination.page, searchQuery });
+      getCategories({ page: pagination.page, searchQuery });
 
       toast(response.data.message || "Category updated successfully!");
     } catch (error: any) {
@@ -140,13 +150,15 @@ function useCategory() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await api.delete(`/categories/${id}`);
+      const response = await axios.delete(
+        `http://localhost:4000/api/v1/categories/${id}`
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
       }
 
-      loadCategories({ page: pagination.page, searchQuery });
+      getCategories({ page: pagination.page, searchQuery });
 
       toast(response.data.message || "Category deleted successfully!");
 
@@ -159,7 +171,8 @@ function useCategory() {
   };
 
   const uploadHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.warn("Called handler");
+    if (!selectedItem) return;
+
     const files = event.target.files;
     if (!files || !files[0]) {
       return;
@@ -177,10 +190,8 @@ function useCategory() {
     formData.append("avatar", file);
 
     try {
-      const response = await api.post(
-        `/categories/uploads?filename=${
-          selectedItem ? selectedItem.name.split(" ").join("-") : "category"
-        }&categoryId=${selectedItem?._id}`,
+      const response = await axios.post(
+        `http://localhost:4000/api/v1/categories/${selectedItem?._id}/upload-avatar`,
         formData,
         {
           headers: {
@@ -196,10 +207,27 @@ function useCategory() {
       toast(response.data.message || "Avatar change successfully!");
 
       setIsAvatarOpen(false);
-
-      loadCategories({ page: pagination.page, searchQuery });
+      getCategories({ page: pagination.page, searchQuery });
     } catch (error: any) {
       console.log("Error: ", error);
+    }
+  };
+
+  // Generate slug from name
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .trim();
+  };
+
+  // Handle name change and auto-generate slug
+  const handleNameChange = (value: string) => {
+    form.setValue("name", value);
+    if (value) {
+      form.setValue("slug", generateSlug(value));
     }
   };
 
@@ -215,7 +243,7 @@ function useCategory() {
   }, [search]);
 
   useEffect(() => {
-    loadCategories({ page: pagination.page, searchQuery });
+    getCategories({ page: pagination.page, searchQuery });
   }, [pagination.page, searchQuery]);
 
   useEffect(() => {
@@ -254,6 +282,7 @@ function useCategory() {
     isAvatarOpen,
     setIsAvatarOpen,
     uploadHandler,
+    handleNameChange,
   };
 }
 

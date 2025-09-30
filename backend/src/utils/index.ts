@@ -109,7 +109,7 @@ export const setAuthCookie = async (
   value: string,
   maxAgeSeconds: number
 ) => {
-  await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
+  return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
     domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,

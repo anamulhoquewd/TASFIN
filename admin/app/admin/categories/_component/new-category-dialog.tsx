@@ -1,5 +1,3 @@
-"use client";
-
 import { ListIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -30,6 +28,7 @@ interface Props {
   isLoading: boolean;
   open: boolean;
   changeOpen: (open: boolean) => void;
+  handleNameChange: (value: string) => void;
 }
 
 export default function NewCategory({
@@ -38,6 +37,7 @@ export default function NewCategory({
   isLoading,
   open,
   changeOpen,
+  handleNameChange
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
@@ -60,7 +60,12 @@ export default function NewCategory({
                     category Name
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Type name" {...field} />
+                    {/* <Input placeholder="Type name" {...field} /> */}
+                     <Input
+                        placeholder="Enter product title"
+                        {...field}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                      />
                   </FormControl>
                   <FormDescription>
                     The name displayed in category listings

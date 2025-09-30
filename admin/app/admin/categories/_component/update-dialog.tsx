@@ -1,9 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { ListIcon as Category } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +44,7 @@ export default function UpdateDialog({
   selectedItem,
   setSelectedItem,
 }: Props) {
+  console.log(selectedItem);
   return (
     <Dialog
       open={open}

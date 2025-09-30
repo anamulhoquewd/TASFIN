@@ -206,6 +206,12 @@ export const refreshToken = async (c: Context) => {
     // Generate new access token
     const accessToken = await generateAccessToken({ user: admin });
 
+    if (!accessToken) {
+      return serverErrorHandler(c, {
+        message: "Access token generation failed",
+      });
+    }
+
     await setAuthCookie(c, "accessToken", accessToken, 60 * 60 * 24); // 1 day
 
     // Response
@@ -220,6 +226,7 @@ export const refreshToken = async (c: Context) => {
       200
     );
   } catch (error: any) {
+    console.log("Error during token refresh:", error);
     if (error.name === "JwtTokenExpired") {
       return authorizationError(
         c,
@@ -242,6 +249,11 @@ export const refreshToken = async (c: Context) => {
 export const logout = async (c: Context) => {
   try {
     // Clear cookie using Hono's deleteCookie
+    deleteCookie(c, "accessToken", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
+    });
     const refreshToken = deleteCookie(c, "refreshToken", {
       path: "/",
       secure: process.env.NODE_ENV === "production",

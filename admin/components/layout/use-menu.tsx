@@ -24,10 +24,13 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { CircleUser, LogOut } from "lucide-react";
-// import useMe from "@/hooks/auth/useMe";
+import useMe from "@/hooks/auth/useMe";
+import { DeleteConfirmation } from "../delete-confirmation";
+import { useState } from "react";
 
 export default function UserMenu() {
-  // const { user, handleLogout } = useMe();
+  const { handleLogout, user } = useMe();
+  const [open, setOpen] = useState(false);
 
   return (
     <DropdownMenu>
@@ -37,8 +40,8 @@ export default function UserMenu() {
           className="relative h-8 w-8 rounded-full cursor-pointer"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={""} alt={"user?.name" || "User"} />
-            <AvatarFallback>{"user?.name"?.charAt(0) || "SG"}</AvatarFallback>
+            <AvatarImage src={user?.avatar?.url} alt={user?.name || "TASFIN"} />
+            <AvatarFallback>{user?.name?.charAt(0) || "TASFIN"}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -46,11 +49,9 @@ export default function UserMenu() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium">
-              {"user?.name" || "Shuddhoghor"}
-            </p>
+            <p className="text-sm font-medium">{user?.name || "TASFIN"}</p>
             <p className="text-xs text-muted-foreground">
-              {"user?.email" || "info@shuddhoghor.com"}
+              {user?.email || "info@tasfin.com"}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -68,28 +69,19 @@ export default function UserMenu() {
 
         <DropdownMenuSeparator />
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full justify-start">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </Button>
-          </AlertDialogTrigger>
-
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will log you out of your account.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              {/* <AlertDialogAction onClick={handleLogout}> */}
-              <AlertDialogAction>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DeleteConfirmation
+          open={open}
+          changeOpen={setOpen}
+          onConfirm={handleLogout}
+        />
+        <Button
+          onClick={() => setOpen(true)}
+          variant="outline"
+          className="w-full justify-start"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </Button>
       </DropdownMenuContent>
     </DropdownMenu>
   );

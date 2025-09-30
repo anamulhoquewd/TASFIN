@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
-import useCategory from "@/app/categories/_hook/useCategory";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
 
 interface EditProductFormProps {
   form: any;

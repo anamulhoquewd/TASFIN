@@ -39,7 +39,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import useCategory from "@/app/categories/_hook/useCategory";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { toast } from "sonner";
 
 interface CreateProductFormProps {

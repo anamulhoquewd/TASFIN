@@ -4,7 +4,9 @@ import { Hono } from "hono";
 
 const adminRoutes = new Hono();
 
-adminRoutes.get("/", (c) => adminController.getAdmins(c));
+adminRoutes.get("/", authenticatedAdmin, authenticatedAdmin, (c) =>
+  adminController.getAdmins(c)
+);
 
 adminRoutes.post("/register", authenticatedAdmin, (c) =>
   adminController.register(c)
@@ -34,7 +36,7 @@ adminRoutes.post("/log-out", authenticatedAdmin, (c) =>
 
 adminRoutes.get("/me", authenticatedAdmin, (c) => adminController.getMe(c));
 
-adminRoutes.patch("/:_id", authenticatedAdmin, (c) =>
+adminRoutes.patch("/me", authenticatedAdmin, (c) =>
   adminController.updateMe(c)
 );
 

@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { Search, Plus, MoreHorizontal, Trash2 } from "lucide-react";
+import { Search, MoreHorizontal, Trash2, User } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,8 +16,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -27,48 +29,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Paginations from "@/components/pagination";
-import { IAdmin } from "@/interfaces/users";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import useAdmin from "./_hook/useAdmin";
+import api from "@/axios/interceptor";
+import { defaultPagination } from "@/utils/details";
+import Paginations, { Pagination } from "@/components/pagination";
+import { ICustomer } from "@/interfaces/users";
+import useCustomer from "./_hook/useCustomer";
+import UpdateDialog from "./_component/update-dialog";
 import { DeleteDialog } from "@/components/delete-dialong";
 
-export default function UsersPage() {
+export default function CustomersPage() {
   const {
     pagination,
     setPagination,
     search,
     setSearch,
-    admins,
     selectedItem,
     setSelectedItem,
-    deleteOpen,
     setDeleteOpen,
+    deleteOpen,
     handleDelete,
-  } = useAdmin();
+    customers,
+    setUpdateOpen,
+    updateOpen,
+    handleUpdate,
+    isLoading,
+    form,
+  } = useCustomer();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Admins</h1>
-          <p className="text-muted-foreground">Manage admin users.</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button className="bg-primary hover:bg-primary/90" asChild>
-            <Link href="/admin/users/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Admin
-            </Link>
-          </Button>
+          <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
+          <p className="text-muted-foreground">Manage customers.</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
+          <CardTitle>Customer Management</CardTitle>
           <CardDescription>
-            You have {pagination.total} users in the system.
+            You have {pagination.total} customers in the system.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -78,7 +79,7 @@ export default function UsersPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search users..."
+                  placeholder="Search customers..."
                   className="pl-8"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -91,16 +92,14 @@ export default function UsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Avatar</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>Address</TableHead>
                   <TableHead className="w-[180px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {admins.length === 0 ? (
+                {customers.length === 0 ? (
                   <TableRow>
                     <TableCell
                       colSpan={8}
@@ -110,27 +109,12 @@ export default function UsersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  admins.map((admin: IAdmin) => (
+                  customers.map((admin: ICustomer) => (
                     <TableRow key={admin._id}>
-                      <TableCell>
-                        <div className="relative h-10 w-10 ring rounded-4xl overflow-hidden">
-                          <Avatar className="w-full h-full">
-                            <AvatarImage src={admin.avatar} alt={admin.name} />
-                            <AvatarFallback className="uppercase">
-                              {admin.name.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                        </div>
-                      </TableCell>
                       <TableCell>{admin?.name}</TableCell>
-                      <TableCell>{admin?.email}</TableCell>
                       <TableCell>{admin?.phone}</TableCell>
                       <TableCell>
-                        {admin.role === "admin" ? (
-                          <Badge variant={"outline"}>{admin?.role}</Badge>
-                        ) : (
-                          <Badge variant={"secondary"}>{admin?.role}</Badge>
-                        )}
+                        {admin?.address || "No address available"}
                       </TableCell>
 
                       <TableCell>
@@ -147,14 +131,25 @@ export default function UsersPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
+                              className="cursor-pointer"
+                              onClick={() => {
+                                setUpdateOpen(true);
+                                setSelectedItem(admin);
+                              }}
+                            >
+                              <User className="mr-2 h-4 w-4" />
+                              Update Customer
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
                               onClick={() => {
                                 setDeleteOpen(true);
                                 setSelectedItem(admin);
                               }}
-                              className="text-destructive"
+                              className="text-destructive cursor-pointer"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Admin
+                              Delete Customer
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -166,7 +161,7 @@ export default function UsersPage() {
             </Table>
           </div>
         </CardContent>
-        {admins.length !== 0 && (
+        {customers.length !== 0 && (
           <CardFooter className="flex items-center justify-end">
             <Paginations
               pagination={pagination}
@@ -176,11 +171,22 @@ export default function UsersPage() {
         )}
 
         {selectedItem && (
-          <DeleteDialog
-            onConfirm={() => handleDelete(selectedItem._id)}
-            open={deleteOpen}
-            changeOpen={setDeleteOpen}
-          />
+          <>
+            <UpdateDialog
+              open={updateOpen}
+              changeOpen={setUpdateOpen}
+              onSubmit={handleUpdate}
+              form={form}
+              isLoading={isLoading}
+              selectedItem={selectedItem}
+              setSelectedItem={setSelectedItem}
+            />
+            <DeleteDialog
+              onConfirm={() => handleDelete(selectedItem._id)}
+              open={deleteOpen}
+              changeOpen={setDeleteOpen}
+            />
+          </>
         )}
       </Card>
     </div>

@@ -58,8 +58,8 @@ function Me() {
                     <Avatar className="h-24 w-24">
                       <AvatarImage
                         className="w-auto h-full object-cover"
-                        src={user ? user.avatar : ""}
-                        alt="Profile picture"
+                        src={user?.avatar?.url ?? ""}
+                        alt={user?.avatar?.alt ?? "TASFIN USER"}
                       />
                       <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold select-none">
                         {user
@@ -82,8 +82,8 @@ function Me() {
 
                     <UploadAvatar
                       collection={{
-                        name: user?.name ?? "John Doe",
-                        avatar: user?.avatar ?? "",
+                        name: user?.avatar?.alt ?? "TASFIN USER",
+                        avatar: user?.avatar?.url ?? "",
                       }}
                       error={error}
                       setError={setError}
@@ -95,7 +95,7 @@ function Me() {
 
                   <div className="flex flex-col items-center gap-1">
                     <h2 className="text-xl font-bold">
-                      {user?.name || "John Doe"}
+                      {user?.name || "TASFIN USER"}
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       {user?.email || "example@me.com"}
@@ -182,17 +182,88 @@ function Me() {
 
                     <FormField
                       control={form.control}
-                      name={"address"}
-                      disabled={!isEditing}
+                      name="address.street"
                       render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="cursor-pointer">
-                            Address
-                          </FormLabel>
+                        <FormItem className="md:col-span-2">
+                          <FormLabel>Street Address</FormLabel>
                           <FormControl>
                             <Textarea
-                              placeholder="Type your address"
+                              rows={2}
+                              placeholder="123 Main Street"
                               {...field}
+                              disabled={!isEditing}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.city"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>City</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="New York"
+                              {...field}
+                              disabled={!isEditing}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.state"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>State</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="NY"
+                              {...field}
+                              disabled={!isEditing}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.zipCode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Zip Code</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="10001"
+                              {...field}
+                              disabled={!isEditing}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="address.country"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Country</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="United States"
+                              {...field}
+                              disabled={!isEditing}
                             />
                           </FormControl>
                           <FormMessage />

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   Search,
   Plus,
@@ -8,7 +7,6 @@ import {
   Trash2,
   Eye,
   ListIcon as Category,
-  Edit,
   ImageIcon,
 } from "lucide-react";
 
@@ -37,15 +35,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import api from "@/axios/interceptor";
 import Paginations from "@/components/pagination";
 import UpdateDialog from "./_component/update-dialog";
 import NewCategory from "./_component/new-category-dialog";
-import { DeleteDialog } from "../../../components/delete-dialong";
-import { toast } from "sonner";
 import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
 import Image from "next/image";
+import { DeleteDialog } from "../../../components/delete-dialong";
 
 export default function Categories() {
   const {
@@ -72,6 +68,7 @@ export default function Categories() {
     uploadHandler,
     isAvatarOpen,
     setIsAvatarOpen,
+    handleNameChange,
   } = useCategory();
 
   return (
@@ -118,6 +115,7 @@ export default function Categories() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Image</TableHead>
+                  <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Description</TableHead>
@@ -140,16 +138,14 @@ export default function Categories() {
                       <TableCell>
                         <div className="relative h-10 w-10 overflow-hidden rounded-md">
                           <Image
-                            src={
-                              category?.avatar ||
-                              "https://placehold.jp/250x250.png?text=Media"
-                            }
-                            alt={category?.avatar || category?.name}
+                            src={category?.image?.url as string}
+                            alt={category?.image?.alt || category?.name}
                             fill
                             className="object-cover"
                           />
                         </div>
                       </TableCell>
+                      <TableCell>{category?._id}</TableCell>
                       <TableCell>{category?.name}</TableCell>
                       <TableCell>{category?.slug}</TableCell>
                       <TableCell>
@@ -235,12 +231,13 @@ export default function Categories() {
         onSubmit={handleSubmit}
         form={form}
         isLoading={isLoading}
+        handleNameChange={handleNameChange}
       />
 
       <UploadAvatar
         collection={{
           name: selectedItem?.name ?? "John Doe",
-          avatar: selectedItem?.avatar ?? "",
+          avatar: selectedItem?.image?.url ?? "",
         }}
         error={error}
         setError={setError}

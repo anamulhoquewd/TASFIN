@@ -44,7 +44,7 @@ export function AppSidebar({ className }: { className?: string }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/">
+                <Link href="/admin">
                   <LayoutDashboard />
                   <span>Dashboard</span>
                 </Link>
@@ -52,7 +52,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/products">
+                <Link href="/admin/products">
                   <Package />
                   <span>Products</span>
                 </Link>
@@ -60,7 +60,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/categories">
+                <Link href="/admin/categories">
                   <ListIcon />
                   <span>Categories</span>
                 </Link>
@@ -68,7 +68,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/orders">
+                <Link href="/admin/orders">
                   <ShoppingCart />
                   <span>Orders</span>
                 </Link>
@@ -76,7 +76,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/users">
+                <Link href="/admin/users">
                   <Users />
                   <span>Users</span>
                 </Link>
@@ -84,7 +84,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/customers">
+                <Link href="/admin/customers">
                   <Users />
                   <span>Customers</span>
                 </Link>
@@ -92,7 +92,7 @@ export function AppSidebar({ className }: { className?: string }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/payments">
+                <Link href="/admin/payments">
                   <CreditCard />
                   <span>Payments</span>
                 </Link>
@@ -133,7 +133,7 @@ export function AppSidebar({ className }: { className?: string }) {
             ))}
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href="/settings">
+                <Link href="/admin/settings">
                   <SettingsIcon />
                   <span>Settings</span>
                 </Link>

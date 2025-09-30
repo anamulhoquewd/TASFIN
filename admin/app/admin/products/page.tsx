@@ -15,7 +15,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-2">
           <Button className="bg-primary hover:bg-primary/90" asChild>
-            <Link href="/products/new">
+            <Link href="/admin/products/new">
               <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Link>

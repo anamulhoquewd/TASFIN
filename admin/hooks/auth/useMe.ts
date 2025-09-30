@@ -1,3 +1,4 @@
+import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -7,7 +8,15 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const userFormSchema = z.object({
+const addressSchemaZ = z.object({
+  street: z.string().trim(),
+  city: z.string().trim(),
+  state: z.string().trim(),
+  zipCode: z.string().trim(),
+  country: z.string().trim(),
+});
+
+const userFormSchemaZ = z.object({
   name: z.string().min(3).max(50),
   email: z.string().email(),
   phone: z
@@ -16,7 +25,7 @@ const userFormSchema = z.object({
       /^01\d{9}$/,
       "Phone number must start with 01 and be exactly 11 digits"
     ),
-  address: z.string().max(100, "Address must be less than 100 characters long"),
+  address: addressSchemaZ,
 });
 
 function useMe() {
@@ -27,21 +36,25 @@ function useMe() {
 
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof userFormSchema>>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<z.infer<typeof userFormSchemaZ>>({
+    resolver: zodResolver(userFormSchemaZ),
     defaultValues: {
       name: "",
       email: "",
       phone: "",
-      address: "",
+      address: {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "",
+      },
     },
   });
 
   const loadMe = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:4000/api/v1/admins/me"
-      );
+      const response = await api.get("/admins/me");
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
@@ -53,13 +66,10 @@ function useMe() {
     }
   };
 
-  const handleUpdate = async (data: z.infer<typeof userFormSchema>) => {
+  const handleUpdate = async (data: z.infer<typeof userFormSchemaZ>) => {
     setIsLoading(true);
     try {
-      const response = await axios.patch(
-        "http://localhost:4000/api/v1/admins/me",
-        data
-      );
+      const response = await api.patch("/admins/me", data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -68,7 +78,7 @@ function useMe() {
       loadMe();
       setIsEditing(false);
 
-      toast(response.data.message || "Category updated successfully!");
+      toast(response.data.message || "Admin info updated successfully!");
     } catch (error: any) {
       console.log("Error: ", error);
 
@@ -86,9 +96,7 @@ function useMe() {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:4000/api/v1/admins/auth/logout"
-      );
+      const response = await api.post("/admins/log-out");
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -115,7 +123,13 @@ function useMe() {
         name: user.name,
         email: user.email,
         phone: user.phone,
-        address: user.address,
+        address: {
+          street: user.address?.street || "",
+          city: user.address?.city || "",
+          state: user.address?.state || "",
+          zipCode: user.address?.zipCode || "",
+          country: user.address?.country || "",
+        },
       });
     }
   }, [user, form]);
@@ -131,6 +145,7 @@ function useMe() {
     isEditing,
     setIsEditing,
     handleLogout,
+    loadMe,
   };
 }
 

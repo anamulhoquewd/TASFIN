@@ -9,11 +9,11 @@ const userRoutes = new Hono();
 
 userRoutes.post("/register", (c) => userController.register(c));
 
-userRoutes.post("/upload-avatar", authenticatedUser, (c) =>
+userRoutes.post("/upload-avatar", authenticatedAdmin, (c) =>
   userController.changeAvatar(c)
 );
 
-userRoutes.get("/", (c) => userController.getUsers(c));
+userRoutes.get("/", authenticatedAdmin, (c) => userController.getUsers(c));
 
 userRoutes.patch("/by-admin/:_id", authenticatedAdmin, (c) =>
   userController.updateUser(c)

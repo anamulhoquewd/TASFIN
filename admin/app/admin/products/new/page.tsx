@@ -51,7 +51,7 @@ export default function NewProductPage() {
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => router.push("/products")}
+            onClick={() => router.push("/admin/products")}
             className="cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

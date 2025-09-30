@@ -58,7 +58,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
 import { formatPrice } from "@/utils";
-import useCategory from "@/app/categories/_hook/useCategory";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
 
 // Types
 

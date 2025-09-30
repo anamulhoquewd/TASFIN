@@ -57,7 +57,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
-import useCategory from "@/app/categories/_hook/useCategory";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
 import api from "@/axios/interceptor";
 import z from "zod";
 import {

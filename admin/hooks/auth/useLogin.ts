@@ -43,7 +43,7 @@ const useLogin = () => {
 
     try {
       // Send login request
-      const response = await api.post(`/admins/auth/login`, {
+      const response = await api.post(`/admins/log-in`, {
         ...(data.email.includes("@")
           ? { email: data.email }
           : { phone: data.email }),
