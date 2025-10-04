@@ -1,4 +1,5 @@
 import { schemaValidationError } from "@/error";
+import { IOrder } from "@/interfaces";
 import Order from "@/models/orders.model";
 import Product from "@/models/products.model";
 import User from "@/models/users.model";
@@ -293,7 +294,6 @@ export async function updateOrder({
   body: OrderUpdateInput;
   _id: string;
 }) {
-  // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return {
@@ -309,13 +309,9 @@ export async function updateOrder({
       status: orderStatusEnumZ,
     })
     .partial()
-    .refine(
-      (data) => {
-        // ensure at least one field present on update
-        return Object.keys(data).length > 0;
-      },
-      { message: "At least one field must be provided for update" }
-    )
+    .refine((data) => Object.keys(data).length > 0, {
+      message: "At least one field must be provided for update",
+    })
     .safeParse(body);
 
   if (!validData.success) {
@@ -325,82 +321,96 @@ export async function updateOrder({
   }
 
   try {
-    // 1. Order find
-    const order = await Order.findById(idValidation.data._id);
+    const order: IOrder | null = await Order.findById(idValidation.data._id);
     if (!order)
       return {
-        error: {
-          message: "Order not found with the provided ID",
-        },
+        error: { message: "Order not found with the provided ID" },
       };
 
-    // 2. Update allowed fields
-    if (validData.data.status) {
-      // Extra rule: delivered/cancelled হলে আর update করা যাবে না
-      if (order.status === "delivered" || order.status === "cancelled") {
+    const { status, paymentStatus, shippingAddress, billingAddress } =
+      validData.data;
+
+    // 🧠 Rule 1: যদি order.cancelled → আর কিছু update হবে না
+    if (order.status === "cancelled") {
+      return {
+        error: { message: "Cancelled order can no longer be updated." },
+      };
+    }
+
+    // 🧠 Rule 2: যদি order.delivered → শুধু paymentStatus update হবে
+    if (order.status === "delivered") {
+      if (paymentStatus) {
+        order.paymentStatus = paymentStatus;
+        const saved = await order.save();
         return {
-          error: {
-            message: "Order can no longer be updated.",
+          success: {
+            success: true,
+            message: "Payment status updated successfully for delivered order!",
+            data: saved,
           },
         };
       }
-      order.status = validData.data.status;
+      return {
+        error: { message: "Delivered order can only update payment status." },
+      };
     }
 
-    if (validData.data.status) {
-      // delivered হলে আর update করা যাবে না
-      if (order.status === "delivered") {
-        return {
-          error: { message: "Delivered order can no longer be updated." },
-        };
-      }
-
-      // যদি cancel হয় → stock restore
-      if (
-        validData.data.status === "cancelled" &&
-        order.status !== "cancelled"
-      ) {
+    // 🧠 Rule 3: যদি cancel করতে চায় → paymentStatus / status change হবে না
+    if (status === "cancelled") {
+      // Stock restore logic
+      if ((order.status as string) !== "cancelled") {
         for (const item of order.products) {
-          // প্রতিটি order product → product + variant খুঁজে বের করা
           const product = await Product.findById(item.productId);
           if (product) {
             const variant = product.variants.find(
               (v) => v._id.toString() === item.variantId
             );
             if (variant) {
-              variant.stock += item.quantity; // restore stock
+              variant.stock += item.quantity;
               await product.save();
             }
           }
         }
       }
-
-      order.status = validData.data.status;
+      order.status = "cancelled";
+      const saved = await order.save();
+      return {
+        success: {
+          success: true,
+          message: "Order cancelled successfully!",
+          data: saved,
+        },
+      };
     }
 
-    if (validData.data.paymentStatus) {
-      order.paymentStatus = validData.data.paymentStatus;
-    }
-
-    if (validData.data.shippingAddress) {
-      // Only allow change if order not shipped yet
-      if (order.status === "shipped" || order.status === "delivered") {
+    // 🧠 Rule 4: shipping address shipped হলে আর update হবে না
+    if (shippingAddress) {
+      if (order.status === "shipped") {
         return {
           error: {
             message: "Shipping address cannot be changed after shipping.",
           },
         };
       }
-      order.shippingAddress = validData.data.shippingAddress;
+      order.shippingAddress = shippingAddress;
     }
 
-    if (validData.data.billingAddress) {
-      order.billingAddress = validData.data.billingAddress;
+    // 🧠 billing address সব সময় update করা যাবে
+    if (billingAddress) {
+      order.billingAddress = billingAddress;
     }
 
-    // 3. Save
+    // 🧠 status update করা যাবে (cancel বাদে)
+    if (status && (status as string) !== "cancelled") {
+      order.status = status;
+    }
+
+    // 🧠 paymentStatus update করা যাবে
+    if (paymentStatus) {
+      order.paymentStatus = paymentStatus;
+    }
+
     const docs = await order.save();
-
     return {
       success: {
         success: true,
