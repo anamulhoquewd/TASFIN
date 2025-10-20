@@ -1,6 +1,7 @@
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IAdmin } from "@/interfaces/users";
+import { userFormSchemaZ, UserFormValues } from "@/lib/schemas";
 import { defaultPagination } from "@/utils/details";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -8,18 +9,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-// Form schema
-const userFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  phone: z
-    .string()
-    .min(10, { message: "Phone number must be at least 10 characters." }),
-  address: z.string().max(100, "Address must be less than 100 characters long"),
-});
-
-type FormValues = z.infer<typeof userFormSchema>;
 
 function useAdmin() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -33,18 +22,24 @@ function useAdmin() {
   const router = useRouter();
 
   // Initialize form with default values
-  const form = useForm<FormValues>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchemaZ),
     defaultValues: {
       name: "",
       email: "",
       phone: "",
-      address: "",
+      address: {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        country: "Bangladesh",
+      },
     },
   });
 
   // Form submission
-  const handleSubmit = async (data: FormValues) => {
+  const handleSubmit = async (data: UserFormValues) => {
     setIsLoading(true);
 
     try {
@@ -58,7 +53,13 @@ function useAdmin() {
         name: "",
         email: "",
         phone: "",
-        address: "",
+        address: {
+          street: "",
+          city: "",
+          state: "",
+          zipCode: "",
+          country: "Bangladesh",
+        },
       });
 
       toast(response.data.message || "Category created successfully!");

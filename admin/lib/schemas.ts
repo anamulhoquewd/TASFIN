@@ -6,6 +6,9 @@ export const imageZ = z.object({
   url: z.string().url("Invalid image URL").trim(),
 });
 
+// Bangladesh phone regex (local format like 017xxxxxxxx)
+export const BDPhoneRegex = /^01[3-9]\d{8}$/;
+
 const fileSchema = z
   .instanceof(File)
   .refine((file) => file.size <= 5 * 1024 * 1024, {
@@ -103,12 +106,8 @@ export const productSchemaZ = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z
-    .object({
-      html: z.string().optional(),
-      json: z.any().optional(),
-    })
-    .optional(),
+  description: z.string().max(100).optional(),
+  keyFeatures: z.array(z.string().min(1).max(100)).optional(),
 
   categories: z.array(z.string()),
 
@@ -148,3 +147,59 @@ export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
 
 export type ProductFormValues = z.infer<typeof productSchema>;
 export type CategoryFormValues = z.infer<typeof categorySchema>;
+
+// Address schema
+export const addressZ = z.object({
+  street: z.string().min(1, "Street is required").trim(),
+  city: z.string().min(1, "City is required").trim(),
+  state: z.string().min(1, "State is required").trim(),
+  zipCode: z.string().min(1, "Zip Code is required").trim(),
+  country: z.string().min(1, "Country is required").trim(),
+});
+
+// Form schema
+export const userFormSchemaZ = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  phone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim(),
+  address: addressZ,
+});
+
+export type UserFormValues = z.infer<typeof userFormSchemaZ>;
+
+// Category create/update schema
+export const settingCreateZ = z.object({
+  siteName: z.string().min(1, "Site Name is required").trim(),
+  siteDescription: z.string().optional(),
+  logo: imageZ.optional(),
+  favicon: imageZ.optional(),
+  contactEmail: z.string().email("Invalid email address").trim().optional(),
+  contactPhone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim(),
+  address: addressZ.optional(),
+  socialLinks: z
+    .object({
+      facebook: z.string().trim().optional(),
+      twitter: z.string().trim().optional(),
+      instagram: z.string().trim().optional(),
+      linkedin: z.string().trim().optional(),
+    })
+    .optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const settingUpdateZ = settingCreateZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// Input Type inferred from Zod
+export type SettingFromValue = z.infer<typeof settingCreateZ>;

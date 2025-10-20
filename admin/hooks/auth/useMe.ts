@@ -1,7 +1,6 @@
 import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -19,6 +18,9 @@ const addressSchemaZ = z.object({
 const userFormSchemaZ = z.object({
   name: z.string().min(3).max(50),
   email: z.string().email(),
+  nid: z.string().refine((val) => /^\d{10}$|^\d{17}$/.test(val), {
+    message: "NID must be either 10 or 17 digits",
+  }),
   phone: z
     .string()
     .regex(
@@ -123,6 +125,7 @@ function useMe() {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        nid: user.nid,
         address: {
           street: user.address?.street || "",
           city: user.address?.city || "",

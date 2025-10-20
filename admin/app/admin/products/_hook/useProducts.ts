@@ -24,10 +24,8 @@ function useProducts() {
     defaultValues: {
       title: "",
       slug: "",
-      description: {
-        html: "",
-        json: null,
-      },
+      description: "",
+      keyFeatures: [],
       categories: [],
       images: [],
       variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
@@ -191,12 +189,8 @@ function useProducts() {
       // Append simple fields
       formData.append("title", data.title);
       formData.append("slug", data.slug);
-      formData.append(
-        "description",
-        typeof data.description === "string"
-          ? data.description
-          : JSON.stringify(data.description ?? {})
-      );
+      formData.append("description", data.description ?? "");
+      formData.append("keyFeatures", JSON.stringify(data.keyFeatures));
       formData.append("fabric", data.fabric ?? "");
       formData.append("valueAddition", data.valueAddition ?? "");
       formData.append("cutFit", data.cutFit ?? "");
@@ -254,10 +248,8 @@ function useProducts() {
       form.reset({
         title: "",
         slug: "",
-        description: {
-          html: "",
-          json: null,
-        },
+        description: "",
+        keyFeatures: [],
         fabric: "",
         valueAddition: "",
         cutFit: "",
@@ -288,85 +280,6 @@ function useProducts() {
       });
     }
   };
-
-  // const onUpdate = async (id: string, productData: ProductUpdateInput) => {
-  //   try {
-  //     const formData = new FormData();
-
-  //     // Append simple fields
-  //     formData.append("title", productData.title);
-  //     formData.append("slug", productData.slug);
-  //     formData.append(
-  //       "description",
-  //       typeof productData.description === "string"
-  //         ? productData.description
-  //         : JSON.stringify(productData.description ?? {})
-  //     );
-  //     formData.append("fabric", productData.fabric ?? "");
-  //     formData.append("valueAddition", productData.valueAddition ?? "");
-  //     formData.append("cutFit", productData.cutFit ?? "");
-  //     formData.append("collarNeck", productData.collarNeck ?? "");
-  //     formData.append("sleeve", productData.sleeve ?? "");
-  //     formData.append("length", productData.length ?? "");
-  //     formData.append("washCare", productData.washCare ?? "");
-  //     formData.append("sideCut", productData.sideCut ?? "");
-  //     formData.append("isFeatured", productData.isFeatured.toString());
-  //     formData.append("isActive", productData.isActive.toString());
-
-  //     // Append arrays as JSON strings
-  //     formData.append("categories", JSON.stringify(productData.categories));
-  //     formData.append("tags", JSON.stringify(productData.tags));
-
-  //     // Append main product images (only new ones)
-  //     if (productData.images && productData.images.length > 0) {
-  //       productData.images.forEach((image) => {
-  //         formData.append("images", image);
-  //       });
-  //     }
-
-  //     // Append variants
-  //     productData.variants.forEach((variant, index) => {
-  //       formData.append(`variants[${index}][size]`, variant.size);
-  //       formData.append(`variants[${index}][color]`, variant.color);
-  //       formData.append(`variants[${index}][stock]`, variant.stock.toString());
-  //       formData.append(`variants[${index}][price]`, variant.price.toString());
-
-  //       // Append variant images (only new ones)
-  //       variant.images?.forEach((image) => {
-  //         formData.append(`variants[${index}][images]`, image);
-  //       });
-  //     });
-
-  //     const response = await api.put(`/products/${id}`, formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     if (response.data.success) {
-  //       toast.success("Product updated successfully");
-  //       getProducts({
-  //         page: pagination.page,
-  //         searchQuery,
-  //         categoryFilter,
-  //         isActive: mapStatusToBoolean(statusFilter),
-  //         isFeatured: mapFeaturedToBoolean(featuredFilter),
-  //       });
-  //       return true;
-  //     } else {
-  //       toast.error("Failed to update product");
-  //       return false;
-  //     }
-  //   } catch (error: any) {
-  //     console.error("Error updating product:", error);
-  //     toast.error("Failed to update product");
-  //     return false;
-  //   } finally {
-  //     setIsSubmitting(false);
-  //   }
-  // };
-
-  // // Function to delete a product
 
   const onDelete = async (productId: string) => {
     try {
@@ -406,7 +319,7 @@ function useProducts() {
     return null;
   };
 
- async function updateProduct(productId: string, updateData: any) {
+  async function updateProduct(productId: string, updateData: any) {
     const formData = new FormData();
 
     console.log("Update data:", updateData);
@@ -493,10 +406,8 @@ function useProducts() {
       form.reset({
         title: "",
         slug: "",
-        description: {
-          html: "",
-          json: null,
-        },
+        description: "",
+        keyFeatures: [],
         fabric: "",
         valueAddition: "",
         cutFit: "",
@@ -529,154 +440,6 @@ function useProducts() {
       });
     }
   }
-
-  // Comprehensive updateProduct function
-  // const updateProduct = async (
-  //   productId: string,
-  //   updateData: ProductUpdateInput,
-  //   existingImagesToKeep?: string[]
-  // ): Promise<{ success: boolean; data?: IProduct; error?: string }> => {
-  //   try {
-  //     // 1. Validate product exists
-  //     const existingProduct = await getProductById(productId);
-  //     if (!existingProduct?.data) {
-  //       throw new Error("Product not found");
-  //     }
-
-  //     // 2. Prepare FormData for multipart/form-data request
-  //     const formData = new FormData();
-
-  //     // 3. Handle Basic Product Fields Update
-  //     if (updateData.title !== undefined) {
-  //       formData.append("title", updateData.title);
-  //     }
-  //     if (updateData.slug !== undefined) {
-  //       formData.append("slug", updateData.slug);
-  //     }
-  //     if (updateData.description !== undefined) {
-  //       formData.append(
-  //         "description",
-  //         typeof updateData.description === "string"
-  //           ? updateData.description
-  //           : JSON.stringify(updateData.description)
-  //       );
-  //     }
-
-  //     // Handle optional string fields
-  //     const optionalFields = [
-  //       "fabric",
-  //       "valueAddition",
-  //       "cutFit",
-  //       "collarNeck",
-  //       "sleeve",
-  //       "length",
-  //       "washCare",
-  //       "sideCut",
-  //     ] as const;
-
-  //     optionalFields.forEach((field) => {
-  //       if (updateData[field] !== undefined) {
-  //         formData.append(field, updateData[field] || "");
-  //       }
-  //     });
-
-  //     // Handle boolean fields
-  //     if (updateData.isFeatured !== undefined) {
-  //       formData.append("isFeatured", updateData.isFeatured.toString());
-  //     }
-  //     if (updateData.isActive !== undefined) {
-  //       formData.append("isActive", updateData.isActive.toString());
-  //     }
-
-  //     // 4. Handle Categories Management
-  //     if (updateData.categories !== undefined) {
-  //       formData.append("categories", JSON.stringify(updateData.categories));
-  //     }
-
-  //     // 5. Handle Tags
-  //     if (updateData.tags !== undefined) {
-  //       formData.append("tags", JSON.stringify(updateData.tags));
-  //     }
-
-  //     // 6. Handle Product Images Management
-  //     if (updateData.images !== undefined) {
-  //       // Add new images (Files)
-  //       updateData.images.forEach((image: File) => {
-  //         formData.append("images", image);
-  //       });
-  //     }
-
-  //     // Handle existing images to keep
-  //     if (existingImagesToKeep !== undefined) {
-  //       formData.append(
-  //         "existingImagesToKeep",
-  //         JSON.stringify(existingImagesToKeep)
-  //       );
-  //     }
-
-  //     // 7. Handle Variants Management
-  //     if (updateData.variants !== undefined) {
-  //       updateData.variants.forEach((variant, index) => {
-  //         // Basic variant fields
-  //         formData.append(`variants[${index}][size]`, variant.size || "");
-  //         formData.append(`variants[${index}][color]`, variant.color || "");
-  //         formData.append(
-  //           `variants[${index}][stock]`,
-  //           variant.stock.toString()
-  //         );
-  //         formData.append(
-  //           `variants[${index}][price]`,
-  //           variant.price.toString()
-  //         );
-
-  //         // Handle variant images
-  //         if (variant.images && variant.images.length > 0) {
-  //           variant.images.forEach((image: File) => {
-  //             formData.append(`variants[${index}][images]`, image);
-  //           });
-  //         }
-  //       });
-  //     }
-
-  //     // 8. Send update request
-  //     const response = await axios.put(
-  //       `http://localhost:4000/api/v1/products/${productId}`,
-  //       formData,
-  //       {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //       }
-  //     );
-
-  //     if (!response.data.success) {
-  //       throw new Error(
-  //         response.data.error?.message || "Failed to update product"
-  //       );
-  //     }
-
-  //     toast.success("Product updated successfully");
-  //     return { success: true, data: response.data.data };
-  //   } catch (error: any) {
-  //     console.error("Error updating product:", error);
-
-  //     // Handle validation errors
-  //     if (error.response?.data?.fields) {
-  //       error.response.data.fields.forEach((field: any) => {
-  //         form.setError(field.name, {
-  //           message: field.message,
-  //         });
-  //       });
-  //     }
-
-  //     const errorMessage = error.message || "Failed to update product";
-  //     toast.error("Error updating product", {
-  //       description: errorMessage,
-  //     });
-
-  //     return { success: false, error: errorMessage };
-  //   }
-  // };
 
   // Helper function to handle variant image operations
   const handleVariantImageOperations = (

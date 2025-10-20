@@ -41,12 +41,8 @@ export const productSchemaZ = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z
-    .object({
-      html: z.string().optional(),
-      json: z.any().optional(),
-    })
-    .optional(),
+  description: z.string().max(100).optional(),
+  keyFeatures: z.array(z.string().min(1).max(100)).optional(),
 
   categories: z.array(objectIdSchemaZ),
 
@@ -66,7 +62,7 @@ export const productSchemaZ = z.object({
 
   isFeatured: z.boolean().optional(),
   isActive: z.boolean().default(true),
-  tags: z.array(z.string().min(1)).optional(),
+  tags: z.array(z.string().min(1).max(10)).optional(),
 });
 
 // If you want a separate update schema where fields can be optional:
@@ -173,8 +169,8 @@ export const userCreateZ = z.object({
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  shippingAddress: addressZ.optional(),
-  billingAddress: addressZ.optional(),
+  address: addressZ.optional(),
+
   isActive: z.boolean().default(true),
 
   gender: z.enum(["male", "female"]).optional(),
@@ -263,6 +259,41 @@ export const categoryUpdateZ = categoryCreateZ.partial().refine(
 export type CategoryCreateInput = z.infer<typeof categoryCreateZ>;
 export type CategoryUpdateInput = z.infer<typeof categoryUpdateZ>;
 
+// Category create/update schema
+export const settingCreateZ = z.object({
+  siteName: z.string().min(1, "Site Name is required").trim(),
+  siteDescription: z.string().optional(),
+  logo: imageZ.optional(),
+  favicon: imageZ.optional(),
+  contactEmail: z.string().email("Invalid email address").trim().optional(),
+  contactPhone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim(),
+  address: addressZ.optional(),
+  socialLinks: z
+    .object({
+      facebook: z.string().trim().optional(),
+      twitter: z.string().trim().optional(),
+      instagram: z.string().trim().optional(),
+      linkedin: z.string().trim().optional(),
+    })
+    .optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const settingUpdateZ = settingCreateZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+// Input Type inferred from Zod
+export type SettingCreateInput = z.infer<typeof settingCreateZ>;
+export type SettingUpdateInput = z.infer<typeof settingUpdateZ>;
+
 /** OrderProduct schema */
 export const orderProductSchemaZ = z.object({
   productId: objectIdSchemaZ,
@@ -289,8 +320,7 @@ export const orderSchemaZ = z.object({
     .array(orderProductSchemaZ)
     .min(1, "Order must contain at least one product"),
 
-  shippingAddress: addressZ,
-  billingAddress: addressZ,
+  address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
 

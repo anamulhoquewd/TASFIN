@@ -20,8 +20,7 @@ export interface IOrder {
   totalAmount: number;
   paymentStatus: "unpaid" | "paid";
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  shippingAddress: IAddress;
-  billingAddress: IAddress;
+  address: IAddress;
   orderDate: string;
   createdAt: string;
   products: IOrderItem[];

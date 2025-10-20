@@ -4,19 +4,14 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { IImage, IProduct } from "@/interfaces/products";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save } from "lucide-react";
 import useProducts from "../../_hook/useProducts";
 import { EditProductForm } from "../../_components/edit-form";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
 
 // EditProductPage.tsx
 export default function EditProductPage() {
   const params = useParams();
-  const router = useRouter();
   const [product, setProduct] = useState<IProduct | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [existingImagesToKeep, setExistingImagesToKeep] = useState<

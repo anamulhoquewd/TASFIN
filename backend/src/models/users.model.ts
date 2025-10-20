@@ -15,8 +15,7 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     },
     password: { type: String, required: true, select: false },
     phone: { type: String, required: true, unique: true, trim: true },
-    shippingAddress: { type: AddressSchema, required: false },
-    billingAddress: { type: AddressSchema, required: false },
+    address: { type: AddressSchema, required: false },
     avatar: { type: ImageSchema, required: false },
 
     dob: { type: Date, required: false },

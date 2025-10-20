@@ -7,10 +7,11 @@ import connectDB from "@/config/db";
 import adminRoutes from "@/routes/admins.route";
 import { notFound } from "@/error/index";
 import userRoutes from "./routes/users.route";
-import { adminService } from "./services";
+import { adminService, settingsService } from "./services";
 import categoryRoutes from "./routes/categorise.route";
 import productRoutes from "./routes/products.route";
 import orderRoutes from "./routes/orders.route";
+import settingsRoutes from "./routes/settings.route";
 
 const app = new Hono().basePath("/api/v1");
 
@@ -18,10 +19,18 @@ const app = new Hono().basePath("/api/v1");
 connectDB()
   .then(async () => {
     // Call the Super Admin Service function after connecting to MongoDB
-    const result = await adminService.registerSuperAdmin();
+    const [settingsResult, adminResult] = await Promise.all([
+      settingsService.register(),
+      adminService.registerSuperAdmin(),
+    ]);
 
-    if (result.success) {
-      console.log(result.message || "Super admin created successfully!");
+    if (settingsResult.success) {
+      console.log(settingsResult.message || "Settings created successfully!");
+    }
+    if (adminResult.success) {
+      console.log(
+        adminResult.message || "Super admin initialized successfully!"
+      );
     }
   })
   .catch((error) => {
@@ -56,6 +65,9 @@ app.route("/products", productRoutes);
 
 // Order routes
 app.route("/orders", orderRoutes);
+
+// Settings routes
+app.route("/settings", settingsRoutes);
 
 // Global Error Handler
 app.onError((error: any, c) => {

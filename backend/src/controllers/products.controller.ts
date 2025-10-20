@@ -18,6 +18,7 @@ export const register = async (c: Context) => {
   const length = formData.get("length") as string;
   const washCare = formData.get("washCare") as string;
   const sideCut = formData.get("sideCut") as string;
+  const description = formData.get("description") as string;
   const isFeatured = formData.get("isFeatured") === "true";
   const isActive = formData.get("isActive") === "true";
 
@@ -25,8 +26,8 @@ export const register = async (c: Context) => {
   const categories = JSON.parse(formData.get("categories") as string);
   const tags = JSON.parse(formData.get("tags") as string);
 
-  // Parse description
-  const description = JSON.parse(formData.get("description") as string);
+  // Parse key-featured description
+  const keyFeatures = JSON.parse(formData.get("keyFeatures") as string);
 
   // Get main images
   const images = formData.getAll("images") as File[];
@@ -70,6 +71,7 @@ export const register = async (c: Context) => {
     isFeatured,
     isActive,
     tags,
+    keyFeatures,
   };
 
   // Call service

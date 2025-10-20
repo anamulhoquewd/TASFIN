@@ -16,10 +16,8 @@ export interface IProduct {
   _id: string;
   title: string;
   slug: string;
-  description: {
-    html: { type: string };
-    json: { type: any };
-  };
+  description: string;
+  keyFeatures?: string[];
   categories: string[];
 
   images: IImage[];

@@ -108,8 +108,7 @@ export const register = async (body: OrderInput) => {
     const order = await Order.create({
       user: user._id,
       products: orderProducts,
-      shippingAddress: validData.data.shippingAddress,
-      billingAddress: validData.data.billingAddress,
+      address: validData.data.address,
       paymentStatus: "unpaid",
       totalAmount,
       status: "pending",
@@ -303,8 +302,7 @@ export async function updateOrder({
 
   const validData = z
     .object({
-      shippingAddress: addressZ,
-      billingAddress: addressZ,
+      address: addressZ,
       paymentStatus: paymentStatusEnumZ,
       status: orderStatusEnumZ,
     })
@@ -327,8 +325,7 @@ export async function updateOrder({
         error: { message: "Order not found with the provided ID" },
       };
 
-    const { status, paymentStatus, shippingAddress, billingAddress } =
-      validData.data;
+    const { status, paymentStatus, address } = validData.data;
 
     // 🧠 Rule 1: যদি order.cancelled → আর কিছু update হবে না
     if (order.status === "cancelled") {
@@ -383,21 +380,16 @@ export async function updateOrder({
       };
     }
 
-    // 🧠 Rule 4: shipping address shipped হলে আর update হবে না
-    if (shippingAddress) {
+    // 🧠 Rule 4: address shipped হলে আর update হবে না
+    if (address) {
       if (order.status === "shipped") {
         return {
           error: {
-            message: "Shipping address cannot be changed after shipping.",
+            message: "Address cannot be changed after shipping.",
           },
         };
       }
-      order.shippingAddress = shippingAddress;
-    }
-
-    // 🧠 billing address সব সময় update করা যাবে
-    if (billingAddress) {
-      order.billingAddress = billingAddress;
+      order.address = address;
     }
 
     // 🧠 status update করা যাবে (cancel বাদে)

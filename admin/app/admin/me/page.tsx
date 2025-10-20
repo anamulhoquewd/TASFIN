@@ -162,6 +162,25 @@ function Me() {
 
                     <FormField
                       control={form.control}
+                      name={"nid"}
+                      disabled={!isEditing}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="cursor-pointer">
+                            NID Number
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="Type your NID number"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
                       name={"phone"}
                       disabled={!isEditing}
                       render={({ field }) => (

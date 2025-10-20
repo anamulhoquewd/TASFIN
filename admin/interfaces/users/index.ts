@@ -1,15 +1,12 @@
+import { IAddress } from "../orders";
+
 export interface IAdmin {
   _id: string;
   name: string;
   email: string;
   phone: string;
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
+  nid: string;
+  address: IAddress;
   role: "super_admin" | "admin";
   avatar?: {
     alt: string;

@@ -18,10 +18,8 @@ export interface IProduct extends mongoose.Document {
   _id: string;
   title: string;
   slug: string;
-  description: {
-    html: { type: string };
-    json: { type: object };
-  };
+  description?: string;
+  keyFeatures?: string[];
   categories: mongoose.Types.ObjectId[];
 
   images: IImage[];
@@ -93,8 +91,7 @@ export interface IUser extends mongoose.Document {
   email: string;
   password: string;
   phone: string;
-  shippingAddress?: IAddress;
-  billingAddress?: IAddress;
+  address?: IAddress;
   isActive: boolean;
   isBlocked?: boolean;
   blockedAt: Date;
@@ -146,8 +143,7 @@ export interface IOrder extends mongoose.Document {
   _id: string;
   user: mongoose.Types.ObjectId;
   products: IOrderProduct[];
-  shippingAddress: IAddress;
-  billingAddress: IAddress;
+  address: IAddress;
   paymentStatus: "unpaid" | "paid";
   totalAmount: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
@@ -210,4 +206,22 @@ export interface IPagination {
   totalPages: number;
   nextPage?: number;
   prevPage?: number;
+}
+
+export interface ISettings extends mongoose.Document {
+  siteName: string;
+  siteDescription: string;
+  logo: IImage;
+  favicon?: IImage;
+  contactEmail: string;
+  contactPhone: string;
+  address: IAddress;
+  socialLinks: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }

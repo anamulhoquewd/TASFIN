@@ -15,8 +15,7 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     products: { type: [OrderProductSchema], required: true },
-    shippingAddress: { type: AddressSchema, required: true },
-    billingAddress: { type: AddressSchema, required: true },
+    address: { type: AddressSchema, required: true },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid"],

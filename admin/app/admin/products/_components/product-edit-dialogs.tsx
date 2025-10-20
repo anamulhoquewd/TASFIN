@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,7 +41,6 @@ import {
   ProductVariantUpdateInput,
   productVariantUpdateZ,
 } from "@/lib/schemas";
-import { RichTextEditor } from "@/components/rich-text-editor";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Popover,
@@ -71,6 +70,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface EditModalProps {
   type: string;
@@ -121,7 +121,8 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
     defaultValues: {
       title: "",
       slug: "",
-      description: { html: "", json: null },
+      description: "",
+      keyFeatures: [],
       fabric: "",
       valueAddition: "",
       cutFit: "",
@@ -171,7 +172,8 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
       form.reset({
         title: product.title || "",
         slug: product.slug || "",
-        description: product.description || { html: "", json: null },
+        description: product.description || "",
+        keyFeatures: product.keyFeatures || [],
         fabric: product.fabric || "",
         valueAddition: product.valueAddition || "",
         cutFit: product.cutFit || "",
@@ -206,16 +208,6 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
 
   useEffect(() => {
     if (product) {
-      // description যদি string হয়, parse করুন
-      let descriptionData = product.description;
-      if (typeof product.description === "string") {
-        try {
-          descriptionData = JSON.parse(product.description);
-        } catch (e) {
-          descriptionData = { html: product.description, json: null };
-        }
-      }
-
       form.reset({
         title: product.title || "",
         slug: product.slug || "",
@@ -231,10 +223,8 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
         isActive: product.isActive || true,
         categories: product.categories || [],
         tags: product.tags || [],
-        description: {
-          html: descriptionData?.html || "",
-          json: descriptionData?.json || null,
-        },
+        description: product.description || "",
+        keyFeatures: product.keyFeatures || [],
       });
     }
   }, [product]);
@@ -285,26 +275,48 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
             <FormField
               control={form.control}
               name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Enter product description"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="keyFeatures"
               render={({ field }) => {
+                const [inputValue, setInputValue] = useState(
+                  field.value?.join(", ") || ""
+                );
+
+                useEffect(() => {
+                  setInputValue(field.value?.join(", ") || "");
+                }, [field.value]);
+
                 return (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Key Features</FormLabel>
                     <FormControl>
-                      <RichTextEditor
-                        value={{
-                          html:
-                            typeof field.value?.html === "string"
-                              ? field.value.html
-                              : "",
-                          json: field.value?.json ?? null,
+                      <Textarea
+                        placeholder="Enter key features (comma-separated)"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onBlur={() => {
+                          const tags = inputValue
+
+                            .split(",")
+                            .map((tag: string) => tag.trim())
+                            .filter((tag: string) => tag.length > 0);
+                          field.onChange(tags);
                         }}
-                        onChange={(val) => {
-                          field.onChange({
-                            html: val.html,
-                            json: val.json,
-                          });
-                        }}
-                        placeholder="Write a detailed product description..."
                       />
                     </FormControl>
                     <FormMessage />
@@ -980,7 +992,7 @@ function VariantInfoForm({ product, onClose }: FormProps) {
     }
   };
 
-  const onSubmit = async (data: ProductUpdateInput) => {
+  const onSubmit = async (data: ProductVariantUpdateInput) => {
     setIsLoading(true);
     try {
       console.log("Data: ", data);

@@ -61,7 +61,6 @@ import { formatPrice } from "@/utils";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 
 // Types
-
 interface Analytics {
   period: { from: string; to: string; preset: "7d" | "30d" | "90d" | "custom" };
   kpis: {
@@ -627,29 +626,37 @@ export function ProductAnalyticsModal({
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-4">
-                  {product.description &&
-                    (product.description.html || product.description.json) && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle>Product description</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {product.description.html ? (
-                            <div
-                              className="prose prose-sm max-w-none"
-                              dangerouslySetInnerHTML={{
-                                __html: product.description.html,
-                              }}
-                            />
-                          ) : product.description.json ? (
-                            <div className="text-sm text-muted-foreground">
-                              JSON description available (HTML could not be
-                              rendered)
-                            </div>
-                          ) : null}
-                        </CardContent>
-                      </Card>
-                    )}
+                  {product.description && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Product description</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {product.description ? (
+                          <p className="text-sm">{product.description}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            No description available.
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                  {product.keyFeatures && product.keyFeatures.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Key Features</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="list-disc list-inside text-sm space-y-1">
+                          {product.keyFeatures.map((feature, index) => (
+                            <li key={index}>{feature}</li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  )}
+
                   <Card>
                     <CardHeader>
                       <CardTitle>Product Information</CardTitle>

@@ -7,6 +7,7 @@ import {
   avatarSchemaZ,
   idSchemaZ,
   objectIdSchemaZ,
+  ProductCreateInput,
   productSchemaZ,
   productVariantUpdateZ,
 } from "@/validations/zod";
@@ -17,7 +18,7 @@ import z from "zod";
 export const register = async ({
   body,
 }: {
-  body: any; // ProductCreateInput + { images: File[], variants: [{ images: File[] }] }
+  body: ProductCreateInput & { images: File[]; variants: { images: File[] }[] };
 }) => {
   let uploadedRootUrls: string[] = [];
   let uploadedVariantUrls: Record<number, string[]> = {}; // { variantIndex: [urls] }
@@ -173,13 +174,9 @@ export const updateGeneralInfo = async ({
         .string()
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case")
         .optional(),
-      description: z
-        .object({
-          html: z.string().optional(),
-          json: z.any().optional(),
-        })
-        .optional(),
+      description: z.string().optional(),
       fabric: z.string().max(100).optional(),
+      keyFeatures: z.array(z.string().max(100)).optional(),
       valueAddition: z.string().max(500).optional(),
       cutFit: z.string().max(100).optional(),
       collarNeck: z.string().max(100).optional(),
@@ -190,7 +187,7 @@ export const updateGeneralInfo = async ({
       isFeatured: z.boolean().optional(),
       isActive: z.boolean().optional(),
       categories: z.array(objectIdSchemaZ),
-      tags: z.array(z.string()).optional(),
+      tags: z.array(z.string().max(10)).optional(),
     })
     .safeParse(data);
 

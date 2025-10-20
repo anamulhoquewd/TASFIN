@@ -41,6 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateProductFormProps {
   form: any;
@@ -133,26 +134,50 @@ export function CreateProductForm({
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <RichTextEditor
-                          value={{
-                            html:
-                              typeof field.value?.html === "string"
-                                ? field.value.html
-                                : "",
-                            json: field.value?.json ?? null,
-                          }}
-                          onChange={(val) => {
-                            field.onChange({
-                              html: val.html,
-                              json: val.json,
-                            });
-                          }}
-                          placeholder="Write a detailed product description..."
+                        <Textarea
+                          placeholder="Enter product description"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="keyFeatures"
+                  render={({ field }) => {
+                    const [inputValue, setInputValue] = useState(
+                      field.value?.join(", ") || ""
+                    );
+
+                    useEffect(() => {
+                      setInputValue(field.value?.join(", ") || "");
+                    }, [field.value]);
+
+                    return (
+                      <FormItem>
+                        <FormLabel>Key Features</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Enter key features (comma-separated)"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onBlur={() => {
+                              const tags = inputValue
+
+                                .split(",")
+                                .map((tag: string) => tag.trim())
+                                .filter((tag: string) => tag.length > 0);
+                              field.onChange(tags);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
                 />
               </CardContent>
             </Card>

@@ -222,8 +222,7 @@ interface IUser {
   email: string;
   password: string;
   phone: string;
-  shippingAddress?: IAddress;
-  billingAddress?: IAddress;
+  address?: IAddress;
   avatar?: IImage;
   isActive: boolean;
   isBlocked?: boolean;
@@ -572,8 +571,7 @@ interface IUser {
   email: string;
   password: string;
   phone: string;
-  shippingAddress?: IAddress;
-  billingAddress?: IAddress;
+  address?: IAddress;
   avatar?: IImage;
   isActive: boolean;
   isBlocked?: boolean;

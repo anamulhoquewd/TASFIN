@@ -6,11 +6,11 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { MenuIcon } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import UserMenu from "./use-menu";
+import useSettings from "@/app/admin/settings/_hooks/useSettings";
 
 export default function Header() {
   const { isMobile, setOpenMobile } = useSidebar();
-  console.log("Header rendered");
-
+  const { settings } = useSettings();
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
       {/* Mobile Menu Button */}
@@ -33,13 +33,15 @@ export default function Header() {
           className="flex items-center gap-2 font-semibold md:flex"
         >
           <Image
-            src="https://tasfin-shop.s3.eu-north-1.amazonaws.com/root/tasfin-logo-text-white-bg-black-2.png"
+            src={settings?.logo?.url || "/shuddhoghor-logo.png"}
             width={40}
             height={40}
-            alt="Shuddhoghor Logo"
+            alt={settings?.siteName || "TASFIN Admin"}
             className="rounded"
           />
-          <span className="hidden md:inline-block">TASFIN Admin</span>
+          <span className="hidden md:inline-block">
+            {settings?.siteName || "TASFIN Admin"}
+          </span>
         </a>
       </div>
 

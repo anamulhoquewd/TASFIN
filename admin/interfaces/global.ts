@@ -1,3 +1,5 @@
+import { IAddress } from "./orders";
+
 export interface IPagination {
   page: number;
   total: number;
@@ -9,4 +11,22 @@ export interface IPagination {
 export interface IImage {
   alt: string;
   url: string;
+}
+
+export interface ISettings {
+  siteName: string;
+  siteDescription: string;
+  logo: IImage;
+  favicon?: IImage;
+  contactEmail: string;
+  contactPhone: string;
+  address: IAddress;
+  socialLinks: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
