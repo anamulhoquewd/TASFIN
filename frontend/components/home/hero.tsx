@@ -1,53 +1,102 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+"use client";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
-// Sample images for the slideshow
-const slideImages = [
-  {
-    url: "https://www.aarong.com/_next/image?url=https%3A%2F%2Fmcprod.aarong.com%2Fmedia%2Fcollateral%2Faarong%2Fbrands_slider_banner%2F1-D-Herstory-Brand-Slider-1920x820-19-07-2025-SM.png&w=1920&q=75",
-    alt: "Fresh mangoes on display",
-    title: "Fresh Mangoes",
-    description: "Premium quality directly from farmers",
-  },
-  {
-    url: "https://twelvebd.com/cdn/shop/files/slider-1150x2250.jpg",
-    alt: "Assorted mango varieties",
-    title: "Multiple Varieties",
-    description: "Choose from Himshagor, Rupali, Bari 4 and more",
-  },
-];
-
-export function Hero() {
+export function Hero({
+  slides,
+}: {
+  slides: { url: string; alt: string; title?: string; description?: string }[];
+}) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isManual, setIsManual] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto slideshow functionality
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
+  // Auto slideshow
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) =>
-        prev === slideImages.length - 1 ? 0 : prev + 1
-      );
-    }, 6500);
+    if (!isManual) {
+      startAutoSlide();
+    }
 
     return () => {
-      clearInterval(interval);
+      stopAutoSlide();
+      clearResumeTimeout();
     };
-  }, []);
+  }, [isManual]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev === slideImages.length - 1 ? 0 : prev + 1));
+  const startAutoSlide = () => {
+    stopAutoSlide(); // ensure no duplicate intervals
+    intervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
+    }, 6000);
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev === 0 ? slideImages.length - 1 : prev - 1));
+  const stopAutoSlide = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  };
+
+  const clearResumeTimeout = () => {
+    if (resumeRef.current) clearTimeout(resumeRef.current);
+  };
+
+  const handleManualAction = (action: () => void) => {
+    stopAutoSlide();
+    clearResumeTimeout();
+    setIsManual(true);
+    action();
+    resumeRef.current = setTimeout(() => {
+      setIsManual(false);
+    }, 1000); // 1s পর আবার auto slide শুরু হবে
+  };
+
+  const nextSlide = () =>
+    handleManualAction(() =>
+      setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1))
+    );
+
+  const prevSlide = () =>
+    handleManualAction(() =>
+      setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1))
+    );
+
+  // Touch events (swipe detection)
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+    const diff = touchStartX.current - touchEndX.current;
+
+    if (Math.abs(diff) > 50) {
+      // swipe distance threshold
+      if (diff > 0) nextSlide(); // swipe left → next
+      else prevSlide(); // swipe right → previous
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
   };
 
   return (
-    <div className="relative h-[500px] lg:h-[600px] overflow-hidden">
+    <div
+      className="relative h-[300px] md:h-[400px] lg:h-[600px] overflow-hidden"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Slides */}
-      {slideImages.map((slide, index) => (
+      {slides.map((slide, index) => (
         <div
           key={index}
           className={`absolute inset-0 transition-opacity duration-1000 ${
@@ -61,28 +110,36 @@ export function Hero() {
               alt={slide.alt}
               width={1000}
               height={1000}
-              className="w-full h-full object-cover"
+              className="object-cover h-full md:h-full w-full"
             />
             <div className="absolute inset-0 bg-black/40"></div>
           </div>
 
           {/* Content */}
-          <div className="absolute inset-0 flex items-center justify-center text-center">
+          <div className="absolute w-full left-1/2 bottom-[20%] -translate-x-1/2  flex items-center justify-center text-center">
             <div className="container mx-auto px-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
-                {slide.title}
+              <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-6 text-balance">
+                {slide?.title}
               </h1>
-              <p className="text-xl md:text-2xl text-white mb-8">
-                {slide.description}
+              <p className="text-sm md:text-xl text-white mb-4 md:mb-8">
+                {slide?.description}
               </p>
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6">
-                Fresh Mangoes at Your Doorstep
-              </div>
-              <Link href="/products">
-                <Button size="lg" className="cursor-pointer">
-                  Shop Now
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button asChild size="lg" className="text-base">
+                  <Link href="/products">
+                    Shop Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
-              </Link>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="text-base transition-colors duration-300 text-white hover:bg-white/20 bg-white/10"
+                >
+                  <Link href="/about">Explore Collection</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -92,7 +149,7 @@ export function Hero() {
       <Button
         size="icon"
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all duration-300 cursor-pointer"
+        className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full cursor-pointer transition-colors duration-300 text-white hover:bg-white/20 bg-white/10"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-6 w-6" />
@@ -100,20 +157,22 @@ export function Hero() {
       <Button
         size="icon"
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all duration-300 cursor-pointer"
+        className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full cursor-pointer transition-colors duration-300 text-white hover:bg-white/20 bg-white/10"
         aria-label="Next slide"
       >
         <ChevronRight className="h-6 w-6" />
       </Button>
 
       {/* Slide indicators */}
-      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2">
-        {slideImages.map((_, index) => (
+      <div className="absolute bottom-2 md:bottom-6 left-0 right-0 flex justify-center gap-1 md:gap-2">
+        {slides.map((_, index) => (
           <button
             key={index}
-            onClick={() => setCurrentSlide(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              index === currentSlide ? "w-8 bg-primary" : "w-2 bg-secondary"
+            onClick={() => handleManualAction(() => setCurrentSlide(index))}
+            className={`h-1.5 md:h-2 rounded-full transition-all duration-300 ${
+              index === currentSlide
+                ? "w-4 md:w-8 bg-primary"
+                : "w-1.5 md:w-2 bg-secondary"
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />

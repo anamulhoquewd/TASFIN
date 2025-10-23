@@ -30,38 +30,28 @@ export default function HomePage() {
     },
   ];
 
+  // Sample images for the slideshow
+  const slides = [
+    {
+      url: "https://www.aarong.com/_next/image?url=https%3A%2F%2Fmcprod.aarong.com%2Fmedia%2Fcollateral%2Faarong%2Fbrands_slider_banner%2F1-D-Herstory-Brand-Slider-1920x820-19-07-2025-SM.png&w=1920&q=75",
+      alt: "Elegance Meets Style",
+      // title: "Elegance Meets Style",
+      description:
+        "Discover the finest collection of women's fashion designed for the modern Bangladeshi woman",
+    },
+    {
+      url: "https://twelvebd.com/cdn/shop/files/slider-1150x2250.jpg",
+      alt: "Multiple Varieties",
+      title: "Multiple Varieties",
+      description:
+        "Discover the finest collection of women's fashion designed for the modern Bangladeshi woman",
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <Hero />
-      <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center bg-gradient-to-br from-secondary/20 to-accent/10">
-        <div className="absolute inset-0 bg-[url('/tasfin-logo-text-black-bg-white-2.png')] bg-cover bg-center opacity-20" />
-        <div className="container mx-auto px-4 relative z-10 text-center">
-          <h1 className="font-serif text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 text-balance">
-            Elegance Meets Style
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">
-            Discover the finest collection of women's fashion designed for the
-            modern Bangladeshi woman
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="text-base">
-              <Link href="/products">
-                Shop Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="text-base bg-transparent"
-            >
-              <Link href="/about">Explore Collection</Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+      <Hero slides={slides} />
 
       {/* Featured Categories */}
       <section className="py-16 md:py-24">
