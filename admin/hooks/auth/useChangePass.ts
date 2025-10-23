@@ -34,7 +34,7 @@ const useChangePass = (onClose: () => void) => {
     setIsLoading(true);
 
     try {
-      const response = await api.patch("/admins/auth/change-password", data);
+      const response = await api.patch("/admins/change-password", data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);

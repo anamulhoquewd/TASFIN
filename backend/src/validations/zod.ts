@@ -168,7 +168,6 @@ export const userCreateZ = z.object({
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
   address: addressZ.optional(),
 
   isActive: z.boolean().default(true),
@@ -313,9 +312,6 @@ export const orderStatusEnumZ = z.enum([
 
 /** Main Order schema */
 export const orderSchemaZ = z.object({
-  // mongoose এ user ছিল ObjectId ref; যদি present হয়, এটা 24-char hex string হওয়া ভাল
-  user: objectIdSchemaZ,
-
   products: z
     .array(orderProductSchemaZ)
     .min(1, "Order must contain at least one product"),
@@ -323,10 +319,13 @@ export const orderSchemaZ = z.object({
   address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
+  phone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim(),
 
   status: orderStatusEnumZ.default("pending"),
 
-  // orderDate কমনলি Date; অ্যাপ থেকে string আনার সম্ভাবনা থাকলে coerce ব্যবহার করুন
   orderDate: z.coerce
     .date()
     .optional()

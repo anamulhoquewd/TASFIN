@@ -96,32 +96,15 @@ export default function NewUserPage() {
                     />
                   </div>
                   <div className="flex-1 space-y-4 w-full">
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter full name" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={form.control}
-                        name="email"
+                        name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email Address</FormLabel>
+                            <FormLabel>Full Name</FormLabel>
                             <FormControl>
-                              <Input
-                                type="email"
-                                placeholder="Enter email address"
-                                {...field}
-                              />
+                              <Input placeholder="Enter full name" {...field} />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -144,22 +127,120 @@ export default function NewUserPage() {
                         )}
                       />
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Email Address</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="Enter email address"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="nid"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>NID</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter NID number"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <FormField
                   control={form.control}
-                  name="address"
+                  name="address.street"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Address</FormLabel>
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Street Address</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter address" {...field} />
+                        <Textarea
+                          rows={2}
+                          placeholder="123 Main Street"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="address.city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                          <Input placeholder="New York" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="address.state"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>State</FormLabel>
+                        <FormControl>
+                          <Input placeholder="NY" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="address.zipCode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Zip Code</FormLabel>
+                        <FormControl>
+                          <Input placeholder="10001" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="address.country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                          <Input placeholder="United States" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </CardContent>
             </Card>
 

@@ -6,18 +6,12 @@ import { setSignedCookie } from "hono/cookie";
 import { IAdmin, IUser } from "@/interfaces";
 dotenv.config();
 
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-if (!JWT_REFRESH_SECRET) {
-  throw new Error("JWT_REFRESH_SECRET is not defined");
-}
-const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-if (!JWT_ACCESS_SECRET) {
-  throw new Error("JWT_ACCESS_SECRET is not defined");
-}
-const COOKIE_SECRET = process.env.COOKIE_SECRET;
-if (!COOKIE_SECRET) {
-  throw new Error("COOKIE_SECRET is not defined");
-}
+const DOMAIN = process.env.DOMAIN as string;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
+
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
+
+const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 // Validate query parameters
 export const isValidDate = (val: string) => !isNaN(Date.parse(val));
@@ -112,7 +106,7 @@ export const setAuthCookie = async (
   return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
+    domain: process.env.NODE_ENV === "production" ? DOMAIN : undefined,
     httpOnly: true,
     maxAge: maxAgeSeconds,
     expires: new Date(Date.now() + maxAgeSeconds * 1000),

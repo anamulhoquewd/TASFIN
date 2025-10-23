@@ -28,7 +28,7 @@ const useForgot = () => {
 
     try {
       const response = await api.post(
-        `/admins/auth/forgot-password`,
+        `/admins/forgot-password`,
         form.getValues()
       );
 

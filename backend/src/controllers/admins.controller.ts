@@ -347,9 +347,7 @@ export const deleteAdmin = async (c: Context) => {
 export const forgotPassword = async (c: Context) => {
   const { email } = await c.req.json();
 
-  const response = await adminService.forgotPassword(email, {
-    userType: "admin",
-  });
+  const response = await adminService.forgotPassword(email);
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -370,13 +368,10 @@ export const resetPassword = async (c: Context) => {
   // Password come from body
   const { password } = await c.req.json();
 
-  const response = await adminService.resetPassword(
-    {
-      password,
-      resetToken,
-    },
-    { userType: "admin" }
-  );
+  const response = await adminService.resetPassword({
+    password,
+    resetToken,
+  });
 
   if (response.error) {
     return badRequestHandler(c, response.error);

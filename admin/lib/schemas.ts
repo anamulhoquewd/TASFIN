@@ -161,6 +161,9 @@ export const addressZ = z.object({
 export const userFormSchemaZ = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email address." }),
+  nid: z.string().refine((val) => /^\d{10}$|^\d{17}$/.test(val), {
+    message: "NID must be either 10 or 17 digits",
+  }),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")

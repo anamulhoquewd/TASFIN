@@ -12,25 +12,14 @@ const JWT_ACCESS_SECRET =
 
 //  Check if user is authenticated
 export const authenticatedUser = async (c: Context, next: Next) => {
-  const token =
-    c.req.header("Authorization")?.replace("Bearer ", "") ||
-    (await getSignedCookie(
-      c,
-      process.env.COOKIE_SECRET as string,
-      "accessToken"
-    ));
+  const phone = c.req.header("X-User-Phone");
 
-  if (!token) {
+  if (!phone) {
     return authenticationError(c);
   }
 
   try {
-    const decoded = await verify(token, JWT_ACCESS_SECRET);
-    if (!decoded || typeof decoded !== "object" || !decoded._id) {
-      return authenticationError(c);
-    }
-
-    const user = await User.findById(decoded._id);
+    const user = await User.findOne({ phone });
 
     if (!user || user.isBlocked) {
       return authenticationError(c);

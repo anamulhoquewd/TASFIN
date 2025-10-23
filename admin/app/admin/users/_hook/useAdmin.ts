@@ -28,6 +28,7 @@ function useAdmin() {
       name: "",
       email: "",
       phone: "",
+      nid: "",
       address: {
         street: "",
         city: "",
@@ -43,7 +44,7 @@ function useAdmin() {
     setIsLoading(true);
 
     try {
-      const response = await api.post("/admins/auth/register", data);
+      const response = await api.post("/admins/register", data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);

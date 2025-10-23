@@ -42,6 +42,7 @@ import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
 import Image from "next/image";
 import { DeleteDialog } from "../../../components/delete-dialong";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Categories() {
   const {
@@ -137,12 +138,14 @@ export default function Categories() {
                     <TableRow key={category._id}>
                       <TableCell>
                         <div className="relative h-10 w-10 overflow-hidden rounded-md">
-                          <Image
-                            src={category?.image?.url as string}
-                            alt={category?.image?.alt || category?.name}
-                            fill
-                            className="object-cover"
-                          />
+                          <Avatar>
+                            <AvatarImage
+                              src={category?.image?.url as string}
+                              alt={category?.image?.alt || category?.name}
+                              // className="object-cover"
+                            />
+                            <AvatarFallback>CI</AvatarFallback>
+                          </Avatar>
                         </div>
                       </TableCell>
                       <TableCell>{category?._id}</TableCell>

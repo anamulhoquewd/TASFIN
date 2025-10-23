@@ -89,7 +89,6 @@ export interface IUser extends mongoose.Document {
   _id: string;
   name: string;
   email: string;
-  password: string;
   phone: string;
   address?: IAddress;
   isActive: boolean;
@@ -99,14 +98,6 @@ export interface IUser extends mongoose.Document {
 
   dob: Date;
   gender: "male" | "female";
-
-  matchPassword: (password: string) => Promise<boolean>;
-  generateAuthToken: () => Promise<string>;
-  generateResetPasswordToken: (expMinutes?: number) => string;
-
-  refresh?: string;
-  resetPasswordToken: string | null;
-  resetPasswordExpireDate: Date | null;
 
   createdAt: Date;
   updatedAt: Date;

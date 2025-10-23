@@ -117,27 +117,20 @@ export const updateGeneralInfo = async (c: Context) => {
     // form-data
     const formData = await c.req.parseBody();
 
-    // description parse
-    let description = { html: "", json: null };
-    try {
-      description = JSON.parse(formData["description"] as string);
-    } catch (err) {
-      description = {
-        html: (formData["description"] as string) || "",
-        json: null,
-      };
-    }
-
     // categories / tags
     const categories = formData["categories"]
       ? JSON.parse(formData["categories"] as string)
       : [];
     const tags = formData["tags"] ? JSON.parse(formData["tags"] as string) : [];
+    const keyFeatures = formData["keyFeatures"]
+      ? JSON.parse(formData["keyFeatures"] as string)
+      : [];
 
     const data = {
       title: formData["title"] || "",
       slug: formData["slug"] || "",
-      description,
+      description: formData["description"] || "",
+      keyFeatures,
       fabric: formData["fabric"] || "",
       valueAddition: formData["valueAddition"] || "",
       cutFit: formData["cutFit"] || "",

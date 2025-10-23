@@ -1,5 +1,6 @@
 import { badRequestHandler, serverErrorHandler } from "@/error";
 import { orderService } from "@/services";
+import { setAuthCookie } from "@/utils";
 import { Context } from "hono";
 
 export const register = async (c: Context) => {
@@ -14,6 +15,13 @@ export const register = async (c: Context) => {
   if (response.serverError) {
     return serverErrorHandler(c, response.serverError);
   }
+
+  await setAuthCookie(
+    c,
+    "X-User-Phone",
+    response.success.user.phone,
+    60 * 60 * 24 * 365
+  );
 
   return c.json(response.success, 201);
 };

@@ -139,13 +139,12 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
   });
 
   const onSubmit = async (data: ProductUpdateInput) => {
+    console.log("Submitting General Info:", data);
     setIsLoading(true);
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
-        if (key === "description") {
-          formData.append("description", JSON.stringify(value));
-        } else if (Array.isArray(value)) {
+        if (Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else {
           formData.append(key, String(value ?? ""));

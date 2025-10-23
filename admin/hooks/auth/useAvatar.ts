@@ -10,11 +10,8 @@ const useAvatar = () => {
 
   const { user } = useMe();
 
-  console.warn("Called hook");
-
   // upload avatar handler
   const uploadHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.warn("Called handler");
     const files = event.target.files;
     if (!files || !files[0]) {
       return;
@@ -33,7 +30,7 @@ const useAvatar = () => {
 
     try {
       const response = await api.post(
-        `/admins/auth/uploads?filename=${
+        `/admins/upload-avatar?filename=${
           user ? user.name.split(" ").join("-") : "user"
         }`,
         formData,

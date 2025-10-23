@@ -9,6 +9,7 @@ import {
   objectIdSchemaZ,
   ProductCreateInput,
   productSchemaZ,
+  ProductVariantUpdateInput,
   productVariantUpdateZ,
 } from "@/validations/zod";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
@@ -295,6 +296,9 @@ export const updateVariantInfo = async ({
         },
       };
     }
+
+    console.log("Valid data for variant update:", validData.data);
+    console.log("Current variant before update:", variant);
 
     // Update fields
     Object.assign(variant, validData.data);
@@ -1116,6 +1120,7 @@ function updateProductFields(product: any, data: any) {
     "isFeatured",
     "isActive",
     "tags",
+    "keyFeatures",
   ];
 
   updatableFields.forEach((key) => {

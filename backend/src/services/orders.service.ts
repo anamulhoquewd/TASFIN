@@ -3,6 +3,7 @@ import { IOrder } from "@/interfaces";
 import Order from "@/models/orders.model";
 import Product from "@/models/products.model";
 import User from "@/models/users.model";
+import { setAuthCookie } from "@/utils";
 import pagination from "@/utils/pagination";
 import {
   addressZ,
@@ -43,39 +44,36 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const user = await User.findById(validData.data.user);
-    if (!user)
-      return {
-        error: {
-          message: "User not found!",
-        },
-      };
+    const { phone, address, products } = validData.data;
 
-    // 2. Validate products
+    // 🔹 Step 1: Find or Create User
+    let user = await User.findOne({ phone });
+
+    if (!user) {
+      const newUser = new User({
+        phone,
+        address,
+      });
+      user = await newUser.save();
+    }
+
+    // 🔹 Step 2: Validate Products & Calculate total
     const orderProducts: any[] = [];
     let totalAmount = 0;
 
-    for (const item of validData.data.products) {
+    for (const item of products) {
       const product = await Product.findById(item.productId);
-      if (!product)
-        return {
-          error: {
-            message: "Product not found!",
-          },
-        };
+      if (!product) {
+        return { error: { message: "Product not found!" } };
+      }
 
-      // Find variant
       const variant = product.variants.find(
         (v) => v._id.toString() === item.variantId
       );
-      if (!variant)
-        return {
-          error: {
-            message: "Variant not found.",
-          },
-        };
+      if (!variant) {
+        return { error: { message: "Variant not found." } };
+      }
 
-      // Check stock
       if (variant.stock < item.quantity) {
         return {
           error: {
@@ -84,31 +82,29 @@ export const register = async (body: OrderInput) => {
         };
       }
 
-      // Calculate price
       const price = variant.price;
       const lineTotal = price * item.quantity;
       totalAmount += lineTotal;
 
-      // Push to orderProducts (snapshot data)
       orderProducts.push({
         variantId: variant._id.toString(),
         productId: product._id.toString(),
         title: `${product.title} - ${variant.color} - ${variant.size}`,
-        image: variant.images ? variant?.images[0] : product.images[0],
+        image: variant.images?.[0] || product.images?.[0],
         price,
         quantity: item.quantity,
       });
 
-      // Reduce stock immediately (or after payment success)
       variant.stock -= item.quantity;
       await product.save();
     }
 
-    // 3. Create order
+    // 🔹 Step 3: Create Order
     const order = await Order.create({
       user: user._id,
+      orderDate: new Date(),
       products: orderProducts,
-      address: validData.data.address,
+      address,
       paymentStatus: "unpaid",
       totalAmount,
       status: "pending",
@@ -117,8 +113,9 @@ export const register = async (body: OrderInput) => {
     return {
       success: {
         success: true,
-        message: "User created successfully",
+        message: "Order created successfully",
         data: order,
+        user,
       },
     };
   } catch (error: any) {

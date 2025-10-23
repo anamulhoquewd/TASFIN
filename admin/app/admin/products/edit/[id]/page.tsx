@@ -47,7 +47,7 @@ export default function EditProductPage() {
         form.reset({
           title: res.data.title || "",
           slug: res.data.slug || "",
-          description: res.data.description || { html: "", json: null },
+          description: res.data.description || "",
           categories: res.data.categories || [],
           images: [],
           variants:
@@ -70,8 +70,9 @@ export default function EditProductPage() {
           washCare: res.data.washCare || "",
           sideCut: res.data.sideCut || "",
           isFeatured: res.data.isFeatured || false,
-          isActive: res.data.isActive ?? true,
           tags: res.data.tags || [],
+          keyFeatures: res.data.keyFeatures || [],
+          isActive: res.data.isActive ?? true,
         });
 
         setExistingImagesToKeep(

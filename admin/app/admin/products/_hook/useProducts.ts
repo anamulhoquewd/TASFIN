@@ -441,70 +441,6 @@ function useProducts() {
     }
   }
 
-  // Helper function to handle variant image operations
-  const handleVariantImageOperations = (
-    variantId: string,
-    operations: {
-      add?: File[];
-      remove?: string[];
-      replace?: { oldUrl: string; newFile: File };
-    }
-  ) => {
-    const formData = new FormData();
-
-    if (operations.add) {
-      operations.add.forEach((file) => {
-        formData.append(`variantImages`, file);
-      });
-    }
-
-    if (operations.remove) {
-      formData.append("removeImages", JSON.stringify(operations.remove));
-    }
-
-    if (operations.replace) {
-      formData.append(
-        "replaceImage",
-        JSON.stringify({
-          oldUrl: operations.replace.oldUrl,
-          newFile: operations.replace.newFile,
-        })
-      );
-    }
-
-    return formData;
-  };
-
-  // Helper function to validate variant data
-  const validateVariantData = (variant: any): boolean => {
-    if (!variant.size || !variant.color) {
-      toast.error("Variant size and color are required");
-      return false;
-    }
-
-    if (variant.stock < 0 || variant.price < 0) {
-      toast.error("Variant stock and price must be non-negative");
-      return false;
-    }
-
-    return true;
-  };
-
-  // Helper function to handle category operations
-  const handleCategoryOperations = (
-    currentCategories: string[],
-    newCategories: string[]
-  ) => {
-    const added = newCategories.filter(
-      (cat) => !currentCategories.includes(cat)
-    );
-    const removed = currentCategories.filter(
-      (cat) => !newCategories.includes(cat)
-    );
-
-    return { added, removed };
-  };
-
   return {
     form,
     getProductById,
@@ -521,7 +457,6 @@ function useProducts() {
     handleVariantImageUpload,
     removeVariantImage,
     onDelete,
-    // onUpdate,
     getProducts,
   };
 }

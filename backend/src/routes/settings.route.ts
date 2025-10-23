@@ -4,15 +4,15 @@ import { Hono } from "hono";
 
 const settingsRoutes = new Hono();
 
-settingsRoutes.get("/", authenticatedAdmin, authorize, (c) =>
+settingsRoutes.get("/", authenticatedAdmin, (c) =>
   settingsController.getSettings(c)
 );
 
-settingsRoutes.patch("/", authenticatedAdmin, authorize, (c) =>
+settingsRoutes.patch("/", authenticatedAdmin, (c) =>
   settingsController.updateSettings(c)
 );
 
-settingsRoutes.post("/upload-logo", authenticatedAdmin, authorize, (c) =>
+settingsRoutes.post("/upload-logo", authenticatedAdmin, (c) =>
   settingsController.changeLogo(c)
 );
 

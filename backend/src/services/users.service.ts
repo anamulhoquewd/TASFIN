@@ -155,7 +155,7 @@ export const updateProfile = async ({
   body,
 }: {
   user: IUser;
-  body: UserCreateInput;
+  body: UserUpdateInput;
 }) => {
   // Validation without NID for update
   const validData = userUpdateZ.safeParse(body);
@@ -235,105 +235,6 @@ export const updateUser = async ({
         success: true,
         message: "User profile updated successfully!",
         data: docs,
-      },
-    };
-  } catch (error: any) {
-    return {
-      serverError: {
-        success: false,
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
-
-export const login = async (body: {
-  email: string;
-  phone: string;
-  password: string;
-}) => {
-  // Safe Parse for better error handling
-  const validData = loginSchemeZ.safeParse(body);
-
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body"),
-    };
-  }
-
-  // Destructure Body
-  const { email, phone, password } = validData.data;
-
-  try {
-    // Check if user exists
-    const user = await User.findOne({
-      $or: [{ email }, { phone }],
-    }).select("password email isBlocked");
-
-    if (!user) {
-      return {
-        error: {
-          message: "Invalid credentials",
-          fields: [
-            {
-              name: "email",
-              message: "Sorry! User not found with this email or phone",
-            },
-          ],
-        },
-      };
-    }
-
-    if (user.isBlocked) {
-      return {
-        error: {
-          message:
-            "Your account has been blocked. Please contact customer support for assistance.",
-          fields: [
-            {
-              name: "email",
-              message:
-                "Your account is currently blocked. Contact our support team to resolve this issue.",
-            },
-          ],
-        },
-      };
-    }
-
-    // Validate password
-    if (!(await user.matchPassword(password))) {
-      return {
-        error: {
-          message: "Invalid credentials",
-          fields: [
-            {
-              name: "password",
-              message: "Password is incorrect",
-            },
-          ],
-        },
-      };
-    }
-
-    // Generate access token
-    const accessToken = await generateAccessToken({ user });
-
-    // Generate refresh token
-    const refreshToken = await generateRefreshToken({ user });
-
-    // Refresh token store in database
-    user.refresh = refreshToken;
-    await user.save();
-    // Response
-    return {
-      success: {
-        success: true,
-        message: "Login successfully!",
-        tokens: {
-          accessToken,
-          refreshToken,
-        },
       },
     };
   } catch (error: any) {

@@ -41,7 +41,7 @@ const useReset = () => {
   const onSubmit = async (data: z.infer<typeof resetPasswordFormSchema>) => {
     setIsLoading(true);
     try {
-      const response = await api.put(`/admins/auth/reset-password/${key}`, {
+      const response = await api.patch(`/admins/reset-password/${key}`, {
         password: data.newPassword,
       });
 

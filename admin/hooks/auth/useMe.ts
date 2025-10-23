@@ -69,6 +69,7 @@ function useMe() {
   };
 
   const handleUpdate = async (data: z.infer<typeof userFormSchemaZ>) => {
+    console.log("Update data: ", data);
     setIsLoading(true);
     try {
       const response = await api.patch("/admins/me", data);

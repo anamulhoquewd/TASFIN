@@ -12,12 +12,9 @@ import {
   User,
   CreditCard,
   Settings,
-  CircleIcon,
-  CircleCheckIcon,
-  CircleHelpIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
@@ -34,52 +31,13 @@ import {
 } from "@/components/ui/command";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-
-const components: { title: string; href: string; description: string }[] = [
-  {
-    title: "Alert Dialog",
-    href: "/docs/primitives/alert-dialog",
-    description:
-      "A modal dialog that interrupts the user with important content and expects a response.",
-  },
-  {
-    title: "Hover Card",
-    href: "/docs/primitives/hover-card",
-    description:
-      "For sighted users to preview content available behind a link.",
-  },
-  {
-    title: "Progress",
-    href: "/docs/primitives/progress",
-    description:
-      "Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.",
-  },
-  {
-    title: "Scroll-area",
-    href: "/docs/primitives/scroll-area",
-    description: "Visually or semantically separates content.",
-  },
-  {
-    title: "Tabs",
-    href: "/docs/primitives/tabs",
-    description:
-      "A set of layered sections of content—known as tab panels—that are displayed one at a time.",
-  },
-  {
-    title: "Tooltip",
-    href: "/docs/primitives/tooltip",
-    description:
-      "A popup that displays information related to an element when the element receives keyboard focus or the mouse hovers over it.",
-  },
-];
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -248,55 +206,54 @@ export function Header() {
                   <Link href="#" onClick={() => setMobileMenuOpen(false)}>
                     <Button
                       size="lg"
-                      className="text-sidebar-accent-foreground px-4 py-8 mt-2.5 mb-4 w-full justify-start"
+                      className="text-foreground bg-muted no-hover rounded-t-none px-4 py-8 mb-4 w-full justify-start"
                     >
-                      <Avatar className="h-10 w-10 rounded-lg grayscale">
+                      <Avatar className="h-12 w-12 rounded-full grayscale border border-border">
                         <AvatarImage src={"/"} alt={"User"} />
-                        <AvatarFallback className="rounded-lg">
-                          CN
+                        <AvatarFallback className="rounded-full">
+                          TS
                         </AvatarFallback>
                       </Avatar>
-                      <div className="grid flex-1 text-left leading-tight text-white text-xl">
+                      <div className="grid flex-1 text-left leading-tight text-xl">
                         <span className="truncate font-medium">
                           {"Anamul hoque"}
                         </span>
-                        <span className="text-muted truncate text-sm">
+                        <span className="text-muted-foreground truncate text-sm">
                           {"anamulhoque@gmail.com"}
                         </span>
                       </div>
                     </Button>
                   </Link>
-                  <nav className="px-6 pb-6 border-b border-border">
-                    <div className="flex flex-col gap-4">
-                      <Link
-                        href="/"
-                        className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Home
-                      </Link>
-                      <Link
-                        href="/products"
-                        className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Shop
-                      </Link>
-                      <Link
-                        href="/about"
-                        className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        About
-                      </Link>
-                      <Link
-                        href="/contact"
-                        className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Contact
-                      </Link>
-                    </div>
+                  <nav className="px-6 pb-6 flex flex-col gap-4">
+                    <Link
+                      href="/"
+                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Home
+                    </Link>
+                    <Link
+                      href="/products"
+                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Shop
+                    </Link>
+                    <Separator />
+                    <Link
+                      href="/about"
+                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Contact
+                    </Link>
                   </nav>
                 </SheetHeader>
               </SheetContent>

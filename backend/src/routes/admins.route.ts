@@ -1,5 +1,5 @@
 import { adminController } from "@/controllers";
-import { authenticatedAdmin } from "@/middlewares/auth.middleware";
+import { authenticatedAdmin, authorize } from "@/middlewares/auth.middleware";
 import { Hono } from "hono";
 
 const adminRoutes = new Hono();
@@ -44,7 +44,7 @@ adminRoutes.get("/:_id", authenticatedAdmin, (c) =>
   adminController.getAdmin(c)
 );
 
-adminRoutes.delete("/:_id", authenticatedAdmin, (c) =>
+adminRoutes.delete("/:_id", authenticatedAdmin, authorize, (c) =>
   adminController.deleteAdmin(c)
 );
 

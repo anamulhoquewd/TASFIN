@@ -3,7 +3,6 @@ import { ICategory } from "@/interfaces/categories";
 import { IPagination } from "@/interfaces/global";
 import { defaultPagination } from "@/utils/details";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -74,10 +73,7 @@ function useCategory() {
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:4000/api/v1/categories/register",
-        data
-      );
+      const response = await api.post("/categories/register", data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -114,10 +110,7 @@ function useCategory() {
     setIsLoading(true);
 
     try {
-      const response = await axios.patch(
-        `http://localhost:4000/api/v1/categories/${selectedItem._id}`,
-        data
-      );
+      const response = await api.patch(`/categories/${selectedItem._id}`, data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -150,9 +143,7 @@ function useCategory() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await axios.delete(
-        `http://localhost:4000/api/v1/categories/${id}`
-      );
+      const response = await api.delete(`/categories/${id}`);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -190,8 +181,8 @@ function useCategory() {
     formData.append("avatar", file);
 
     try {
-      const response = await axios.post(
-        `http://localhost:4000/api/v1/categories/${selectedItem?._id}/upload-avatar`,
+      const response = await api.post(
+        `/categories/${selectedItem?._id}/upload-avatar`,
         formData,
         {
           headers: {

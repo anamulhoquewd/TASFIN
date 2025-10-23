@@ -12,6 +12,11 @@ import categoryRoutes from "./routes/categorise.route";
 import productRoutes from "./routes/products.route";
 import orderRoutes from "./routes/orders.route";
 import settingsRoutes from "./routes/settings.route";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const DOMAIN = process.env.DOMAIN as string;
 
 const app = new Hono().basePath("/api/v1");
 
@@ -41,10 +46,10 @@ app.use(
   logger(),
   prettyJSON(),
   cors({
-    origin: "http://localhost:3000", // Your frontend URL
+    origin: DOMAIN, // Your frontend URL
     credentials: true, // Allow cookies
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Ensure OPTIONS is handled
-    allowHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
+    allowHeaders: ["Content-Type", "Authorization", "X-User-Phone"], // Allow necessary headers
   })
 );
 

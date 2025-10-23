@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, Star } from "lucide-react";
 import useCategory from "@/hooks/category/useCategory";
 import Image from "next/image";
+import { Hero } from "@/components/home/hero";
 
 export default function HomePage() {
   const { categories } = useCategory();
@@ -32,6 +33,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
+      <Hero />
       <section className="relative min-h-[600px] md:min-h-[700px] flex items-center justify-center bg-gradient-to-br from-secondary/20 to-accent/10">
         <div className="absolute inset-0 bg-[url('/tasfin-logo-text-black-bg-white-2.png')] bg-cover bg-center opacity-20" />
         <div className="container mx-auto px-4 relative z-10 text-center">

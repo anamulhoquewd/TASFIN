@@ -38,7 +38,6 @@ import {
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { RichTextEditor } from "@/components/rich-text-editor";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";

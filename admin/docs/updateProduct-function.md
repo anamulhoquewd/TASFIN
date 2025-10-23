@@ -76,10 +76,7 @@ import { updateProduct } from "@/app/products/_hook/useProducts";
 const basicUpdate = {
   title: "Updated Product Title",
   slug: "updated-product-slug",
-  description: {
-    html: "<p>Updated description</p>",
-    json: { content: "Updated content" },
-  },
+  description: "Updated description",
   isFeatured: true,
 };
 
@@ -230,13 +227,6 @@ const handleCategoryOperations = (
 };
 ```
 
-### Variant Validation Helper
-
-```typescript
-const validateVariantData = (variant: any): boolean => {
-  // Validates variant data and returns boolean
-};
-```
 
 ## Database Model Assumptions
 
