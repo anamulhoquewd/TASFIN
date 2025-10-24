@@ -38,12 +38,18 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
+  const isMobile = useIsMobile();
 
   const [open, setOpen] = useState(false);
+
+  const logo = isMobile
+    ? "/tasfin-logo-text-black-bg-transparent.png"
+    : "/tasfin-logo-text-black-bg-transparent-2.png";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -52,7 +58,7 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center">
             <Image
-              src="/tasfin-logo-text-black-bg-transparent-2.png"
+              src={logo}
               alt="Logo"
               width={1000}
               height={1000}
@@ -106,10 +112,10 @@ export function Header() {
               onClick={() => setOpen(true)}
               variant="outline"
               size={"sm"}
-              className="w-32 sm:w-64 md:w-80 flex items-center justify-between gap-2 no-hover cursor-pointer"
+              className="w-32 sm:w-64 md:w-80 flex items-center justify-between gap-2 no-hover cursor-pointer bg-transparent border-border text-foreground"
             >
               <div className="flex items-center justify-between gap-2">
-                <SearchIcon />{" "}
+                <SearchIcon />
                 <span className="text-muted-foreground">Type...</span>
               </div>
             </Button>
@@ -160,7 +166,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative transition-colors duration-300 cursor-pointer"
+                className="relative transition-colors duration-300 cursor-pointer bg-transparent lg:border lg:hover:border-primary"
               >
                 <ShoppingCart className="h-5 w-5" />
                 {totalItems > 0 && (
@@ -175,7 +181,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative transition-colors duration-300 cursor-pointer"
+                className="relative transition-colors duration-300 cursor-pointer bg-transparent lg:border lg:hover:border-primary"
               >
                 <User className="h-5 w-5" />
               </Button>
