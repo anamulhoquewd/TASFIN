@@ -11,8 +11,8 @@ export const BDPhoneRegex = /^01[3-9]\d{8}$/;
 
 const fileSchema = z
   .instanceof(File)
-  .refine((file) => file.size <= 10 * 1024 * 1024, {
-    message: "File size must be <= 10MB",
+  .refine((file) => file.size <= 2 * 1024 * 1024, {
+    message: "File size must be <= 2MB",
   })
   .refine((file) => ["image/jpeg", "image/png"].includes(file.type), {
     message: "Only JPEG/PNG allowed",

@@ -10,6 +10,8 @@ productRoutes.get("/", (c) => productController.getProducts(c));
 
 productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
+productRoutes.get("/slug/:slug", (c) => productController.getProductBySlug(c));
+
 productRoutes.patch("/:productId/general", (c) =>
   productController.updateGeneralInfo(c)
 );

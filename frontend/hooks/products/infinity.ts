@@ -7,17 +7,17 @@ import { toast } from "sonner";
 
 interface UseInfiniteProductsOptions {
   initialLimit?: number;
-  sortBy?: "price" | "name" | "newest";
-  sortOrder?: "asc" | "desc";
+  sortBy?: "title" | "createdAt";
+  sortType?: "asc" | "desc";
   categories?: string[];
-  priceRange?: { min: number; max: number };
+  priceRange?: { minPrice: number; maxPrice: number };
 }
 
 export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
   const {
-    initialLimit = 12,
-    sortBy = "newest",
-    sortOrder = "desc",
+    initialLimit = 1,
+    sortBy = "createdAt",
+    sortType = "desc",
     categories = [],
     priceRange,
   } = options;
@@ -26,62 +26,96 @@ export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ sortBy, sortOrder });
+  const [sortConfig, setSortConfig] = useState({ sortBy, sortType });
   const [filters, setFilters] = useState({ categories, priceRange });
+  const [totalPages, setTotalPages] = useState<number | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Add a ref to track if we're currently fetching
+  const isFetchingRef = useRef(false);
 
   const fetchProducts = useCallback(
     async (pageNum: number, reset = false) => {
-      setIsLoading((prevLoading) => {
-        if (prevLoading) return prevLoading;
-        (async () => {
-          try {
-            const params: any = {
-              page: pageNum,
-              limit: initialLimit,
-              sort: sortConfig.sortBy,
-              order: sortConfig.sortOrder,
-              ...(filters.categories.length > 0 && {
-                categories: filters.categories.join(","),
-              }),
-              ...(filters.priceRange && {
-                minPrice: filters.priceRange.min,
-                maxPrice: filters.priceRange.max,
-              }),
-            };
+      // Prevent duplicate requests
+      if (isFetchingRef.current) {
+        console.log("Already fetching, skipping...");
+        return;
+      }
 
-            const response = await api.get("/products", { params });
+      // Don't fetch if we know there's no more data (unless it's a reset)
+      if (!reset && !hasMore) {
+        console.log("No more data, skipping...");
+        return;
+      }
 
-            if (response.data && Array.isArray(response.data.data)) {
-              if (reset) {
-                setProducts(response.data.data);
-              } else {
-                setProducts((prev) => [...prev, ...response.data.data]);
-              }
+      isFetchingRef.current = true;
+      setIsLoading(true);
 
-              if (response.data.data.length < initialLimit) {
-                setHasMore(false);
-              }
-            }
-          } catch (error) {
-            toast.error("Failed to fetch products");
-            console.error("Error fetching products:", error);
-          } finally {
-            setIsLoading(false);
+      try {
+        const params: any = {
+          page: pageNum,
+          limit: initialLimit,
+          sortBy: sortConfig.sortBy,
+          sortType: sortConfig.sortType,
+          ...(filters.categories.length > 0 && {
+            categories: filters.categories.join(","),
+          }),
+          ...(filters.priceRange && {
+            minPrice: filters.priceRange.minPrice,
+            maxPrice: filters.priceRange.maxPrice,
+          }),
+        };
+
+        console.log("Fetching page:", pageNum, params);
+        const response = await api.get("/products", { params });
+
+        if (response.data && Array.isArray(response.data.data)) {
+          const newProducts = response.data.data;
+          const totalPagesFromAPI = response.data.pagination.totalPages;
+          console.log("totalPagesFromAPI: ", totalPagesFromAPI);
+
+          // Store total pages
+          if (totalPagesFromAPI) {
+            setTotalPages(totalPagesFromAPI);
           }
-        })();
 
-        return true;
-      });
+          if (reset) {
+            setProducts(newProducts);
+          } else {
+            setProducts((prev) => [...prev, ...newProducts]);
+          }
+
+          // Check if we've reached the end using totalPage
+          if (totalPagesFromAPI) {
+            if (pageNum >= totalPagesFromAPI) {
+              console.log(`Reached last page: ${pageNum}/${totalPagesFromAPI}`);
+              setHasMore(false);
+            }
+          } else {
+            // Fallback: check by data length if totalPage not provided
+            if (newProducts.length < initialLimit) {
+              console.log("Reached end of products (fallback check)");
+              setHasMore(false);
+            }
+          }
+        }
+      } catch (error) {
+        toast.error("Failed to fetch products");
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+        isFetchingRef.current = false;
+      }
     },
-    [initialLimit, sortConfig, filters]
+    [initialLimit, sortConfig, filters, hasMore]
   );
 
   const handleSort = useCallback(
-    (newSortBy: "price" | "name" | "newest", newSortOrder: "asc" | "desc") => {
-      setSortConfig({ sortBy: newSortBy, sortOrder: newSortOrder });
+    (newSortBy: "title" | "createdAt", newsortType: "asc" | "desc") => {
+      setSortConfig({ sortBy: newSortBy, sortType: newsortType });
       setPage(1);
       setHasMore(true);
+      setTotalPages(null);
       setProducts([]);
     },
     []
@@ -91,29 +125,74 @@ export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
     setFilters(newFilters);
     setPage(1);
     setHasMore(true);
+    setTotalPages(null);
     setProducts([]);
   }, []);
 
+  const getProductById = async (id: string): Promise<IProduct | null> => {
+    try {
+      const response = await api.get(`/products/${id}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      toast.error("Failed to fetch product");
+      return null;
+    }
+  };
+
+  // Function to fetch product by slug
+  const getProductBySlug = async (slug: string): Promise<IProduct | null> => {
+    try {
+      const response = await api.get(`/products/slug/${slug}`);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return null;
+    } catch (error) {
+      console.error("Failed to fetch product by slug:", error);
+      return null;
+    }
+  };
+
+  // Intersection Observer Effect
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
-          const nextPage = page + 1;
-          setPage(nextPage);
-          fetchProducts(nextPage);
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !isLoading &&
+          !isFetchingRef.current
+        ) {
+          console.log("Observer triggered, loading next page");
+          setPage((prevPage) => {
+            const nextPage = prevPage + 1;
+            fetchProducts(nextPage);
+            return nextPage;
+          });
         }
       },
       { threshold: 0.1 }
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
     }
 
-    return () => observer.disconnect();
-  }, [page, hasMore, fetchProducts]);
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+      observer.disconnect();
+    };
+  }, [hasMore, isLoading, fetchProducts]);
 
+  // Initial load and filter/sort changes
   useEffect(() => {
+    console.log("Filters or sort changed, resetting...");
     fetchProducts(1, true);
   }, [sortConfig, filters]);
 
@@ -126,5 +205,8 @@ export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
     handleSort,
     filters,
     handleFilterChange,
+    totalPages,
+    currentPage: page,
+    getProductBySlug,
   };
 }

@@ -14,6 +14,7 @@ import {
 import { ArrowUpDown } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { IImage, IProduct } from "@/interfaces/products";
+import { Spinner } from "../ui/spinner";
 
 interface ProductsGridProps {
   products: IProduct[];
@@ -21,10 +22,7 @@ interface ProductsGridProps {
   hasMore: boolean;
   observerTarget: React.RefObject<HTMLDivElement>;
   sortConfig: { sortBy: string; sortType: string };
-  onSortChange: (
-    sortBy: "price" | "name" | "newest",
-    order: "asc" | "desc"
-  ) => void;
+  onSortChange: (sortBy: "title" | "createdAt", order: "asc" | "desc") => void;
   setIsFilterOpen: (isFilterOpen: boolean) => void;
 }
 
@@ -41,20 +39,14 @@ export function ProductsGrid({
   const [sortType, setSortType] = useState(sortConfig.sortType);
 
   const handleSortChange = (value: string) => {
-    setSortBy(value as "price" | "name" | "newest");
-    onSortChange(
-      value as "price" | "name" | "newest",
-      sortType as "asc" | "desc"
-    );
+    setSortBy(value as "title" | "createdAt");
+    onSortChange(value as "title" | "createdAt", sortType as "asc" | "desc");
   };
 
   const handleOrderChange = () => {
     const newOrder = sortType === "asc" ? "desc" : "asc";
     setSortType(newOrder);
-    onSortChange(
-      sortBy as "price" | "name" | "newest",
-      newOrder as "asc" | "desc"
-    );
+    onSortChange(sortBy as "title" | "createdAt", newOrder as "asc" | "desc");
   };
 
   return (
@@ -74,9 +66,8 @@ export function ProductsGrid({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="newest">Newest</SelectItem>
-              <SelectItem value="price">Price</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="createdAt">Newest</SelectItem>
+              <SelectItem value="title">Name</SelectItem>
             </SelectContent>
           </Select>
           <Button
@@ -111,7 +102,7 @@ export function ProductsGrid({
       <div ref={observerTarget} className="mt-12 flex justify-center">
         {isLoading && (
           <div className="flex items-center gap-2">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Spinner className="text-primary" />{" "}
             <span className="text-sm text-muted-foreground">
               Loading more products...
             </span>
@@ -185,9 +176,9 @@ function ProductCard({ product }: { product: any }) {
           <h3 className="line-clamp-2 font-semibold text-foreground">
             {product.title}
           </h3>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          {/* <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
             {product.description}
-          </p>
+          </p> */}
 
           <div className="mt-4 flex items-center justify-between">
             <div>
@@ -201,11 +192,11 @@ function ProductCard({ product }: { product: any }) {
               </p>
             </div>
             <div
-              className={`text-xs font-semibold ${
+              className={`text-xs font-semibold self-end ${
                 product.isActive ? "text-green-600" : "text-red-600"
               }`}
             >
-              {product.isActive ? "Active" : "Inactive"}
+              {product.isActive ? "In Stock" : "Out of Stock"}
             </div>
           </div>
         </div>

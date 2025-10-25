@@ -1,4 +1,5 @@
 import s3 from "@/config/s3";
+import mongoose from "mongoose";
 import { schemaValidationError } from "@/error";
 import Product from "@/models/products.model";
 import { uploadAvatar } from "@/utils";
@@ -717,15 +718,14 @@ export const getProducts = async (queryParams: {
   isFeatured: string;
   isActive: string;
   priceRange: { min: number; max: number };
+  categories: string[];
 }) => {
   // Safe Parse for better error handling
   const validData = z
     .object({
       page: z.number().min(1).default(1),
       limit: z.number().min(1).max(100).default(10),
-      sortBy: z
-        .enum(["createdAt", "updatedAt", "title", "slug"])
-        .default("createdAt"),
+      sortBy: z.enum(["createdAt", "updatedAt", "title"]).default("createdAt"),
       sortType: z.enum(["asc", "desc"]).optional().default("asc"),
       search: z.string().optional(),
       isFeatured: z
@@ -746,6 +746,7 @@ export const getProducts = async (queryParams: {
           max: z.number().min(0).optional().default(10000),
         })
         .optional(),
+      categories: z.array(z.string()).optional(),
     })
     .safeParse(queryParams);
 
@@ -761,6 +762,10 @@ export const getProducts = async (queryParams: {
   try {
     // Build query
     const query: any = {};
+    if (validData.data.categories && validData.data.categories.length) {
+      query.categories = { $in: validData.data.categories };
+    }
+
     if (priceRange) {
       query["variants.price"] = {
         $gte: priceRange.min,
@@ -822,7 +827,7 @@ export const getProducts = async (queryParams: {
   }
 };
 
-// Get product
+// Get product by ID
 export const getProduct = async (productId: string) => {
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id: productId });
@@ -833,6 +838,46 @@ export const getProduct = async (productId: string) => {
   try {
     // Check if product exists
     const product = await Product.findById(idValidation.data._id);
+
+    if (!product) {
+      return {
+        error: {
+          message: `Product not found!`,
+        },
+      };
+    }
+
+    return {
+      success: {
+        success: true,
+        message: `Product fetched successfully!`,
+        data: product,
+      },
+    };
+  } catch (error: any) {
+    return {
+      serverError: {
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === "production" ? null : error.stack,
+      },
+    };
+  }
+};
+
+// Get product by slug
+export const getProductBySlug = async (slug: string) => {
+  // Validate slug
+  const slugValidation = z.string().min(1).max(100).safeParse(slug);
+  if (!slugValidation.success) {
+    return {
+      error: schemaValidationError(slugValidation.error, "Invalid slug"),
+    };
+  }
+
+  try {
+    // Check if product exists
+    const product = await Product.findOne({ slug: slugValidation.data });
 
     if (!product) {
       return {

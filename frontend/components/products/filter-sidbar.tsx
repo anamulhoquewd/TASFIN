@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import useCategory from "@/hooks/categories/useCategory";
 import { X } from "lucide-react";
 import { useState } from "react";
 
 interface ProductsFilterSidebarProps {
   onFilterChange: (filters: {
     categories: string[];
-    priceRange: { min: number; max: number };
+    priceRange: { minPrice: number; maxPrice: number };
   }) => void;
   initialFilters?: {
     categories: string[];
-    priceRange: { min: number; max: number };
+    priceRange: { minPrice: number; maxPrice: number };
   };
 }
 
@@ -22,22 +23,13 @@ export function ProductsFilterSidebar({
   onFilterChange,
   initialFilters,
 }: ProductsFilterSidebarProps) {
-  const categories = [
-    {
-      _id: "1",
-      name: "Clothing",
-    },
-    {
-      _id: "2",
-      name: "Accessories",
-    },
-  ];
+  const { categories } = useCategory();
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialFilters?.categories || []
   );
   const [priceRange, setPriceRange] = useState<[number, number]>(
     initialFilters?.priceRange
-      ? [initialFilters.priceRange.min, initialFilters.priceRange.max]
+      ? [initialFilters.priceRange.minPrice, initialFilters.priceRange.maxPrice]
       : [0, 10000]
   );
 
@@ -55,7 +47,7 @@ export function ProductsFilterSidebar({
   const handleApplyFilters = () => {
     onFilterChange({
       categories: selectedCategories,
-      priceRange: { min: priceRange[0], max: priceRange[1] },
+      priceRange: { minPrice: priceRange[0], maxPrice: priceRange[1] },
     });
   };
 
@@ -64,7 +56,7 @@ export function ProductsFilterSidebar({
     setPriceRange([0, 10000]);
     onFilterChange({
       categories: [],
-      priceRange: { min: 0, max: 10000 },
+      priceRange: { minPrice: 0, maxPrice: 10000 },
     });
   };
 
@@ -124,14 +116,22 @@ export function ProductsFilterSidebar({
             className="w-full"
           />
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">₹{priceRange[0]}</span>
-            <span className="text-muted-foreground">₹{priceRange[1]}</span>
+            <span className="text-muted-foreground">{priceRange[0]}</span>
+            <span className="text-muted-foreground">{priceRange[1]}</span>
           </div>
         </div>
       </div>
 
       {/* Apply Filters Button */}
-      <Button onClick={handleApplyFilters} className="w-full">
+      <Button
+        disabled={
+          !selectedCategories.length &&
+          priceRange[0] === 0 &&
+          priceRange[1] === 10000
+        }
+        onClick={handleApplyFilters}
+        className="w-full"
+      >
         Apply Filters
       </Button>
     </div>

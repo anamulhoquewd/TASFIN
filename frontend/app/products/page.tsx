@@ -2,7 +2,6 @@
 
 import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
 import { ProductsGrid } from "@/components/products/products-grid";
-import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -10,13 +9,15 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { useInfiniteProducts } from "@/hooks/products/infinity";
-import { X } from "lucide-react";
 import { useState } from "react";
 
 export default function ProductsPage() {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    categories: string[];
+    priceRange: { minPrice: number; maxPrice: number };
+  }>({
     categories: [],
-    priceRange: { min: 0, max: 10000 },
+    priceRange: { minPrice: 0, maxPrice: 10000 },
   });
 
   const {
@@ -28,9 +29,9 @@ export default function ProductsPage() {
     handleSort,
     handleFilterChange,
   } = useInfiniteProducts({
-    initialLimit: 12,
-    sortBy: "newest",
-    sortOrder: "desc",
+    initialLimit: 1,
+    sortBy: "createdAt",
+    sortType: "desc",
     categories: filters.categories,
     priceRange: filters.priceRange,
   });
@@ -58,7 +59,7 @@ export default function ProductsPage() {
             products={products}
             isLoading={isLoading}
             hasMore={hasMore}
-            observerTarget={observerTarget}
+            observerTarget={observerTarget as React.RefObject<HTMLDivElement>}
             sortConfig={sortConfig}
             onSortChange={handleSort}
             setIsFilterOpen={setIsFilterOpen}

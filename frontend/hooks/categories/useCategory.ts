@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { ICategory } from "../../interfaces/category";
 import api from "@/axios/interceptor";
+import { ICategory } from "@/interfaces/categories";
 
 function useCategory() {
   const [categories, setCategories] = useState<ICategory[]>([]);

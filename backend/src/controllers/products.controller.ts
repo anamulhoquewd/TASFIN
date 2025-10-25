@@ -2,7 +2,6 @@ import { badRequestHandler, serverErrorHandler } from "@/error";
 import { productService } from "@/services";
 import { parseDeleteUrls } from "@/utils";
 import { Context } from "hono";
-import { json } from "zod";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
@@ -94,6 +93,22 @@ export const getProduct = async (c: Context) => {
   const productId = c.req.param("productId");
 
   const response = await productService.getProduct(productId);
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};
+
+export const getProductBySlug = async (c: Context) => {
+  const slug = c.req.param("slug");
+
+  const response = await productService.getProductBySlug(slug);
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -346,6 +361,10 @@ export const getProducts = async (c: Context) => {
   const search = c.req.query("search") as string;
   const isFeatured = c.req.query("isFeatured") as string;
   const isActive = c.req.query("isActive") as string;
+
+  // categories in format category1,category2
+  const categories = (c.req.query("categories") as string)?.split(",") || [];
+
   // priceRange in format min-max, e.g., 100-500
   const minPrice = parseInt(c.req.query("minPrice") as string, 10) || 0;
   const maxPrice = parseInt(c.req.query("maxPrice") as string, 10) || 10000;
@@ -361,6 +380,7 @@ export const getProducts = async (c: Context) => {
     isFeatured,
     isActive,
     priceRange: { min: minPrice, max: maxPrice },
+    categories,
   });
 
   if (response.error) {
