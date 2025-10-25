@@ -1,7 +1,8 @@
 "use client";
 
-import type React from "react";
-
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -11,10 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useState } from "react";
-import { IProduct } from "@/interfaces/products";
+import { formatPrice } from "@/lib/utils";
+import { IImage, IProduct } from "@/interfaces/products";
 
 interface ProductsGridProps {
   products: IProduct[];
@@ -59,19 +58,17 @@ export function ProductsGrid({
   };
 
   return (
-    <div className="w-full">
-      <div className="mb-8 grid grid-cols-2 md:grid-cols-8 lg:grid-cols-2 items-center justify-end gap-2">
-        {/* 🔹 Mobile Filter Button */}
-        <div className="lg:hidden block col-span-1 md:col-span-2">
+    <div className="w-full space-y-6">
+      {/* 🔹 Sort & Filter Header */}
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-2 items-stretch">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden block col-span-1 md:col-span2">
           <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
             Filter
           </Button>
         </div>
 
-        <div className="flex items-center gap-2 w-full col-span-1 md:col-span-3 lg:col-span-1 mr-0">
-          <span className="text-sm font-medium text-muted-foreground">
-            Sort by:
-          </span>
+        <div className="flex items-center gap-2 w-full col-span-1 lg:col-span-1">
           <Select value={sortBy} onValueChange={handleSortChange}>
             <SelectTrigger className="w-40">
               <SelectValue />
@@ -92,66 +89,16 @@ export function ProductsGrid({
           </Button>
         </div>
 
-        <span className="text-sm text-muted-foreground col-span-2 md:col-span-3 lg:col-span-1 text-right">
+        <span className="text-sm text-muted-foreground col-span-2 md:col-span-1 text-right">
           Showing {products.length} products
         </span>
       </div>
 
+      {/* 🔹 Product Grid */}
       {products.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
-            <Link key={product._id} href={`/products/${product.slug}`}>
-              <div className="group cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg">
-                <div className="relative aspect-square overflow-hidden bg-muted">
-                  {product.images && product.images.length > 0 ? (
-                    <Image
-                      src={product.images[0].url || "/placeholder.svg"}
-                      alt={product.title}
-                      fill
-                      className="object-cover transition-transform group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-muted-foreground">No image</span>
-                    </div>
-                  )}
-                  {product.isFeatured && (
-                    <div className="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                      Featured
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-4">
-                  <h3 className="line-clamp-2 font-semibold text-foreground">
-                    {product.title}
-                  </h3>
-                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
-                    {product.slug}
-                  </p>
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <div>
-                      {product.variants && product.variants.length > 0 && (
-                        <p className="text-lg font-bold text-foreground">
-                          ₹{product.variants[0].price}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {product.variants?.length || 0} variants
-                      </p>
-                    </div>
-                    <div
-                      className={`text-xs font-semibold ${
-                        product.isActive ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      {product.isActive ? "Active" : "Inactive"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
       ) : (
@@ -160,6 +107,7 @@ export function ProductsGrid({
         </div>
       )}
 
+      {/* 🔹 Infinite scroll status */}
       <div ref={observerTarget} className="mt-12 flex justify-center">
         {isLoading && (
           <div className="flex items-center gap-2">
@@ -176,5 +124,92 @@ export function ProductsGrid({
         )}
       </div>
     </div>
+  );
+}
+
+/* 🔹 Product Card with auto slide effect */
+function ProductCard({ product }: { product: any }) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [hovered, setHovered] = useState(false);
+
+  useEffect(() => {
+    if (!hovered || !product.images || product.images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % product.images.length);
+    }, 1500);
+
+    return () => clearInterval(interval);
+  }, [hovered, product.images]);
+
+  useEffect(() => {
+    if (!hovered) setCurrentIndex(0);
+  }, [hovered]);
+
+  return (
+    <Link href={`/products/${product.slug}`}>
+      <div
+        className="group h-full flex flex-col cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <div className="relative aspect-square overflow-hidden bg-muted">
+          {product.images && product.images.length > 0 ? (
+            <>
+              {product.images.map((img: IImage, index: number) => (
+                <Image
+                  key={index}
+                  src={img.url || "/placeholder.svg"}
+                  alt={product.title}
+                  fill
+                  className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
+                    index === currentIndex ? "opacity-100" : "opacity-0"
+                  }`}
+                />
+              ))}
+            </>
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <span className="text-muted-foreground">No image</span>
+            </div>
+          )}
+
+          {product.isFeatured && (
+            <div className="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+              Featured
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 flex flex-col">
+          <h3 className="line-clamp-2 font-semibold text-foreground">
+            {product.title}
+          </h3>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {product.description}
+          </p>
+
+          <div className="mt-4 flex items-center justify-between">
+            <div>
+              {product.variants && product.variants.length > 0 && (
+                <p className="text-lg font-bold text-foreground">
+                  {formatPrice(product.variants[0].price)}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {product.variants?.length || 0} variants
+              </p>
+            </div>
+            <div
+              className={`text-xs font-semibold ${
+                product.isActive ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {product.isActive ? "Active" : "Inactive"}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Link>
   );
 }

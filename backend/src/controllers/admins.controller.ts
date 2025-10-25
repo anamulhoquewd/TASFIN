@@ -12,8 +12,8 @@ import { Context } from "hono";
 import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { decode, verify } from "hono/jwt";
 
-const JWT_REFRESH_SECRET =
-  (process.env.JWT_REFRESH_SECRET as string) || "JWT_REFRESH_SECRET";
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
+const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -261,6 +261,21 @@ export const logout = async (c: Context) => {
     });
 
     if (!refreshToken) {
+      deleteCookie(c, "accessToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+      deleteCookie(c, "refreshToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+      deleteCookie(c, "X-User-Phone", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
       return authenticationError(c);
     }
 

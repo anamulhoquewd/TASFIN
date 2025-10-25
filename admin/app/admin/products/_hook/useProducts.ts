@@ -43,6 +43,8 @@ function useProducts() {
     },
   });
 
+  console.log(form.formState.errors);
+
   const { fields, append, prepend, remove } = useFieldArray({
     control: form.control,
     name: "variants",

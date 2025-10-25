@@ -43,7 +43,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12 flex flex-col gap-8 lg:flex-row">
+      <div className="container mx-auto px-4 pt-4 pb-12 flex flex-col gap-8 lg:flex-row">
         {/* 🔹 Sidebar for Desktop */}
         <div className="hidden lg:block">
           <ProductsFilterSidebar

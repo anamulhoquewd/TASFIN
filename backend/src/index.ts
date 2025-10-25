@@ -46,7 +46,8 @@ app.use(
   logger(),
   prettyJSON(),
   cors({
-    origin: DOMAIN, // Your frontend URL
+    origin: "http://localhost:3001", // Your frontend URL
+    // origin: DOMAIN, // Your frontend URL
     credentials: true, // Allow cookies
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Ensure OPTIONS is handled
     allowHeaders: ["Content-Type", "Authorization", "X-User-Phone"], // Allow necessary headers

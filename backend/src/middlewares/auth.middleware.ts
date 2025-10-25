@@ -4,17 +4,23 @@ import { config } from "dotenv";
 import { authenticationError, authorizationError } from "@/error";
 import Admin from "@/models/admins.model";
 import User from "@/models/users.model";
-import { getSignedCookie } from "hono/cookie";
+import { deleteCookie, getSignedCookie } from "hono/cookie";
 config();
 
-const JWT_ACCESS_SECRET =
-  (process.env.JWT_ACCESS_SECRET as string) || "JWT_ACCESS_SECRET";
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
+const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 //  Check if user is authenticated
 export const authenticatedUser = async (c: Context, next: Next) => {
   const phone = c.req.header("X-User-Phone");
-
   if (!phone) {
+    // Clear cookie using Hono's deleteCookie
+    deleteCookie(c, "X-User-Phone", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+    });
+
     return authenticationError(c);
   }
 
@@ -22,6 +28,12 @@ export const authenticatedUser = async (c: Context, next: Next) => {
     const user = await User.findOne({ phone });
 
     if (!user || user.isBlocked) {
+      deleteCookie(c, "X-User-Phone", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+
       return authenticationError(c);
     }
 
@@ -43,6 +55,13 @@ export const authenticatedAdmin = async (c: Context, next: Next) => {
     );
 
   if (!token) {
+    // Clear cookie using Hono's deleteCookie
+    deleteCookie(c, "accessToken", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+    });
+
     return authenticationError(c);
   }
 
@@ -55,6 +74,18 @@ export const authenticatedAdmin = async (c: Context, next: Next) => {
     const admin = await Admin.findById(decoded._id);
 
     if (!admin) {
+      // Clear cookie using Hono's deleteCookie
+      deleteCookie(c, "accessToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+      deleteCookie(c, "refreshToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+
       return authenticationError(c);
     }
 
