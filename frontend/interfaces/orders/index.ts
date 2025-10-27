@@ -13,7 +13,7 @@ export interface IOrder {
   user: {
     name: string;
     phone: string;
-    address: string;
+    address: IAddress;
     email: string;
     _id: string;
   };

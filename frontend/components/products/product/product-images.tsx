@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { IImage } from "@/interfaces/products";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { ProductImageZoomModal } from "./image-zoom";
 
 interface ProductImageGalleryProps {

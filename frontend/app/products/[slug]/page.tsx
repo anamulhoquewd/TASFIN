@@ -1,13 +1,13 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { IProduct, IProductVariant } from "@/interfaces/products";
-import useProducts from "@/hooks/products/use-prodcuts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ProductImageGallery } from "@/components/products/single/product-images";
-import { ProductDetailsDisplay } from "@/components/products/single/product-details";
-import { ProductVariantSelector } from "@/components/products/single/variant-selector";
+import { ProductImageGallery } from "@/components/products/product/product-images";
+import { ProductDetailsDisplay } from "@/components/products/product/product-details";
+import { ProductVariantSelector } from "@/components/products/product/variant-selector";
+import { useProducts } from "@/hooks/products/use-products";
 
 export default function ProductPage() {
   const params = useParams();
@@ -41,11 +41,11 @@ export default function ProductPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Skeleton className="aspect-square rounded-lg" />
+          <Skeleton className="aspect-square rounded-lg bg-accent-foreground" />
           <div className="space-y-4">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-10 w-3/4 bg-accent-foreground" />
+            <Skeleton className="h-20 w-full bg-accent-foreground" />
+            <Skeleton className="h-40 w-full bg-accent-foreground" />
           </div>
         </div>
       </div>
@@ -81,6 +81,7 @@ export default function ProductPage() {
           {product.variants.length > 0 && (
             <ProductVariantSelector
               variants={product.variants}
+              product={product}
               onVariantSelect={setSelectedVariant}
             />
           )}

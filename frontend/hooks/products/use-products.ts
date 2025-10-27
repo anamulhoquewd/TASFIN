@@ -5,7 +5,7 @@ import type { IProduct } from "@/interfaces/products";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-interface UseInfiniteProductsOptions {
+interface UseProductsOptions {
   initialLimit?: number;
   sortBy?: "title" | "createdAt";
   sortType?: "asc" | "desc";
@@ -13,7 +13,7 @@ interface UseInfiniteProductsOptions {
   priceRange?: { minPrice: number; maxPrice: number };
 }
 
-export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
+export function useProducts(options: UseProductsOptions = {}) {
   const {
     initialLimit = 1,
     sortBy = "createdAt",
@@ -110,8 +110,28 @@ export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
     [initialLimit, sortConfig, filters, hasMore]
   );
 
+  const getProductBySlug = useCallback(
+    async (slug: string): Promise<IProduct | null> => {
+      // Prevent duplicate requests
+      try {
+        const response = await api.get(`/products/slug/${slug}`);
+        if (response.data.success) {
+          return response.data.data;
+        }
+        return null;
+      } catch (error) {
+        toast.error("Failed to fetch product by slug");
+        console.error("Failed to fetch product by slug:", error);
+        return null;
+      }
+    },
+    []
+  );
+
   const handleSort = useCallback(
     (newSortBy: "title" | "createdAt", newsortType: "asc" | "desc") => {
+      if (sortBy === newSortBy && sortType === newsortType) return; // No change
+      console.log("Sort changed:", newSortBy, newsortType);
       setSortConfig({ sortBy: newSortBy, sortType: newsortType });
       setPage(1);
       setHasMore(true);
@@ -128,33 +148,6 @@ export function useInfiniteProducts(options: UseInfiniteProductsOptions = {}) {
     setTotalPages(null);
     setProducts([]);
   }, []);
-
-  const getProductById = async (id: string): Promise<IProduct | null> => {
-    try {
-      const response = await api.get(`/products/${id}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return null;
-    } catch (error) {
-      toast.error("Failed to fetch product");
-      return null;
-    }
-  };
-
-  // Function to fetch product by slug
-  const getProductBySlug = async (slug: string): Promise<IProduct | null> => {
-    try {
-      const response = await api.get(`/products/slug/${slug}`);
-      if (response.data.success) {
-        return response.data.data;
-      }
-      return null;
-    } catch (error) {
-      console.error("Failed to fetch product by slug:", error);
-      return null;
-    }
-  };
 
   // Intersection Observer Effect
   useEffect(() => {

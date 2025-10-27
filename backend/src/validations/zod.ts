@@ -84,8 +84,8 @@ export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
 export const addressZ = z.object({
   street: z.string().min(1, "Street is required").trim(),
   city: z.string().min(1, "City is required").trim(),
-  state: z.string().min(1, "State is required").trim(),
-  zipCode: z.string().min(1, "Zip code is required").trim(),
+  state: z.string().optional(),
+  zipCode: z.string().optional(),
   country: z
     .string()
     .min(1, "Country is required")
@@ -312,6 +312,7 @@ export const orderStatusEnumZ = z.enum([
 
 /** Main Order schema */
 export const orderSchemaZ = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
   products: z
     .array(orderProductSchemaZ)
     .min(1, "Order must contain at least one product"),
@@ -325,6 +326,8 @@ export const orderSchemaZ = z.object({
     .trim(),
 
   status: orderStatusEnumZ.default("pending"),
+
+  paymentMethod: z.enum(["cod"]).default("cod"),
 
   orderDate: z.coerce
     .date()

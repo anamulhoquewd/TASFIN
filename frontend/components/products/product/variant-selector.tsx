@@ -1,19 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import type { IProductVariant } from "@/interfaces/products";
+import type { IProduct, IProductVariant } from "@/interfaces/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { useCart } from "@/lib/cart-context";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface ProductVariantSelectorProps {
   variants: IProductVariant[];
   onVariantSelect: (variant: IProductVariant) => void;
+  product: IProduct;
 }
 
 export function ProductVariantSelector({
   variants,
   onVariantSelect,
+  product,
 }: ProductVariantSelectorProps) {
   const [selectedVariant, setSelectedVariant] =
     useState<IProductVariant | null>(variants.length > 0 ? variants[0] : null);
@@ -23,6 +28,32 @@ export function ProductVariantSelector({
 
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || "");
   const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "");
+
+  const { addItem } = useCart();
+  const router = useRouter();
+
+  const handleAddToCart = () => {
+    if (selectedVariant) {
+      toast.success("Event has been created", {
+        action: {
+          label: "Go to cart",
+          onClick: () => router.push("/cart"),
+        },
+      });
+      // When adding a product variant to cart
+      addItem({
+        productId: product._id,
+        variantId: selectedVariant._id,
+        title: product.title,
+        image: selectedVariant.images?.[0] || product.images[0],
+        price: selectedVariant.price,
+        maxStock: selectedVariant.stock,
+        size: selectedVariant.size,
+        color: selectedVariant.color,
+        quantity: 1, // optional, defaults to 1
+      });
+    }
+  };
 
   const handleVariantChange = (size: string, color: string) => {
     const variant = variants.find((v) => v.size === size && v.color === color);
@@ -112,7 +143,8 @@ export function ProductVariantSelector({
       {/* Add to Cart Button */}
       <Button
         size="lg"
-        className="w-full"
+        className="w-full cursor-pointer"
+        onClick={handleAddToCart}
         disabled={!selectedVariant || selectedVariant.stock === 0}
       >
         {selectedVariant?.stock === 0 ? "Out of Stock" : "Add to Cart"}

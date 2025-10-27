@@ -3,7 +3,6 @@ import { IOrder } from "@/interfaces";
 import Order from "@/models/orders.model";
 import Product from "@/models/products.model";
 import User from "@/models/users.model";
-import { setAuthCookie } from "@/utils";
 import pagination from "@/utils/pagination";
 import {
   addressZ,
@@ -44,7 +43,7 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const { phone, address, products } = validData.data;
+    const { phone, address, products, name } = validData.data;
 
     // 🔹 Step 1: Find or Create User
     let user = await User.findOne({ phone });
@@ -53,6 +52,7 @@ export const register = async (body: OrderInput) => {
       const newUser = new User({
         phone,
         address,
+        name,
       });
       user = await newUser.save();
     }
@@ -386,7 +386,11 @@ export async function updateOrder({
           },
         };
       }
-      order.address = address;
+      // Merge with existing address to preserve required fields (e.g., state) and ensure correct typing
+      order.address = {
+        ...(order.address || {}),
+        ...address,
+      } as IOrder["address"];
     }
 
     // 🧠 status update করা যাবে (cancel বাদে)

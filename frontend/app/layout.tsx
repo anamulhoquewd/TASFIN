@@ -7,6 +7,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartProvider } from "@/lib/cart-context";
 import { Suspense } from "react";
+import LoadingPage from "@/components/loading-page";
+import { Toaster } from "@/components/ui/sonner";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -38,9 +40,10 @@ export default function RootLayout({
         className={`font-sans ${inter.variable} ${playfair.variable} antialiased`}
       >
         <CartProvider>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<LoadingPage />}>
             <Header />
             {children}
+            <Toaster />
             <Footer />
             <Analytics />
           </Suspense>

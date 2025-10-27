@@ -7,8 +7,8 @@ export const AddressSchema: mongoose.Schema<IAddress> = new mongoose.Schema(
   {
     street: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
-    state: { type: String, required: true, trim: true },
-    zipCode: { type: String, required: true, trim: true },
+    state: { type: String, required: false, trim: true },
+    zipCode: { type: String, required: false, trim: true },
     country: { type: String, required: true, trim: true },
   },
   { _id: false }

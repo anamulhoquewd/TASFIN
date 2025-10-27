@@ -21,6 +21,10 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
       enum: ["unpaid", "paid"],
       required: true,
     },
+    paymentMethod: {
+      type: String,
+      enum: ["cod"],
+    },
     totalAmount: { type: Number, required: true, min: 0 },
     status: {
       type: String,

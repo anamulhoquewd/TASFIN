@@ -8,7 +8,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { useInfiniteProducts } from "@/hooks/products/infinity";
+import { useProducts } from "@/hooks/products/use-products";
 import { useState } from "react";
 
 export default function ProductsPage() {
@@ -28,7 +28,7 @@ export default function ProductsPage() {
     sortConfig,
     handleSort,
     handleFilterChange,
-  } = useInfiniteProducts({
+  } = useProducts({
     initialLimit: 1,
     sortBy: "createdAt",
     sortType: "desc",

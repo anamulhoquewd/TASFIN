@@ -7,6 +7,7 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     name: { type: String, trim: true },
     email: {
       type: String,
+      sparse: true,
       unique: true,
       lowercase: true,
       trim: true,

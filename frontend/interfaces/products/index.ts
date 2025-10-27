@@ -96,11 +96,6 @@ export interface IUpdateProductResult {
   error?: string;
 }
 
-export interface IMedia {
-  alt: string;
-  url: string;
-}
-
 export interface ICartItem {
   _id: string;
   name: string;
