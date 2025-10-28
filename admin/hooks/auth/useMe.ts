@@ -1,34 +1,12 @@
 import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
+import { userFormSchemaZ } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-
-const addressSchemaZ = z.object({
-  street: z.string().trim(),
-  city: z.string().trim(),
-  state: z.string().trim(),
-  zipCode: z.string().trim(),
-  country: z.string().trim(),
-});
-
-const userFormSchemaZ = z.object({
-  name: z.string().min(3).max(50),
-  email: z.string().email(),
-  nid: z.string().refine((val) => /^\d{10}$|^\d{17}$/.test(val), {
-    message: "NID must be either 10 or 17 digits",
-  }),
-  phone: z
-    .string()
-    .regex(
-      /^01\d{9}$/,
-      "Phone number must start with 01 and be exactly 11 digits"
-    ),
-  address: addressSchemaZ,
-});
 
 function useMe() {
   const [user, setUser] = useState<IAdmin | null>(null);

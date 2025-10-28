@@ -7,8 +7,6 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     name: { type: String, trim: true },
     email: {
       type: String,
-      sparse: true,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -24,6 +22,15 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     blockedAt: { type: Date, required: false },
   },
   { timestamps: true }
+);
+
+// ✅ Create a partial unique index (only applies when email exists)
+userSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { email: { $exists: true, $ne: null } },
+  }
 );
 
 const User = mongoose.model<IUser>("User", userSchema);

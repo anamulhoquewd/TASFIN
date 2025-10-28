@@ -21,7 +21,7 @@ export interface IOrder {
   paymentStatus: "unpaid" | "paid";
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   address: IAddress;
-  orderDate: string;
+  orderDate: string | Date;
   createdAt: string;
   products: IOrderItem[];
 }

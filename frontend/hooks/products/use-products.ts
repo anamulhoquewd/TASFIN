@@ -69,7 +69,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         console.log("Fetching page:", pageNum, params);
         const response = await api.get("/products", { params });
 
-        if (response.data && Array.isArray(response.data.data)) {
+        if (response.data.success && Array.isArray(response.data.data)) {
           const newProducts = response.data.data;
           const totalPagesFromAPI = response.data.pagination.totalPages;
           console.log("totalPagesFromAPI: ", totalPagesFromAPI);

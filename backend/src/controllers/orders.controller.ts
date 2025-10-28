@@ -106,3 +106,19 @@ export const getOrders = async (c: Context) => {
 
   return c.json(response.success, 200);
 };
+
+export const getOrder = async (c: Context) => {
+  const _id = c.req.param("_id");
+
+  const response = await orderService.getOrder(_id);
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};

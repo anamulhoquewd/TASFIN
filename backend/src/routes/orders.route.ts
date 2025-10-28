@@ -5,6 +5,8 @@ const orderRoutes = new Hono();
 
 orderRoutes.get("/", (c) => orderController.getOrders(c));
 
+orderRoutes.get("/:_id", (c) => orderController.getOrder(c));
+
 orderRoutes.post("/register", (c) => orderController.register(c));
 
 orderRoutes.patch("/:_id", (c) => orderController.updateOrder(c));

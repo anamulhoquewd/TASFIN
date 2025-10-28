@@ -328,6 +328,7 @@ export const orderSchemaZ = z.object({
   status: orderStatusEnumZ.default("pending"),
 
   paymentMethod: z.enum(["cod"]).default("cod"),
+  shippingCost: z.number().nonnegative("price must be >= 0").default(0),
 
   orderDate: z.coerce
     .date()

@@ -19,12 +19,12 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16">
+      <div className="container mx-auto px-4 py-32">
         <div className="max-w-md mx-auto text-center space-y-6">
           <div className="w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center">
             <ShoppingBag className="h-12 w-12 text-muted-foreground" />
           </div>
-          <h1 className="font-serif text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold text-foreground">
             Your Cart is Empty
           </h1>
           <p className="text-muted-foreground">

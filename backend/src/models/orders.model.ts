@@ -26,11 +26,13 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
       enum: ["cod"],
     },
     totalAmount: { type: Number, required: true, min: 0 },
+    shippingCost: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
+
     orderDate: { type: Date, default: Date.now },
   },
   { timestamps: true }

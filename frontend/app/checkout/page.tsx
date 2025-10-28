@@ -1,9 +1,6 @@
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +8,13 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/lib/cart-context";
-import { ArrowLeft, CreditCard, Building2, Wallet } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BrushCleaning,
+  ShoppingBag,
+  Wallet,
+} from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import {
   Form,
@@ -21,67 +24,27 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckoutFormValues, CheckoutSchemaZ } from "@/lib/zod-validation";
-import api from "@/axios/interceptor";
+import useCheckout from "@/hooks/checkout/use-checkout";
 
 export default function CheckoutPage() {
-  const router = useRouter();
-  const { items, subtotal, totalItems, clearCart } = useCart();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { items, subtotal, totalItems } = useCart();
+  const { form, handleSubmit, isProcessing } = useCheckout();
 
   const shippingFee = subtotal >= 3000 ? 0 : 100;
   const total = subtotal + shippingFee;
 
-  const form = useForm<CheckoutFormValues>({
-    resolver: zodResolver(CheckoutSchemaZ) as any,
-    defaultValues: {
-      name: "",
-      phone: "",
-      address: {
-        street: "",
-        city: "",
-        state: "",
-        zipCode: "",
-        country: "Bangladesh",
-      },
-      paymentMethod: "cod",
-    },
-  });
-
-  const handleSubmit = async (values: CheckoutFormValues) => {
-    setIsProcessing(true);
-    try {
-      const data = {
-        name: values.name,
-        address: values.address,
-        phone: values.phone,
-        products: items.map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          quantity: item.quantity,
-        })),
-      };
-
-      console.log("values: ", values);
-      console.log("Data: ", data);
-
-      const res = await api.post("/orders/register", data);
-      console.log(res.data);
-    } catch (error: any) {
-      console.log("Error: ", error);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="container mx-auto px-4 py-32 text-center">
+        <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+          <BrushCleaning className="h-8 w-8 text-muted-foreground" />
+        </div>
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
         <Button asChild>
-          <Link href="/products">Continue Shopping</Link>
+          <Link href="/products">
+            Continue Shopping
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Link>
         </Button>
       </div>
     );

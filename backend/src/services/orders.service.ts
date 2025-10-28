@@ -43,7 +43,7 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const { phone, address, products, name } = validData.data;
+    const { phone, address, products, name, shippingCost } = validData.data;
 
     // 🔹 Step 1: Find or Create User
     let user = await User.findOne({ phone });
@@ -106,7 +106,8 @@ export const register = async (body: OrderInput) => {
       products: orderProducts,
       address,
       paymentStatus: "unpaid",
-      totalAmount,
+      shippingCost,
+      totalAmount: totalAmount + shippingCost,
       status: "pending",
     });
 
@@ -277,6 +278,43 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
           message: error.message || "Server error",
           code: 500,
         },
+      },
+    };
+  }
+};
+
+export const getOrder = async (_id: string) => {
+  // Validate ID
+  const idValidation = idSchemaZ.safeParse({ _id });
+  if (!idValidation.success) {
+    return { error: schemaValidationError(idValidation.error, "Invalid ID") };
+  }
+
+  try {
+    // Check if order exists
+    const order = await Order.findById(idValidation.data._id);
+
+    if (!order) {
+      return {
+        error: {
+          message: `Order not found with provided ID!`,
+        },
+      };
+    }
+
+    return {
+      success: {
+        success: true,
+        message: `Order fetched successfully!`,
+        data: order,
+      },
+    };
+  } catch (error: any) {
+    return {
+      serverError: {
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
     };
   }

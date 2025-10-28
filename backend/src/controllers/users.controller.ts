@@ -64,7 +64,7 @@ export const getUser = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Get Me

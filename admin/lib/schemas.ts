@@ -206,3 +206,19 @@ export const settingUpdateZ = settingCreateZ.partial().refine(
 
 // Input Type inferred from Zod
 export type SettingFromValue = z.infer<typeof settingCreateZ>;
+
+export const resetPasswordFormSchemaZ = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(20, "Password cannot exceed 20 characters"),
+    confirmPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .max(20, "Password cannot exceed 20 characters"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });

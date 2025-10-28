@@ -138,6 +138,7 @@ export interface IOrder extends mongoose.Document {
   paymentStatus: "unpaid" | "paid";
   paymentMethod: "cod" | "bkash" | "nagad";
   totalAmount: number;
+  shippingCost: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate: Date;
 }

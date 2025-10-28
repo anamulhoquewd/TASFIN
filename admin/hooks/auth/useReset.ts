@@ -5,22 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { handleAxiosError } from "@/utils/error";
 import { useState } from "react";
 import api from "@/axios/interceptor";
-
-const resetPasswordFormSchema = z
-  .object({
-    newPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(20, "Password cannot exceed 20 characters"),
-    confirmPassword: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .max(20, "Password cannot exceed 20 characters"),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+import { resetPasswordFormSchemaZ } from "@/lib/schemas";
 
 const useReset = () => {
   const router = useRouter();
@@ -30,15 +15,15 @@ const useReset = () => {
 
   const key = usePathname().split("/").pop() as string;
 
-  const form = useForm<z.infer<typeof resetPasswordFormSchema>>({
-    resolver: zodResolver(resetPasswordFormSchema),
+  const form = useForm<z.infer<typeof resetPasswordFormSchemaZ>>({
+    resolver: zodResolver(resetPasswordFormSchemaZ),
     defaultValues: {
       newPassword: "",
       confirmPassword: "",
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof resetPasswordFormSchema>) => {
+  const onSubmit = async (data: z.infer<typeof resetPasswordFormSchemaZ>) => {
     setIsLoading(true);
     try {
       const response = await api.patch(`/admins/reset-password/${key}`, {
