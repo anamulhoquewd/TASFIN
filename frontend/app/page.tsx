@@ -70,7 +70,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <Card className="border-border bg-gradient-to-br from-secondary/20 to-accent/10">
             <CardContent className="p-8 md:p-12 text-center">
-              <h2 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-4">
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                 Ready to Elevate Your Style?
               </h2>
               <p className="text-muted-foreground mb-8 max-w-2xl mx-auto text-pretty">

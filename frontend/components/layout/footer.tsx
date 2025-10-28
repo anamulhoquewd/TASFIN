@@ -25,25 +25,25 @@ export function Footer() {
             <nav className="flex flex-col gap-2">
               <Link
                 href="/products"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 Shop All
               </Link>
               <Link
                 href="/about"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 About Us
               </Link>
               <Link
                 href="/contact"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 Contact
               </Link>
               <Link
                 href="/faq"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 FAQ
               </Link>
@@ -56,13 +56,13 @@ export function Footer() {
             <nav className="flex flex-col gap-2">
               <Link
                 href="/terms"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 Terms & Conditions
               </Link>
               <Link
                 href="/privacy"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
                 Privacy Policy
               </Link>
@@ -85,20 +85,31 @@ export function Footer() {
               </Button>
             </div>
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 cursor-pointer bg-primary/80 hover:bg-primary/90"
+              <Link
+                href={"https://www.facebook.com/tasfinshop"}
+                target="_blank"
               >
-                <Facebook className="h-4 w-4 text-white" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 cursor-pointer bg-primary/80 hover:bg-primary/90"
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 cursor-pointer bg-primary/80 hover:bg-primary/90"
+                >
+                  <Facebook className="h-4 w-4 text-white" />
+                </Button>
+              </Link>
+              <Link
+                href={"https://www.instagram.com/tasfinshop/"}
+                target="_blank"
               >
-                <Instagram className="h-4 w-4 text-white" />
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 cursor-pointer bg-primary/80 hover:bg-primary/90"
+                >
+                  <Instagram className="h-4 w-4 text-white" />
+                </Button>
+              </Link>
+
               <Button
                 variant="ghost"
                 size="icon"

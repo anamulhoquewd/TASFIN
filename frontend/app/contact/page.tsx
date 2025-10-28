@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Mail, Phone, MapPin, Clock } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -16,43 +16,45 @@ export default function ContactPage() {
     email: "",
     subject: "",
     message: "",
-  })
+  });
 
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    console.log("[v0] Contact form submitted:", formData)
-    alert("Thank you for contacting us! We'll get back to you soon.")
+    console.log("[v0] Contact form submitted:", formData);
+    alert("Thank you for contacting us! We'll get back to you soon.");
 
-    setFormData({ name: "", email: "", subject: "", message: "" })
-    setIsSubmitting(false)
-  }
+    setFormData({ name: "", email: "", subject: "", message: "" });
+    setIsSubmitting(false);
+  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   const contactInfo = [
     {
       icon: Mail,
       title: "Email",
-      content: "support@tasfin.com",
-      link: "mailto:support@tasfin.com",
+      content: "tasfinshop@gmail.com",
+      link: "mailto:tasfinshop@gmail.com",
     },
     {
       icon: Phone,
       title: "Phone",
-      content: "+880 1XXX-XXXXXX",
-      link: "tel:+8801XXXXXXXXX",
+      content: "+880 1975-024262",
+      link: "tel:+8801975024262",
     },
     {
       icon: MapPin,
@@ -63,20 +65,22 @@ export default function ContactPage() {
     {
       icon: Clock,
       title: "Business Hours",
-      content: "Sat - Thu: 9AM - 8PM",
+      content: "Sat - Thu: 9AM - 12PM",
       link: null,
     },
-  ]
+  ];
 
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-4">Get in Touch</h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
+            Get in Touch
+          </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions or need assistance? We're here to help! Reach out to us and we'll respond as soon as
-            possible.
+            Have questions or need assistance? We're here to help! Reach out to
+            us and we'll respond as soon as possible.
           </p>
         </div>
 
@@ -91,7 +95,9 @@ export default function ContactPage() {
                       <info.icon className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-foreground mb-1">{info.title}</h3>
+                      <h3 className="font-semibold text-foreground mb-1">
+                        {info.title}
+                      </h3>
                       {info.link ? (
                         <a
                           href={info.link}
@@ -100,7 +106,9 @@ export default function ContactPage() {
                           {info.content}
                         </a>
                       ) : (
-                        <p className="text-sm text-muted-foreground">{info.content}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {info.content}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -111,7 +119,7 @@ export default function ContactPage() {
 
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="border-border">
+            <Card className="border-border sticky top-24">
               <CardContent className="p-6 md:p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -165,7 +173,12 @@ export default function ContactPage() {
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
@@ -175,5 +188,5 @@ export default function ContactPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

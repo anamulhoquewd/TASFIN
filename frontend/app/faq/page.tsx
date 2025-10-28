@@ -1,7 +1,13 @@
-"use client"
+"use client";
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import Link from "next/link";
 
 export default function FAQPage() {
   const faqs = [
@@ -55,24 +61,28 @@ export default function FAQPage() {
       answer:
         "We try to restock popular items when possible. You can contact us to inquire about specific products, or check back regularly as we update our inventory frequently.",
     },
-    {
-      question: "How do I care for my TASFIN garments?",
-      answer:
-        "Care instructions are included with each item. Generally, we recommend gentle machine wash or hand wash in cold water, and air drying to maintain the quality and longevity of your garments.",
-    },
+    // {
+    //   question: "How do I care for my TASFIN garments?",
+    //   answer:
+    //     "Care instructions are included with each item. Generally, we recommend gentle machine wash or hand wash in cold water, and air drying to maintain the quality and longevity of your garments.",
+    // },
     {
       question: "Can I cancel or modify my order?",
       answer:
         "You can cancel or modify your order within 24 hours of placing it by contacting our customer support. Once the order has been dispatched, we cannot make changes.",
     },
-  ]
+  ];
 
   return (
     <div className="container mx-auto px-4 py-16">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
-          <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-4">Frequently Asked Questions</h1>
-          <p className="text-lg text-muted-foreground">Find answers to common questions about shopping with TASFIN</p>
+          <h1 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-4">
+            Frequently Asked Questions
+          </h1>
+          <p className="text-lg text-muted-foreground">
+            Find answers to common questions about shopping with TASFIN
+          </p>
         </div>
 
         <Card className="border-border">
@@ -80,10 +90,12 @@ export default function FAQPage() {
             <Accordion type="single" collapsible className="w-full">
               {faqs.map((faq, index) => (
                 <AccordionItem key={index} value={`item-${index}`}>
-                  <AccordionTrigger className="text-left font-semibold text-foreground hover:text-primary">
+                  <AccordionTrigger className="cursor-pointer text-left font-semibold text-foreground hover:text-primary">
                     {faq.question}
                   </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">{faq.answer}</AccordionContent>
+                  <AccordionContent className="text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
                 </AccordionItem>
               ))}
             </Accordion>
@@ -92,16 +104,22 @@ export default function FAQPage() {
 
         <Card className="border-border bg-muted/30 mt-8">
           <CardContent className="p-6 text-center">
-            <h3 className="font-semibold text-foreground mb-2">Still have questions?</h3>
+            <h3 className="font-semibold text-foreground mb-2">
+              Still have questions?
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Can't find the answer you're looking for? Our customer support team is here to help.
+              Can't find the answer you're looking for? Our customer support
+              team is here to help.
             </p>
-            <a href="/contact" className="text-sm font-medium text-primary hover:underline">
+            <Link
+              href="/contact"
+              className="text-sm font-medium text-primary hover:underline"
+            >
               Contact Support →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
