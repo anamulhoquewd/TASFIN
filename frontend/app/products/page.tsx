@@ -29,7 +29,7 @@ export default function ProductsPage() {
     handleSort,
     handleFilterChange,
   } = useProducts({
-    initialLimit: 1,
+    initialLimit: 12,
     sortBy: "createdAt",
     sortType: "desc",
     categories: filters.categories,
@@ -73,15 +73,9 @@ export default function ProductsPage() {
           onOpenChange={setIsFilterOpen}
         >
           <DrawerContent className="p-6 w-4/5 sm:w-2/3 md:w-1/2">
-            <DrawerHeader className="flex items-center justify-between">
-              <DrawerTitle onClick={() => setIsFilterOpen(false)}>
-                Close
-              </DrawerTitle>
-            </DrawerHeader>
             <ProductsFilterSidebar
               onFilterChange={(data: any) => {
                 handleFilterChange_(data);
-                setIsFilterOpen(false);
               }}
               initialFilters={filters}
             />

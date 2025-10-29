@@ -363,7 +363,7 @@ export const getProducts = async (c: Context) => {
   const isActive = c.req.query("isActive") as string;
 
   // categories in format category1,category2
-  const categories = (c.req.query("categories") as string)?.split("*") || [];
+  const categories = (c.req.query("categories") as string)?.split(",") || [];
 
   // priceRange in format min-max, e.g., 100-500
   const minPrice = parseInt(c.req.query("minPrice") as string, 10) || 0;

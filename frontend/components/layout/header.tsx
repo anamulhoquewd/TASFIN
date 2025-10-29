@@ -39,6 +39,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Searching from "../search";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -120,7 +121,8 @@ export function Header() {
               </div>
             </Button>
 
-            <CommandDialog open={open} onOpenChange={setOpen}>
+            <Searching open={open} setOpen={setOpen} />
+            {/* <CommandDialog open={open} onOpenChange={setOpen}>
               <CommandInput placeholder="Type keyword to search..." />
               <CommandList>
                 <CommandEmpty>No results found.</CommandEmpty>
@@ -157,7 +159,7 @@ export function Header() {
                   </CommandItem>
                 </CommandGroup>
               </CommandList>
-            </CommandDialog>
+            </CommandDialog> */}
           </>
 
           {/* Cart & Mobile Menu */}
@@ -209,27 +211,36 @@ export function Header() {
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetContent>
                 <SheetHeader className="p-0">
-                  <Link href="#" onClick={() => setMobileMenuOpen(false)}>
-                    <Button
-                      size="lg"
-                      className="text-foreground bg-muted no-hover rounded-t-none px-4 py-8 mb-4 w-full justify-start"
-                    >
-                      <Avatar className="h-12 w-12 rounded-full grayscale border border-border">
-                        <AvatarImage src={"/"} alt={"User"} />
-                        <AvatarFallback className="rounded-full">
-                          TS
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left leading-tight text-xl">
-                        <span className="truncate font-medium">
-                          {"Anamul hoque"}
-                        </span>
-                        <span className="text-muted-foreground truncate text-sm">
-                          {"anamulhoque@gmail.com"}
-                        </span>
-                      </div>
-                    </Button>
-                  </Link>
+                  {false ? (
+                    <Link href="#" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        size="lg"
+                        className="text-foreground bg-muted no-hover rounded-t-none px-4 py-8 mb-4 w-full justify-start"
+                      >
+                        <Avatar className="h-12 w-12 rounded-full grayscale border border-border">
+                          <AvatarImage src={"/"} alt={"User"} />
+                          <AvatarFallback className="rounded-full">
+                            TS
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="grid flex-1 text-left leading-tight text-xl">
+                          <span className="truncate font-medium">
+                            {"Anamul hoque"}
+                          </span>
+                          <span className="text-muted-foreground truncate text-sm">
+                            {"anamulhoque@gmail.com"}
+                          </span>
+                        </div>
+                      </Button>
+                    </Link>
+                  ) : (
+                    <div>
+                      <p className="p-4 text-foreground text-xs font-medium">
+                        Menubar
+                      </p>
+                      <Separator />
+                    </div>
+                  )}
                   <nav className="px-6 pb-6 flex flex-col gap-4">
                     <Link
                       href="/"

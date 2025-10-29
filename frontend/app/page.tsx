@@ -60,7 +60,7 @@ export default function HomePage() {
       <ArrivalsSection />
 
       {/* Featured Categories */}
-      <CategoriesSection />
+      <CategoriesSection categories={categories} />
 
       {/* Testimonials */}
       <TestimonialsSection />

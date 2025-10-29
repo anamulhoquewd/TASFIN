@@ -15,7 +15,7 @@ interface UseProductsOptions {
 
 export function useProducts(options: UseProductsOptions = {}) {
   const {
-    initialLimit = 1,
+    initialLimit = 12,
     sortBy = "createdAt",
     sortType = "desc",
     categories = [],

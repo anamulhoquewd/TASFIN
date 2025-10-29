@@ -165,12 +165,12 @@ function ProductCard({ product }: { product: any }) {
   }, [hovered]);
 
   return (
-    <Link href={`/products/${product.slug}`}>
-      <div
-        className="group h-full flex flex-col cursor-pointer overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
+    <div
+      className="group h-full flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <Link href={`/products/${product.slug}`}>
         <div className="relative aspect-square overflow-hidden bg-muted">
           {product.images && product.images.length > 0 ? (
             <>
@@ -198,38 +198,40 @@ function ProductCard({ product }: { product: any }) {
             </div>
           )}
         </div>
+      </Link>
 
-        <div className="p-4 flex flex-col">
+      <div className="p-4 flex flex-col">
+        <Link href={`/products/${product.slug}`}>
           <h3 className="line-clamp-2 font-semibold text-foreground">
             {product.title}
           </h3>
-          {/* <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-            {product.description}
-          </p> */}
+        </Link>
+        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+          {product.description}
+        </p>
 
-          <div className="mt-4 flex items-center justify-between">
-            <div>
-              {product.variants && product.variants.length > 0 && (
-                <p className="text-lg font-bold text-foreground">
-                  {formatPrice(product.variants[0].price)}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground">
-                {product.variants?.length || 0} variants
+        <div className="mt-4 flex items-center justify-between">
+          <div>
+            {product.variants && product.variants.length > 0 && (
+              <p className="text-lg font-bold text-foreground">
+                {formatPrice(product.variants[0].price)}
               </p>
-            </div>
-            {/* Add to Cart Button */}
-            <Button
-              size="icon"
-              className="cursor-pointer"
-              onClick={handleAddToCart}
-              disabled={!product.isActive}
-            >
-              {product.isActive ? <CirclePlus /> : <Ban />}
-            </Button>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {product.variants?.length || 0} variants
+            </p>
           </div>
+          {/* Add to Cart Button */}
+          <Button
+            size="icon"
+            className="cursor-pointer"
+            onClick={handleAddToCart}
+            disabled={!product.isActive}
+          >
+            {product.isActive ? <CirclePlus /> : <Ban />}
+          </Button>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
