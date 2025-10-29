@@ -1,5 +1,10 @@
 import { IAddress } from "../orders";
 
+export interface IImage {
+  alt: string;
+  url: string;
+}
+
 export interface IAdmin {
   _id: string;
   name: string;
@@ -8,15 +13,23 @@ export interface IAdmin {
   nid: string;
   address: IAddress;
   role: "super_admin" | "admin";
-  avatar?: {
-    alt: string;
-    url: string;
-  };
+  avatar?: IImage;
 }
 
 export interface ICustomer {
   _id: string;
   name: string;
+  email: string;
   phone: string;
-  address: string;
+  address?: IAddress;
+  isActive: boolean;
+  isBlocked?: boolean;
+  blockedAt: Date;
+  avatar: IImage;
+
+  dob: Date;
+  gender: "male" | "female";
+
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -65,12 +65,31 @@ export function ProductVariantSelector({
 
   const handleSizeChange = (size: string) => {
     setSelectedSize(size);
-    handleVariantChange(size, selectedColor);
+    // সেই size অনুযায়ী valid color list বের করো
+    const availableColors = variants
+      .filter((v) => v.size === size)
+      .map((v) => v.color);
+    // যদি current selectedColor ঐ list এ না থাকে তাহলে প্রথম color select করো
+    const newColor =
+      availableColors.includes(selectedColor) && selectedColor
+        ? selectedColor
+        : availableColors[0] || "";
+    setSelectedColor(newColor);
+    handleVariantChange(size, newColor);
   };
 
   const handleColorChange = (color: string) => {
     setSelectedColor(color);
-    handleVariantChange(selectedSize, color);
+    // ঐ color অনুযায়ী valid size list বের করো
+    const availableSizes = variants
+      .filter((v) => v.color === color)
+      .map((v) => v.size);
+    const newSize =
+      availableSizes.includes(selectedSize) && selectedSize
+        ? selectedSize
+        : availableSizes[0] || "";
+    setSelectedSize(newSize);
+    handleVariantChange(newSize, color);
   };
 
   return (
@@ -79,21 +98,25 @@ export function ProductVariantSelector({
       <div>
         <h3 className="text-sm font-semibold mb-3">Size</h3>
         <div className="flex flex-wrap gap-2">
-          {sizes.map((size) => (
-            <Button
-              key={size}
-              size={"sm"}
-              variant={"secondary"}
-              onClick={() => handleSizeChange(size)}
-              className={`px-4 py-2 rounded-md border-2 cursor-pointer duration-300 transition-colors ${
-                selectedSize === size
-                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border-border hover:bg-accent/10"
-              }`}
-            >
-              {size}
-            </Button>
-          ))}
+          {/* Size Buttons */}
+          {sizes.map((size) => {
+            const isAvailable = variants.some((v) => v.size === size);
+            return (
+              <Button
+                key={size}
+                size={"sm"}
+                variant={"secondary"}
+                onClick={() => handleSizeChange(size)}
+                className={`px-4 py-2 rounded-md border-2 cursor-pointer duration-300 transition-colors ${
+                  selectedSize === size
+                    ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border-border hover:bg-accent/10"
+                }`}
+              >
+                {size}
+              </Button>
+            );
+          })}
         </div>
       </div>
 
@@ -101,21 +124,29 @@ export function ProductVariantSelector({
       <div>
         <h3 className="text-sm font-semibold mb-3">Color</h3>
         <div className="flex flex-wrap gap-2">
-          {colors.map((color) => (
-            <Button
-              key={color}
-              variant={"secondary"}
-              size={"sm"}
-              onClick={() => handleColorChange(color)}
-              className={`px-4 py-2 cursor-pointer rounded-md border-2 duration-300 transition-colors ${
-                selectedColor === color
-                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "border-border hover:bg-accent/10"
-              }`}
-            >
-              {color}
-            </Button>
-          ))}
+          {/* Color Buttons */}
+          {colors
+            .filter((color) => {
+              // শুধুমাত্র selectedSize এর জন্য valid color দেখাও
+              return variants.some(
+                (v) => v.size === selectedSize && v.color === color
+              );
+            })
+            .map((color) => (
+              <Button
+                key={color}
+                variant={"secondary"}
+                size={"sm"}
+                onClick={() => handleColorChange(color)}
+                className={`px-4 py-2 cursor-pointer rounded-md border-2 duration-300 transition-colors ${
+                  selectedColor === color
+                    ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border-border hover:bg-accent/10"
+                }`}
+              >
+                {color}
+              </Button>
+            ))}
         </div>
       </div>
 

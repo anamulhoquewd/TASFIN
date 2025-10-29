@@ -75,19 +75,9 @@ export default function SettingsPage() {
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                   <div className="relative">
                     <Avatar className="w-24 h-24 border-2">
-                      <AvatarImage
-                        className="w-auto h-full object-cover"
-                        src={settings?.logo?.url ?? ""}
-                        alt={settings?.logo?.alt ?? "TASFIN USER"}
-                      />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold select-none">
-                        {settings?.siteName
-                          ? settings.siteName
-                              .split(" ")
-                              .map((ch) => ch[0])
-                              .join("")
-                              .toUpperCase()
-                          : "TF"}
+                      <AvatarImage />
+                      <AvatarFallback className="text-2xl text-primary  font-bold select-none">
+                        TASFIN
                       </AvatarFallback>
                     </Avatar>
                     <Button
@@ -99,7 +89,7 @@ export default function SettingsPage() {
                       <Camera className="h-4 w-4" />
                     </Button>
 
-                    <UploadAvatar
+                    {/* <UploadAvatar
                       collection={{
                         name: settings?.logo?.alt ?? "TASFIN LOGO",
                         avatar: settings?.logo?.url ?? "",
@@ -109,7 +99,7 @@ export default function SettingsPage() {
                       uploadHandler={uploadHandler}
                       isAvatarOpen={isAvatarOpen}
                       setIsAvatarOpen={setIsAvatarOpen}
-                    />
+                    /> */}
                   </div>
 
                   {/* Basic Info */}

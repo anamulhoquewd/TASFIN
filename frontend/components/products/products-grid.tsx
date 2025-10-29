@@ -11,10 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Ban, CirclePlus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { IImage, IProduct } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
+import { toast } from "sonner";
+import { useCart } from "@/lib/cart-context";
+import { useRouter } from "next/navigation";
 
 interface ProductsGridProps {
   products: IProduct[];
@@ -122,6 +125,30 @@ export function ProductsGrid({
 function ProductCard({ product }: { product: any }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
+  const router = useRouter();
+
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    toast.success("Event has been created", {
+      action: {
+        label: "Go to cart",
+        onClick: () => router.push("/cart"),
+      },
+    });
+    // When adding a product variant to cart
+    addItem({
+      productId: product._id,
+      variantId: product.variants[0]._id,
+      title: product.title,
+      image: product.variants[0].images?.[0] || product.images[0],
+      price: product.variants[0].price,
+      maxStock: product.variants[0].stock,
+      size: product.variants[0].size,
+      color: product.variants[0].color,
+      quantity: 1, // optional, defaults to 1
+    });
+  };
 
   useEffect(() => {
     if (!hovered || !product.images || product.images.length <= 1) return;
@@ -191,13 +218,15 @@ function ProductCard({ product }: { product: any }) {
                 {product.variants?.length || 0} variants
               </p>
             </div>
-            <div
-              className={`text-xs font-semibold self-end ${
-                product.isActive ? "text-green-600" : "text-red-600"
-              }`}
+            {/* Add to Cart Button */}
+            <Button
+              size="icon"
+              className="cursor-pointer"
+              onClick={handleAddToCart}
+              disabled={!product.isActive}
             >
-              {product.isActive ? "In Stock" : "Out of Stock"}
-            </div>
+              {product.isActive ? <CirclePlus /> : <Ban />}
+            </Button>
           </div>
         </div>
       </div>

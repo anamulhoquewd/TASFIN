@@ -114,7 +114,7 @@ export default function CustomersPage() {
                       <TableCell>{admin?.name}</TableCell>
                       <TableCell>{admin?.phone}</TableCell>
                       <TableCell>
-                        {admin?.address || "No address available"}
+                        {admin?.address?.street || "No address available"}
                       </TableCell>
 
                       <TableCell>

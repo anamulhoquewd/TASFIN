@@ -305,13 +305,13 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                     <FormLabel>Key Features</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Enter key features (comma-separated)"
+                        placeholder="Enter key features (star-*-separated)"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onBlur={() => {
                           const tags = inputValue
 
-                            .split(",")
+                            .split("*")
                             .map((tag: string) => tag.trim())
                             .filter((tag: string) => tag.length > 0);
                           field.onChange(tags);
@@ -631,12 +631,12 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                     <FormControl>
                       <Input
                         type="text"
-                        placeholder="Enter tags (comma-separated)"
+                        placeholder="Enter tags (star-*-separated)"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onBlur={() => {
                           const tags = inputValue
-                            .split(",")
+                            .split("*")
                             .map((tag: string) => tag.trim())
                             .filter((tag: string) => tag.length > 0);
                           field.onChange(tags);

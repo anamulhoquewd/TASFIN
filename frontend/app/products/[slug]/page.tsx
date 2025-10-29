@@ -8,6 +8,8 @@ import { ProductImageGallery } from "@/components/products/product/product-image
 import { ProductDetailsDisplay } from "@/components/products/product/product-details";
 import { ProductVariantSelector } from "@/components/products/product/variant-selector";
 import { useProducts } from "@/hooks/products/use-products";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function ProductPage() {
   const params = useParams();
@@ -67,6 +69,13 @@ export default function ProductPage() {
 
   return (
     <main className="container mx-auto px-4 py-8">
+      <Link
+        href="/products"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Continue Shopping
+      </Link>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column - Images */}
         <div>

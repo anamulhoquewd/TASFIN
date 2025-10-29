@@ -53,12 +53,14 @@ import {
   Users,
   AlertTriangle,
   MapPin,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
 import { formatPrice } from "@/utils";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
+import Image from "next/image";
 
 // Types
 interface Analytics {
@@ -336,8 +338,10 @@ export function ProductAnalyticsModal({
           <DialogHeader className="sticky top-0 z-10 bg-background border-b px-6 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <img
+                <Image
                   src={product.images[0]?.url as string}
+                  width={200}
+                  height={200}
                   alt={product.title}
                   className="w-15 h-15 object-cover rounded-lg"
                 />
@@ -470,7 +474,7 @@ export function ProductAnalyticsModal({
           <ScrollArea className="flex-1 px-6 py-2 w-full h-[72vh]">
             <div className="space-y-6">
               {/* KPI Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <KPICard
                   title="Total Sales - Mock"
                   value={formatCurrency(analytics.kpis.revenue)}
@@ -493,128 +497,7 @@ export function ProductAnalyticsModal({
                   trend={Math.random() * 25 - 10}
                   icon={<Package className="h-4 w-4 text-muted-foreground" />}
                 />
-              </div>
-
-              {/* Inventory & Price History */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Inventory Status - Mock</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Total Stock</span>
-                        <span>{analytics.inventory.totalStock}</span>
-                      </div>
-                      <Progress value={100} className="h-2" />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Low Stock</span>
-                        <span className="text-yellow-600">
-                          {analytics.inventory.lowStock}
-                        </span>
-                      </div>
-                      <Progress
-                        value={
-                          (analytics.inventory.lowStock /
-                            analytics.inventory.totalStock) *
-                          100
-                        }
-                        className="h-2"
-                      />
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-sm mb-2">
-                        <span>Out of Stock</span>
-                        <span className="text-red-600">
-                          {analytics.inventory.outOfStock}
-                        </span>
-                      </div>
-                      <Progress
-                        value={
-                          (analytics.inventory.outOfStock /
-                            analytics.inventory.totalStock) *
-                          100
-                        }
-                        className="h-2"
-                      />
-                    </div>
-                    {lowStockVariants.length > 0 && (
-                      <div className="mt-4">
-                        <p className="text-sm font-medium mb-2">
-                          Low Stock Variants:
-                        </p>
-                        <div className="flex flex-wrap gap-1">
-                          {lowStockVariants.map((variant, i) => (
-                            <Badge
-                              key={i}
-                              variant="outline"
-                              className="text-yellow-600 border-yellow-600"
-                            >
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              {variant.size}-{variant.color} ({variant.stock})
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Product Details</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Color</TableHead>
-                          <TableHead>Size</TableHead>
-                          <TableHead>Fabric</TableHead>
-                          <TableHead>Sleeve</TableHead>
-                          <TableHead>Collar/Neck</TableHead>
-                          <TableHead>Cut/Fit</TableHead>
-                          <TableHead>Value Addition</TableHead>
-                          <TableHead>Wash Care</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {product.variants.map((variant) => (
-                          <TableRow key={variant._id}>
-                            <TableCell className="font-medium">
-                              {variant.color}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {variant.size}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.fabric}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.sleeve}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.collarNeck}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.cutFit}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.valueAddition}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.washCare}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              </div>
+              </div> */}
 
               {/* Tabs Section */}
               <Tabs defaultValue="overview" className="w-full">
@@ -662,7 +545,7 @@ export function ProductAnalyticsModal({
                       <CardTitle>Product Information</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
                         <div>
                           <h4 className="font-medium mb-2">
                             Basic Information
@@ -782,33 +665,6 @@ export function ProductAnalyticsModal({
                       </div>
                     </CardContent>
                   </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>মূল ইনসাইট</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-2 text-sm">
-                        <li>
-                          • Facebook চ্যানেল মোট বিক্রির{" "}
-                          {(
-                            (analytics.channels[0].revenue /
-                              analytics.kpis.revenue) *
-                            100
-                          ).toFixed(0)}
-                          % অবদান রেখেছে
-                        </li>
-                        <li>
-                          • গত সপ্তাহে গড় অর্ডার ভ্যালু{" "}
-                          {formatCurrency(analytics.kpis.avgOrderValue)} ছিল
-                        </li>
-                        <li>
-                          • {lowStockVariants.length} টি ভ্যারিয়েন্টে কম স্টক
-                          রয়েছে
-                        </li>
-                      </ul>
-                    </CardContent>
-                  </Card>
                 </TabsContent>
 
                 <TabsContent value="variants">
@@ -820,6 +676,7 @@ export function ProductAnalyticsModal({
                       <Table>
                         <TableHeader>
                           <TableRow>
+                            <TableHead>ID</TableHead>
                             <TableHead>Variants</TableHead>
                             <TableHead>Price</TableHead>
                             <TableHead>Stock</TableHead>
@@ -830,6 +687,35 @@ export function ProductAnalyticsModal({
                         <TableBody>
                           {product.variants.map((variant) => (
                             <TableRow key={variant._id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
+                                    {variant._id.substring(0, 6)}...
+                                  </code>
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-6 w-6 cursor-pointer"
+                                          onClick={() =>
+                                            handleCopyId(variant._id)
+                                          }
+                                        >
+                                          <Copy className="h-3 w-3" />
+                                          <span className="sr-only">
+                                            Copy User ID
+                                          </span>
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Copy ID</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </div>
+                              </TableCell>
                               <TableCell className="font-medium">
                                 {variant.color + " - " + variant.size}
                               </TableCell>
@@ -963,6 +849,127 @@ export function ProductAnalyticsModal({
                   </Card>
                 </TabsContent>
               </Tabs>
+
+              {/* Inventory & Price History */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Inventory Status - Mock</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Total Stock</span>
+                        <span>{analytics.inventory.totalStock}</span>
+                      </div>
+                      <Progress value={100} className="h-2" />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Low Stock</span>
+                        <span className="text-yellow-600">
+                          {analytics.inventory.lowStock}
+                        </span>
+                      </div>
+                      <Progress
+                        value={
+                          (analytics.inventory.lowStock /
+                            analytics.inventory.totalStock) *
+                          100
+                        }
+                        className="h-2"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>Out of Stock</span>
+                        <span className="text-red-600">
+                          {analytics.inventory.outOfStock}
+                        </span>
+                      </div>
+                      <Progress
+                        value={
+                          (analytics.inventory.outOfStock /
+                            analytics.inventory.totalStock) *
+                          100
+                        }
+                        className="h-2"
+                      />
+                    </div>
+                    {lowStockVariants.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-medium mb-2">
+                          Low Stock Variants:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {lowStockVariants.map((variant, i) => (
+                            <Badge
+                              key={i}
+                              variant="outline"
+                              className="text-yellow-600 border-yellow-600"
+                            >
+                              <AlertTriangle className="h-3 w-3 mr-1" />
+                              {variant.size}-{variant.color} ({variant.stock})
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Color</TableHead>
+                          <TableHead>Size</TableHead>
+                          <TableHead>Fabric</TableHead>
+                          <TableHead>Sleeve</TableHead>
+                          <TableHead>Collar/Neck</TableHead>
+                          <TableHead>Cut/Fit</TableHead>
+                          <TableHead>Value Addition</TableHead>
+                          <TableHead>Wash Care</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {product.variants.map((variant) => (
+                          <TableRow key={variant._id}>
+                            <TableCell className="font-medium">
+                              {variant.color}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {variant.size}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.fabric}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.sleeve}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.collarNeck}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.cutFit}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.valueAddition}
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              {product.washCare}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </ScrollArea>
         </DialogContent>

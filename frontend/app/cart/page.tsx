@@ -43,7 +43,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="font-serif text-3xl md:text-4xl font-bold text-foreground mb-8">
+      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
         Shopping Cart
       </h1>
 
@@ -149,7 +149,7 @@ export default function CartPage() {
         <div className="lg:col-span-1">
           <Card className="border-border sticky top-24">
             <CardContent className="p-6 space-y-4">
-              <h2 className="font-serif text-xl font-bold text-foreground">
+              <h2 className="text-xl font-bold text-foreground">
                 Order Summary
               </h2>
 
