@@ -8,7 +8,6 @@ export interface IImage {
 export interface IProductVariant extends mongoose.Document {
   _id: string;
   size: string;
-  color: string;
   stock: number;
   price: number;
   images?: IImage[];

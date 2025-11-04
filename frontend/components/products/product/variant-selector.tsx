@@ -24,10 +24,8 @@ export function ProductVariantSelector({
     useState<IProductVariant | null>(variants.length > 0 ? variants[0] : null);
 
   const sizes = Array.from(new Set(variants.map((v) => v.size)));
-  const colors = Array.from(new Set(variants.map((v) => v.color)));
 
   const [selectedSize, setSelectedSize] = useState<string>(sizes[0] || "");
-  const [selectedColor, setSelectedColor] = useState<string>(colors[0] || "");
 
   const { addItem } = useCart();
   const router = useRouter();
@@ -49,14 +47,13 @@ export function ProductVariantSelector({
         price: selectedVariant.price,
         maxStock: selectedVariant.stock,
         size: selectedVariant.size,
-        color: selectedVariant.color,
         quantity: 1, // optional, defaults to 1
       });
     }
   };
 
-  const handleVariantChange = (size: string, color: string) => {
-    const variant = variants.find((v) => v.size === size && v.color === color);
+  const handleVariantChange = (size: string) => {
+    const variant = variants.find((v) => v.size === size);
     if (variant) {
       setSelectedVariant(variant);
       onVariantSelect(variant);
@@ -65,31 +62,7 @@ export function ProductVariantSelector({
 
   const handleSizeChange = (size: string) => {
     setSelectedSize(size);
-    // সেই size অনুযায়ী valid color list বের করো
-    const availableColors = variants
-      .filter((v) => v.size === size)
-      .map((v) => v.color);
-    // যদি current selectedColor ঐ list এ না থাকে তাহলে প্রথম color select করো
-    const newColor =
-      availableColors.includes(selectedColor) && selectedColor
-        ? selectedColor
-        : availableColors[0] || "";
-    setSelectedColor(newColor);
-    handleVariantChange(size, newColor);
-  };
-
-  const handleColorChange = (color: string) => {
-    setSelectedColor(color);
-    // ঐ color অনুযায়ী valid size list বের করো
-    const availableSizes = variants
-      .filter((v) => v.color === color)
-      .map((v) => v.size);
-    const newSize =
-      availableSizes.includes(selectedSize) && selectedSize
-        ? selectedSize
-        : availableSizes[0] || "";
-    setSelectedSize(newSize);
-    handleVariantChange(newSize, color);
+    handleVariantChange(size);
   };
 
   return (
@@ -121,34 +94,6 @@ export function ProductVariantSelector({
       </div>
 
       {/* Color Selection */}
-      <div>
-        <h3 className="text-sm font-semibold mb-3">Color</h3>
-        <div className="flex flex-wrap gap-2">
-          {/* Color Buttons */}
-          {colors
-            .filter((color) => {
-              // শুধুমাত্র selectedSize এর জন্য valid color দেখাও
-              return variants.some(
-                (v) => v.size === selectedSize && v.color === color
-              );
-            })
-            .map((color) => (
-              <Button
-                key={color}
-                variant={"secondary"}
-                size={"sm"}
-                onClick={() => handleColorChange(color)}
-                className={`px-4 py-2 cursor-pointer rounded-md border-2 duration-300 transition-colors ${
-                  selectedColor === color
-                    ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border-border hover:bg-accent/10"
-                }`}
-              >
-                {color}
-              </Button>
-            ))}
-        </div>
-      </div>
 
       {/* Variant Details */}
       {selectedVariant && (

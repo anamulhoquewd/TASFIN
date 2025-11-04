@@ -40,9 +40,8 @@ import UpdateDialog from "./_component/update-dialog";
 import NewCategory from "./_component/new-category-dialog";
 import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
-import Image from "next/image";
-import { DeleteDialog } from "../../../components/delete-dialong";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function Categories() {
   const {
@@ -262,7 +261,7 @@ export default function Categories() {
             setSelectedItem={setSelectedItem}
           />
 
-          <DeleteDialog
+          <DeleteConfirmation
             onConfirm={() => handleDelete(selectedItem._id)}
             open={deleteDialogOpen}
             changeOpen={setDeleteDialogOpen}

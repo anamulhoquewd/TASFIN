@@ -145,7 +145,6 @@ function ProductCard({ product }: { product: any }) {
       price: product.variants[0].price,
       maxStock: product.variants[0].stock,
       size: product.variants[0].size,
-      color: product.variants[0].color,
       quantity: 1, // optional, defaults to 1
     });
   };

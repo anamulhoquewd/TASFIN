@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,15 +9,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-interface Props {
-  onConfirm: () => void;
-  open: boolean;
-  changeOpen: (open: boolean) => void;
+interface AlertConfirmationProps {
+  isOpne: boolean;
+  setIsOpen: (isOpne: boolean) => void;
+  onConfirm: (data: any) => void;
 }
 
-export function DeleteDialog({ onConfirm, open, changeOpen }: Props) {
+function AlertConfirmation({
+  isOpne,
+  setIsOpen,
+  onConfirm,
+}: AlertConfirmationProps) {
   return (
-    <AlertDialog open={open} onOpenChange={changeOpen}>
+    <AlertDialog open={isOpne} onOpenChange={setIsOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -28,13 +31,8 @@ export function DeleteDialog({ onConfirm, open, changeOpen }: Props) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            className="cursor-pointer"
-            onClick={() => changeOpen(false)}
-          >
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction className="cursor-pointer" onClick={onConfirm}>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={(data) => onConfirm(data)}>
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -42,3 +40,5 @@ export function DeleteDialog({ onConfirm, open, changeOpen }: Props) {
     </AlertDialog>
   );
 }
+
+export default AlertConfirmation;

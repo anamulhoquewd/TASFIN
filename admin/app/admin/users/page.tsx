@@ -31,7 +31,7 @@ import Paginations from "@/components/pagination";
 import { IAdmin } from "@/interfaces/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import useAdmin from "./_hook/useAdmin";
-import { DeleteDialog } from "@/components/delete-dialong";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function UsersPage() {
   const {
@@ -179,7 +179,7 @@ export default function UsersPage() {
         )}
 
         {selectedItem && (
-          <DeleteDialog
+          <DeleteConfirmation
             onConfirm={() => handleDelete(selectedItem._id)}
             open={deleteOpen}
             changeOpen={setDeleteOpen}

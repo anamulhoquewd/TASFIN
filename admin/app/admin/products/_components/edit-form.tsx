@@ -410,7 +410,6 @@ export function EditProductForm({
                     onClick={() =>
                       prepend({
                         size: "",
-                        color: "",
                         stock: 0,
                         price: 0,
                         images: [],
@@ -460,23 +459,7 @@ export function EditProductForm({
                             )}
                           />
 
-                          <FormField
-                            control={form.control}
-                            name={`variants.${index}.color`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Color</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Red, Blue, etc."
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
+                      
                           <FormField
                             control={form.control}
                             name={`variants.${index}.stock`}

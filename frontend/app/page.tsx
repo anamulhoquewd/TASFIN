@@ -15,24 +15,6 @@ export default function HomePage() {
   const { categories } = useCategory();
   console.log(categories);
 
-  const testimonials = [
-    {
-      name: "Ayesha Rahman",
-      rating: 5,
-      text: "Absolutely love the quality and designs! The fabrics are so comfortable and the fit is perfect.",
-    },
-    {
-      name: "Nadia Khan",
-      rating: 5,
-      text: "TASFIN has become my go-to for all occasions. Beautiful collection and excellent customer service.",
-    },
-    {
-      name: "Farah Ahmed",
-      rating: 5,
-      text: "The attention to detail is amazing. Every piece feels premium and looks stunning!",
-    },
-  ];
-
   // Sample images for the slideshow
   const slides = [
     {

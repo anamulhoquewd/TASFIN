@@ -105,7 +105,6 @@ const variantUpdate = {
   variants: [
     {
       size: "S",
-      color: "Red",
       stock: 10,
       price: 29.99,
       images: [variantImage1, variantImage2],
@@ -113,7 +112,6 @@ const variantUpdate = {
     {
       _id: "existing-variant-id", // For updating existing variants
       size: "M",
-      color: "Blue",
       stock: 15,
       price: 29.99,
       images: [],
@@ -159,7 +157,6 @@ const comprehensiveUpdate = {
   variants: [
     {
       size: "S",
-      color: "White",
       stock: 25,
       price: 24.99,
       images: [],
@@ -227,7 +224,6 @@ const handleCategoryOperations = (
 };
 ```
 
-
 ## Database Model Assumptions
 
 The function assumes the following database structure:
@@ -268,7 +264,6 @@ interface IProduct {
 interface IProductVariant {
   _id: string;
   size: string;
-  color: string;
   stock: number;
   price: number;
   images?: IImage[];

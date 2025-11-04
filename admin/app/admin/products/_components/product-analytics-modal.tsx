@@ -168,7 +168,7 @@ const generateMockAnalytics = (product: IProduct): Analytics => {
     })),
     variantPerformance: product.variants.map((variant, i) => ({
       variantId: variant._id || `variant-${i}`,
-      variantName: `${variant.size} - ${variant.color}`,
+      variantName: `${variant.size}`,
       unitsSold: Math.floor(Math.random() * 50) + 10,
       revenue: Math.floor(Math.random() * 100000) + 20000,
       conversion: Math.random() * 15 + 2,
@@ -717,7 +717,7 @@ export function ProductAnalyticsModal({
                                 </div>
                               </TableCell>
                               <TableCell className="font-medium">
-                                {variant.color + " - " + variant.size}
+                                {variant.size}
                               </TableCell>
                               <TableCell className="font-medium">
                                 {formatPrice(
@@ -909,7 +909,7 @@ export function ProductAnalyticsModal({
                               className="text-yellow-600 border-yellow-600"
                             >
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              {variant.size}-{variant.color} ({variant.stock})
+                              {variant.size} ({variant.stock})
                             </Badge>
                           ))}
                         </div>
@@ -926,7 +926,6 @@ export function ProductAnalyticsModal({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Color</TableHead>
                           <TableHead>Size</TableHead>
                           <TableHead>Fabric</TableHead>
                           <TableHead>Sleeve</TableHead>
@@ -939,9 +938,6 @@ export function ProductAnalyticsModal({
                       <TableBody>
                         {product.variants.map((variant) => (
                           <TableRow key={variant._id}>
-                            <TableCell className="font-medium">
-                              {variant.color}
-                            </TableCell>
                             <TableCell className="font-medium">
                               {variant.size}
                             </TableCell>

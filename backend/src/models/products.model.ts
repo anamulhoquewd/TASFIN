@@ -5,10 +5,9 @@ import { ImageSchema } from "./admins.model";
 const ProductVariantSchema: mongoose.Schema<IProductVariant> =
   new mongoose.Schema({
     size: { type: String, required: true, trim: true },
-    color: { type: String, required: true, trim: true },
     stock: { type: Number, required: true, min: 0 },
     price: { type: Number, required: true, min: 0 },
-    images: [{ type: ImageSchema }],
+    images: [{ type: ImageSchema, required: false }],
   });
 
 const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(

@@ -6,7 +6,6 @@ export interface IImage {
 export interface IProductVariant {
   _id: string;
   size: string;
-  color: string;
   stock: number;
   price: number;
   images?: IImage[];
@@ -68,7 +67,6 @@ export interface IProductUpdateData {
 export interface IProductVariantUpdate {
   _id?: string; // Optional for new variants
   size: string;
-  color: string;
   stock: number;
   price: number;
   images?: File[];

@@ -55,23 +55,15 @@ export const productSchema = z.object({
     .optional(),
   price: z.coerce.number().positive("Price must be a positive number"),
   description: z.string().optional(),
-  colors: z
+  sizes: z
     .array(
       z.object({
-        name: z.string().min(1, "Color name is required"),
+        name: z.string().min(1, "Size is required"),
         inStock: z.boolean(),
-        sizes: z.array(
-          z.object({
-            name: z.string().min(1, "Size name is required"),
-            inStock: z.boolean(),
-            quantity: z.coerce
-              .number()
-              .nonnegative("Quantity must be 0 or more"),
-          })
-        ),
+        quantity: z.coerce.number().nonnegative("Quantity must be 0 or more"),
       })
     )
-    .min(1, "At least one color is required"),
+    .min(1, "At least one size is required"),
 
   category: z
     .string()
@@ -82,7 +74,6 @@ export const productSchema = z.object({
 // IProductVariant schema
 export const productVariantSchemaZ = z.object({
   size: z.string().min(1),
-  color: z.string().min(1),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(fileSchema).optional(),

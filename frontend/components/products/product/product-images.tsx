@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { IImage } from "@/interfaces/products";
-import { ProductImageZoomModal } from "./image-zoom";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination, Thumbs } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "swiper/css/thumbs";
+import "./product-images.css";
 
 interface ProductImageGalleryProps {
   images: IImage[];
@@ -14,8 +20,7 @@ export function ProductImageGallery({
   images,
   title,
 }: ProductImageGalleryProps) {
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
 
   if (!images || images.length === 0) {
     return (
@@ -25,73 +30,55 @@ export function ProductImageGallery({
     );
   }
 
-  const currentImage = images[selectedImageIndex];
-
-  const handlePrevious = () => {
-    setSelectedImageIndex((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
-    );
-  };
-
-  const handleNext = () => {
-    setSelectedImageIndex((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
-    );
-  };
-
   return (
-    <>
-      <div className="space-y-4">
-        {/* Main Image */}
-        <div
-          className="relative w-full bg-muted rounded-lg overflow-hidden aspect-square cursor-zoom-in hover:opacity-90 transition-opacity"
-          onClick={() => setIsZoomOpen(true)}
+    <div className="space-y-4">
+      {/* Main Image Swiper */}
+      <Swiper
+        modules={[Pagination, Thumbs]}
+        pagination={{ clickable: true }}
+        thumbs={{ swiper: thumbsSwiper }}
+        loop={true}
+        className="w-full bg-muted rounded-lg overflow-hidden aspect-square"
+      >
+        {images.map((image) => (
+          <SwiperSlide key={image.url}>
+            <div className="relative w-full h-full cursor-pointer">
+              <Image
+                src={image.url || "/placeholder.svg"}
+                alt={image.alt || title}
+                fill
+                className="object-cover"
+              />
+            </div>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      {/* Thumbnail Gallery */}
+      {images.length > 1 && (
+        <Swiper
+          modules={[Thumbs]}
+          watchSlidesProgress
+          onSwiper={setThumbsSwiper}
+          slidesPerView={3}
+          spaceBetween={4}
+          loop={true}
+          className="thumbs-swiper"
         >
-          <Image
-            src={currentImage.url || "/placeholder.svg"}
-            alt={currentImage.alt || title}
-            fill
-            className="object-cover"
-            priority
-          />
-
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
-            <span className="text-white text-sm font-medium">
-              Click to zoom
-            </span>
-          </div>
-        </div>
-
-        {/* Thumbnail Gallery */}
-        {images.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedImageIndex(index)}
-                className={`relative cursor-pointer w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border-2 transition-colors duration-300 ${
-                  selectedImageIndex === index
-                    ? "border-primary"
-                    : "border-border"
-                }`}
-              >
+          {images.map((image) => (
+            <SwiperSlide key={image.url}>
+              <div className="relative cursor-pointer w-20 h-20 rounded-lg overflow-hidden">
                 <Image
                   src={image.url || "/placeholder.svg"}
-                  alt={image.alt || `${title} thumbnail ${index + 1}`}
+                  alt={image.alt || `${title} thumbnail`}
                   fill
                   className="object-cover"
                 />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-      <ProductImageZoomModal
-        isOpen={isZoomOpen}
-        onClose={() => setIsZoomOpen(false)}
-        imageUrl={currentImage.url}
-        imageAlt={currentImage.alt || title}
-      />
-    </>
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      )}
+    </div>
   );
 }

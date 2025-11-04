@@ -54,7 +54,6 @@ export default function EditProductPage() {
             res.data.variants?.map((v: any) => ({
               _id: v._id,
               size: v.size,
-              color: v.color,
               stock: v.stock,
               price: v.price,
               images: [], // file uploads

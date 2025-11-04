@@ -5,7 +5,7 @@ export function useProductForm(initialData?: any) {
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [description, setDescription] = useState(
     initialData?.description || {}
-  )
+  );
   const [fabric, setFabric] = useState(initialData?.fabric || "");
   const [valueAddition, setValueAddition] = useState(
     initialData?.valueAddition || ""
@@ -25,7 +25,9 @@ export function useProductForm(initialData?: any) {
     initialData?.categories || []
   );
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
-  const [keyFeatures, setKeyFeatures] = useState<string[]>(initialData?.keyFeatures || []);
+  const [keyFeatures, setKeyFeatures] = useState<string[]>(
+    initialData?.keyFeatures || []
+  );
 
   // Main images
   const [mainImages, setMainImages] = useState<File[]>([]);
@@ -43,7 +45,7 @@ export function useProductForm(initialData?: any) {
   const addVariant = () => {
     setVariants((prev) => [
       ...prev,
-      { id: null, size: "", color: "", stock: 0, price: 0 },
+      { id: null, size: "", stock: 0, price: 0 },
     ]);
   };
 

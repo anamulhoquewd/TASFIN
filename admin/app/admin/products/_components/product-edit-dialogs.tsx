@@ -71,6 +71,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import useProducts from "../_hook/useProducts";
 
 interface EditModalProps {
   type: string;
@@ -968,7 +969,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
     resolver: zodResolver(productVariantUpdateZ),
     defaultValues: {
       size: "",
-      color: "",
       price: 0,
       stock: 0,
     },
@@ -985,7 +985,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
     const variant = product.variants.find((v: any) => v._id === value);
     if (variant) {
       form.setValue("size", variant.size);
-      form.setValue("color", variant.color);
       form.setValue("price", variant.price);
       form.setValue("stock", variant.stock);
     }
@@ -1014,7 +1013,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
       // ✅ reset with object, not stringify
       form.reset({
         size: "",
-        color: "",
         price: 0,
         stock: 0,
       });
@@ -1053,7 +1051,7 @@ function VariantInfoForm({ product, onClose }: FormProps) {
             <SelectContent>
               {product.variants?.map((variant: any) => (
                 <SelectItem key={variant._id} value={variant._id}>
-                  {variant.size} - {variant.color} (${variant.price})
+                  {variant.size} (${variant.price})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1073,20 +1071,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
                   <FormLabel>Size</FormLabel>
                   <FormControl>
                     <Input placeholder="S, M, L, XL" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name={`color`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Color</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Red, Blue, etc." {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -1274,7 +1258,7 @@ function VariantImagesForm({
                 <SelectContent>
                   {product.variants?.map((variant) => (
                     <SelectItem key={variant._id} value={variant._id}>
-                      {variant.size} - {variant.color}
+                      {variant.size}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -1492,10 +1476,9 @@ function VariantImagesForm({
 // ----------------- Schema -----------------
 const createVariantSchema = z.object({
   size: z.string().min(1, "Size is required"),
-  color: z.string().min(1, "Color is required"),
   stock: z.number().min(0),
   price: z.number().min(0),
-  images: z.array(z.instanceof(File)).min(1, "At least one image is required"),
+  images: z.array(z.instanceof(File)).optional(),
 });
 
 type CreateVariantValues = z.infer<typeof createVariantSchema>;
@@ -1515,7 +1498,6 @@ function CreateVariantForm({
     resolver: zodResolver(createVariantSchema),
     defaultValues: {
       size: "",
-      color: "",
       stock: 0,
       price: 0,
       images: [],
@@ -1527,7 +1509,8 @@ function CreateVariantForm({
     if (e.target.files) {
       const files = Array.from(e.target.files);
       setSelectedFiles((prev) => [...prev, ...files]);
-      form.setValue("images", [...form.getValues("images"), ...files]);
+      const existing: File[] = form.getValues("images") || [];
+      form.setValue("images", [...existing, ...files]);
     }
   };
 
@@ -1544,19 +1527,13 @@ function CreateVariantForm({
 
       const formData = new FormData();
       formData.append("size", data.size);
-      formData.append("color", data.color);
       formData.append("stock", String(data.stock));
       formData.append("price", String(data.price));
 
-      data.images.forEach((file) => {
+      (data.images || []).forEach((file) => {
         formData.append("images", file);
       });
-      const { images, size, color, stock, price } = data;
-
-      console.log("Form Values: ", {
-        images: (images || []).map((f: File) => f.name),
-        data: { size, color, stock, price },
-      });
+      const { images, size, stock, price } = data;
 
       const response = await api.patch(
         `/products/${product._id}/variant`,
@@ -1604,21 +1581,6 @@ function CreateVariantForm({
               <FormLabel>Size</FormLabel>
               <FormControl>
                 <Input placeholder="S, M, L, XL" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Color */}
-        <FormField
-          control={form.control}
-          name="color"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Color</FormLabel>
-              <FormControl>
-                <Input placeholder="Red, Blue, etc." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -1801,8 +1763,7 @@ export default function DeleteVariantForm({
           <SelectContent>
             {product.variants?.map((variant) => (
               <SelectItem key={variant._id} value={variant._id}>
-                {variant.size} - {variant.color} (${variant.price}) - Stock:{" "}
-                {variant.stock}
+                {variant.size} (${variant.price}) - Stock: {variant.stock}
               </SelectItem>
             ))}
           </SelectContent>
@@ -1822,10 +1783,6 @@ export default function DeleteVariantForm({
               <div className="flex justify-between">
                 <span className="font-medium">Size:</span>
                 <Badge variant="outline">{selectedVariantData.size}</Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Color:</span>
-                <Badge variant="outline">{selectedVariantData.color}</Badge>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">Price:</span>
@@ -1867,10 +1824,8 @@ export default function DeleteVariantForm({
               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
               <AlertDialogDescription>
                 This will permanently delete{" "}
-                <strong>
-                  {selectedVariantData?.size} - {selectedVariantData?.color}
-                </strong>{" "}
-                and all its associated data. This action cannot be undone.
+                <strong>{selectedVariantData?.size}</strong> and all its
+                associated data. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

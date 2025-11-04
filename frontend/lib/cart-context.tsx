@@ -13,7 +13,6 @@ interface CartItem {
   maxStock: number;
   // Include variant details for display
   size: string;
-  color: string;
 }
 
 interface CartContextType {

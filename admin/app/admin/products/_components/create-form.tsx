@@ -290,7 +290,6 @@ export function CreateProductForm({
                     onClick={() =>
                       append({
                         size: "",
-                        color: "",
                         stock: 0,
                         price: 0,
                         images: [],
@@ -323,7 +322,7 @@ export function CreateProductForm({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
                           control={form.control}
                           name={`variants.${index}.size`}
@@ -332,23 +331,6 @@ export function CreateProductForm({
                               <FormLabel>Size</FormLabel>
                               <FormControl>
                                 <Input placeholder="S, M, L, XL" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name={`variants.${index}.color`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Color</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Red, Blue, etc."
-                                  {...field}
-                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

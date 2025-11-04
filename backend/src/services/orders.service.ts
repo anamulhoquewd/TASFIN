@@ -77,7 +77,7 @@ export const register = async (body: OrderInput) => {
       if (variant.stock < item.quantity) {
         return {
           error: {
-            message: `Not enough stock for ${product.title} (${variant.size}, ${variant.color}). Available stock ${variant.stock}`,
+            message: `Not enough stock for ${product.title} (${variant.size}). Available stock ${variant.stock}`,
           },
         };
       }
@@ -89,7 +89,7 @@ export const register = async (body: OrderInput) => {
       orderProducts.push({
         variantId: variant._id.toString(),
         productId: product._id.toString(),
-        title: `${product.title} - ${variant.color} - ${variant.size}`,
+        title: `${product.title} - ${variant.size}`,
         image: variant.images?.[0] || product.images?.[0],
         price,
         quantity: item.quantity,

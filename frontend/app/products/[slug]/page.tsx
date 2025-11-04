@@ -10,6 +10,7 @@ import { ProductVariantSelector } from "@/components/products/product/variant-se
 import { useProducts } from "@/hooks/products/use-products";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 export default function ProductPage() {
   const params = useParams();
@@ -100,23 +101,18 @@ export default function ProductPage() {
       {/* Variant Images Section */}
       {selectedVariant?.images && selectedVariant.images.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">
-            {selectedVariant.color} - {selectedVariant.size}
-          </h2>
+          <h2 className="text-2xl font-bold mb-6">{selectedVariant.size}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {selectedVariant.images.map((image, index) => (
               <div
                 key={index}
                 className="relative aspect-square rounded-lg overflow-hidden bg-muted"
               >
-                <img
+                <Image
+                  width={200}
+                  height={200}
                   src={image.url || "/placeholder.svg"}
-                  alt={
-                    image.alt ||
-                    `${selectedVariant.color} ${selectedVariant.size} view ${
-                      index + 1
-                    }`
-                  }
+                  alt={image.alt || `${selectedVariant.size} view ${index + 1}`}
                   className="w-full h-full object-cover"
                 />
               </div>

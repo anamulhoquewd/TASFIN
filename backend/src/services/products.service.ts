@@ -106,7 +106,7 @@ export const register = async ({
           return {
             ...variant,
             images: variantUrls.map((url) => ({
-              alt: `${variant.color}-${variant.size}`,
+              alt: `-${variant.size}`,
               url,
             })),
           };
@@ -485,7 +485,7 @@ export const updateVImages = async ({
 
       const res = await uploadMultipleFiles({
         body: { images: validData.data.images },
-        folder: `products/variants/${variantIndex}/${product.title}-${variant.color}-${variant.size}`,
+        folder: `products/variants/${variantIndex}/${product.title}-${variant.size}`,
         filenames,
       });
 
@@ -505,7 +505,7 @@ export const updateVImages = async ({
       variant.images.push(
         ...uniqueNewUrls.map((url) => ({
           url,
-          alt: `${product.title}-${variant.color}-${variant.size}`,
+          alt: `${product.title}-${variant.size}`,
         }))
       );
     }
@@ -555,10 +555,9 @@ export const createVariant = async ({
   const validData = z
     .object({
       size: z.string().min(1),
-      color: z.string().min(1),
       stock: z.number().int().min(0, "stock must be >= 0"),
       price: z.number().nonnegative("price must be >= 0"),
-      images: z.array(z.file()).optional(),
+      images: z.array(z.file()).optional().default([]),
     })
     .safeParse(data);
 
@@ -583,37 +582,37 @@ export const createVariant = async ({
     // -------------------------------
     // Step 2: Upload Images
     // -------------------------------
-    const uploads = await uploadMultipleFiles({
-      body: { images: validData.data.images || [] },
-      folder: `products/variants/${product.variants.length}`,
-      filenames: (validData.data.images || []).map(
-        (f: File, idx: number) => `${Date.now()}-${idx}-${f.name}`
-      ),
-    });
+    if (validData.data.images.length > 0) {
+      const uploads = await uploadMultipleFiles({
+        body: { images: validData.data.images || [] },
+        folder: `products/variants/${product.variants.length}`,
+        filenames: (validData.data.images || []).map(
+          (f: File, idx: number) => `${Date.now()}-${idx}-${f.name}`
+        ),
+      });
+      if (uploads.error) throw new Error(uploads?.error?.message);
+      if (uploads.serverError) throw new Error(uploads?.serverError?.message);
 
-    if (uploads.error) throw new Error(uploads?.error?.message);
-    if (uploads.serverError) throw new Error(uploads?.serverError?.message);
-
-    uploadedUrls = uploads?.success?.data ?? [];
+      uploadedUrls = uploads?.success?.data ?? [];
+    }
 
     // -------------------------------
     // Step 3: Build variant & Save in DB
     // -------------------------------
-    const { size, color, stock, price } = validData.data;
+    const { size, stock, price } = validData.data;
     const imageObjects = (uploadedUrls || []).map((url) => ({
       url,
-      alt: `${color}-${size}`,
+      alt: `${size}`,
     }));
 
     product.variants.push({
       size,
-      color,
       stock,
       price,
       images: imageObjects,
     } as any);
 
-    const docs = await product.save();
+    const docs = product.save();
 
     return {
       success: {

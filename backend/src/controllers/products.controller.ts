@@ -38,7 +38,6 @@ export const register = async (c: Context) => {
   while (formData.get(`variants[${variantIndex}][size]`)) {
     const variant = {
       size: formData.get(`variants[${variantIndex}][size]`) as string,
-      color: formData.get(`variants[${variantIndex}][color]`) as string,
       stock: parseInt(
         formData.get(`variants[${variantIndex}][stock]`) as string
       ),
@@ -192,7 +191,6 @@ export const updateVariantInfo = async (c: Context) => {
   const formData = await c.req.parseBody();
 
   const body = {
-    color: formData["color"] || "",
     size: formData["size"] || "",
     price: parseInt(formData["price"] as string) || 0,
     stock: parseInt(formData["stock"] as string) || 0,
@@ -314,13 +312,12 @@ export const createVariant = async (c: Context) => {
   const images = formData.getAll("images") as File[];
 
   const size = formData.get("size") as string;
-  const color = formData.get("color") as string;
   const stock = parseInt(formData.get("stock") as string);
   const price = parseFloat(formData.get("price") as string);
 
   // Call service
   const response = await productService.createVariant({
-    data: { images, size, stock, color, price },
+    data: { images, size, stock, price },
     productId,
   });
 

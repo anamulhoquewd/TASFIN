@@ -14,7 +14,7 @@ export default function FAQPage() {
     {
       question: "How do I place an order?",
       answer:
-        "Browse our products, select your desired items with size and color preferences, add them to your cart, and proceed to checkout. Fill in your shipping information and choose your preferred payment method to complete your order.",
+        "Browse our products, select your desired items with size preferences, add them to your cart, and proceed to checkout. Fill in your shipping information and choose your preferred payment method to complete your order.",
     },
     {
       question: "What payment methods do you accept?",

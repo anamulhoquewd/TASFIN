@@ -20,7 +20,6 @@ export const objectIdSchemaZ = z.union([
 // IProductVariant schema
 export const productVariantSchemaZ = z.object({
   size: z.string().min(1),
-  color: z.string().min(1),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(z.file()).optional(),

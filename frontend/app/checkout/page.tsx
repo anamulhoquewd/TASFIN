@@ -260,7 +260,7 @@ export default function CheckoutPage() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            {item.color} / {item.size}
+                            {item.size}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Qty: {item.quantity}

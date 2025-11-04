@@ -28,7 +28,7 @@ function useProducts() {
       keyFeatures: [],
       categories: [],
       images: [],
-      variants: [{ size: "", color: "", stock: 0, price: 0, images: [] }],
+      variants: [{ size: "", stock: 0, price: 0, images: [] }],
       fabric: "",
       valueAddition: "",
       cutFit: "",
@@ -42,8 +42,6 @@ function useProducts() {
       tags: [],
     },
   });
-
-  console.log(form.formState.errors);
 
   const { fields, append, prepend, remove } = useFieldArray({
     control: form.control,
@@ -216,7 +214,6 @@ function useProducts() {
       // Append variants
       data.variants.forEach((variant, index) => {
         formData.append(`variants[${index}][size]`, variant.size);
-        formData.append(`variants[${index}][color]`, variant.color);
         formData.append(`variants[${index}][stock]`, variant.stock.toString());
         formData.append(`variants[${index}][price]`, variant.price.toString());
 
@@ -267,6 +264,14 @@ function useProducts() {
         images: [],
         variants: [],
       });
+
+      getProducts({
+        searchQuery: "",
+        page: 1,
+        categoryFilter: "",
+        isActive: true,
+        isFeatured: false,
+      });
     } catch (error: any) {
       console.error("Error creating product:", error);
       if (error.response.data.success === false) {
@@ -295,7 +300,13 @@ function useProducts() {
 
       toast.success("Product deleted successfully");
 
-      return true;
+      getProducts({
+        searchQuery: "",
+        page: 1,
+        categoryFilter: "",
+        isActive: true,
+        isFeatured: false,
+      });
     } catch (error) {
       toast.error("Failed to delete product");
       return false;
@@ -361,7 +372,6 @@ function useProducts() {
       }
 
       formData.append(`variants[${index}][size]`, variant.size || "");
-      formData.append(`variants[${index}][color]`, variant.color || "");
       formData.append(`variants[${index}][stock]`, String(variant.stock ?? 0));
       formData.append(`variants[${index}][price]`, String(variant.price ?? 0));
 
@@ -401,7 +411,7 @@ function useProducts() {
       }
 
       toast.success(
-        response.data.success.message || "Product created successfully."
+        response.data.success.message || "Product updated successfully."
       );
 
       // Reset form after successful submission
@@ -424,6 +434,14 @@ function useProducts() {
         tags: [],
         images: [],
         variants: [],
+      });
+
+      getProducts({
+        searchQuery: "",
+        page: 1,
+        categoryFilter: "",
+        isActive: true,
+        isFeatured: false,
       });
 
       return { success: true, data: response.data.data };

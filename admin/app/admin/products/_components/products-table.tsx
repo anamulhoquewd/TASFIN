@@ -393,8 +393,7 @@ export function ProductsTable() {
                                 <div key={index} className="text-sm">
                                   <span className="font-medium">
                                     {variant.size}
-                                  </span>{" "}
-                                  - {variant.color}
+                                  </span>
                                   <span className="text-muted-foreground ml-2">
                                     ({variant.stock} in stock)
                                   </span>

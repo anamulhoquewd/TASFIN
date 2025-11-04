@@ -35,7 +35,7 @@ import Paginations, { Pagination } from "@/components/pagination";
 import { ICustomer } from "@/interfaces/users";
 import useCustomer from "./_hook/useCustomer";
 import UpdateDialog from "./_component/update-dialog";
-import { DeleteDialog } from "@/components/delete-dialong";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function CustomersPage() {
   const {
@@ -181,7 +181,7 @@ export default function CustomersPage() {
               selectedItem={selectedItem}
               setSelectedItem={setSelectedItem}
             />
-            <DeleteDialog
+            <DeleteConfirmation
               onConfirm={() => handleDelete(selectedItem._id)}
               open={deleteOpen}
               changeOpen={setDeleteOpen}

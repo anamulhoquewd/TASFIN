@@ -70,8 +70,8 @@ import StatusDialog, {
 import { IOrder } from "@/interfaces/orders";
 import ShowItems from "./_components/show-items";
 import useOrder from "./_hook/useOrder";
-import { DeleteDialog } from "@/components/delete-dialong";
 import { copyToClipboard, formatPrice } from "@/utils";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function OrdersPage() {
   const {
@@ -482,7 +482,7 @@ export default function OrdersPage() {
             onUpdate={(data) => handleUpdate(data)}
           />
 
-          <DeleteDialog
+          <DeleteConfirmation
             onConfirm={() => handleDelete(selectedItem._id)}
             open={deleteOpen}
             changeOpen={setDeleteOpen}

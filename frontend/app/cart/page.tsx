@@ -52,7 +52,7 @@ export default function CartPage() {
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => (
             <Card
-              key={`v_${item.variantId}-p_${item.productId}-${item.color}-${item.size}`}
+              key={`v_${item.variantId}-p_${item.productId}-${item.size}`}
               className="border-border"
             >
               <CardContent className="p-4">
@@ -74,7 +74,7 @@ export default function CartPage() {
                           {item.title}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {item.color} / {item.size}
+                          {item.size}
                         </p>
                       </div>
                       <Button

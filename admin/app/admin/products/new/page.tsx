@@ -9,9 +9,11 @@ import useProducts from "../_hook/useProducts";
 import { useState } from "react";
 import { ProductCreateInput } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
+import AlertConfirmation from "@/components/alert";
 
 export default function NewProductPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isAlertOpne, setIsAlertOpne] = useState(false);
   const router = useRouter();
 
   const {
@@ -82,6 +84,12 @@ export default function NewProductPage() {
         )}
         handleVariantImageUpload={handleVariantImageUpload}
         removeVariantImage={removeVariantImage}
+      />
+
+      <AlertConfirmation
+        isOpne={isAlertOpne}
+        setIsOpen={setIsAlertOpne}
+        onConfirm={handleSubmit}
       />
     </div>
   );
