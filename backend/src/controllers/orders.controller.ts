@@ -81,6 +81,8 @@ export const getOrders = async (c: Context) => {
     | "delivered"
     | "cancelled";
   const paymentStatus = c.req.query("paymentStatus") as "paid" | "unpaid";
+  const phone = c.req.query("phone") as string;
+  const email = c.req.query("email") as string;
 
   const response = await orderService.getOrders({
     page,
@@ -94,6 +96,8 @@ export const getOrders = async (c: Context) => {
     status,
     paymentStatus,
     variantId,
+    phone,
+    email,
   });
 
   if (response.error) {

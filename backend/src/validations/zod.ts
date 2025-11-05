@@ -380,6 +380,17 @@ export const orderFetchQuerySchema = z.object({
       message: "Invalid MongoDB User ID format",
     })
     .optional(),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .trim()
+    .toLowerCase()
+    .optional(),
+  phone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim()
+    .optional(),
 
   variantId: z
     .string()

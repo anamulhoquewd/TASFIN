@@ -31,6 +31,8 @@ export interface GetOrderServiceProps {
   status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus?: "paid" | "unpaid";
   search?: string;
+  phone?: string;
+  email?: string;
 }
 
 export const register = async (body: OrderInput) => {
@@ -208,6 +210,34 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
   }
 
   try {
+    // Resolve phone/email to userId first (since Order.user is an ObjectId ref)
+    let resolvedUserId: string | undefined = queryValidation.data.userId;
+    if (
+      !resolvedUserId &&
+      (queryValidation.data.phone || queryValidation.data.email)
+    ) {
+      const userBy = queryValidation.data.phone
+        ? { phone: queryValidation.data.phone }
+        : { email: queryValidation.data.email };
+      const userDoc = await User.findOne(userBy).select("_id").lean();
+      if (!userDoc) {
+        // No matching user → no orders
+        return {
+          success: {
+            success: true,
+            message: "Orders fetched successfully",
+            data: [],
+            pagination: pagination({
+              page: queryParams.page,
+              limit: queryParams.limit,
+              total: 0,
+            }),
+          },
+        };
+      }
+      resolvedUserId = String(userDoc._id);
+    }
+
     // Date filter
     const dateFilter: any = {};
     if (
@@ -223,8 +253,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
     const query = buildOrderQuery({
       status: queryValidation.data.status,
       paymentStatus: queryValidation.data.paymentStatus,
-
-      userId: queryValidation.data.userId,
+      userId: resolvedUserId,
       variantId: queryValidation.data.variantId,
 
       search: queryValidation.data.search,

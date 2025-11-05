@@ -1,6 +1,6 @@
 import { Clock, Package, Truck, CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { OrderStatus } from "@/app/track-order/page";
+import { OrderStatus } from "@/app/track/page";
 
 interface StatusTimelineProps {
   currentStatus: OrderStatus;

@@ -24,7 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import useCheckout from "@/hooks/checkout/use-checkout";
+import useCheckout from "@/hooks/orders/use-orders";
 
 export default function CheckoutPage() {
   const { items, subtotal, totalItems } = useCart();

@@ -8,7 +8,7 @@ import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-const useCheckout = () => {
+const useOrders = () => {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { items, clearCart } = useCart();
@@ -72,6 +72,27 @@ const useCheckout = () => {
     }
   }, []);
 
+  // fetch orders by user phone or email
+  const getOrdersByPhoneOrEmail = useCallback(async (input: string) => {
+    try {
+      const response = await api.get(`/orders`, {
+        params: {
+          ...(input.includes("@") ? { email: input } : { phone: input }),
+          limit: 100,
+        },
+      });
+      if (response.data.success) {
+        return response.data;
+      }
+
+      return null;
+    } catch (error) {
+      toast.error("Failed to fetch orders by phone or email");
+      console.error("Failed to fetch orders by phone or email:", error);
+      return null;
+    }
+  }, []);
+
   // fetch single order by ID
   const getOrderById = useCallback(
     async (id: string): Promise<IOrder | null> => {
@@ -98,7 +119,8 @@ const useCheckout = () => {
     isProcessing,
     getOrderById,
     setIsProcessing,
+    getOrdersByPhoneOrEmail,
   };
 };
 
-export default useCheckout;
+export default useOrders;
