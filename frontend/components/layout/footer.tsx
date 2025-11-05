@@ -30,6 +30,12 @@ export function Footer() {
                 Shop All
               </Link>
               <Link
+                href="/track-order"
+                className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
+              >
+                Order tracking
+              </Link>
+              <Link
                 href="/about"
                 className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >

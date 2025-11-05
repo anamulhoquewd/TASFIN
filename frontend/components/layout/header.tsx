@@ -58,13 +58,19 @@ export function Header() {
         <div className="flex h-12 items-center justify-between overflow-hidden">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <Image
-              src={logo}
-              alt="Logo"
-              width={1000}
-              height={1000}
-              className="h-12 w-auto md:h-16 lg:h-24 object-contain"
-            />
+            {logo ? (
+              <Image
+                src={logo}
+                alt="Logo"
+                width={1000}
+                height={1000}
+                className="h-12 w-auto md:h-16 lg:h-24 object-contain"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-muted-foreground">No image</span>
+              </div>
+            )}
           </Link>
 
           {/* Desktop Navigation */}

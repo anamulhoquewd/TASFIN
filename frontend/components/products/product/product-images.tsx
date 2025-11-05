@@ -43,12 +43,18 @@ export function ProductImageGallery({
         {images.map((image) => (
           <SwiperSlide key={image.url}>
             <div className="relative w-full h-full cursor-pointer">
-              <Image
-                src={image.url || "/placeholder.svg"}
-                alt={image.alt || title}
-                fill
-                className="object-cover"
-              />
+              {image.url ? (
+                <Image
+                  src={image.url || "/placeholder.svg"}
+                  alt={image.alt || title}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <span className="text-muted-foreground">No image</span>
+                </div>
+              )}
             </div>
           </SwiperSlide>
         ))}
@@ -68,12 +74,18 @@ export function ProductImageGallery({
           {images.map((image) => (
             <SwiperSlide key={image.url}>
               <div className="relative cursor-pointer w-20 h-20 rounded-lg overflow-hidden">
-                <Image
-                  src={image.url || "/placeholder.svg"}
-                  alt={image.alt || `${title} thumbnail`}
-                  fill
-                  className="object-cover"
-                />
+                {image.url ? (
+                  <Image
+                    src={image.url || "/placeholder.svg"}
+                    alt={image.alt || `${title} thumbnail`}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <span className="text-muted-foreground">No image</span>
+                  </div>
+                )}
               </div>
             </SwiperSlide>
           ))}

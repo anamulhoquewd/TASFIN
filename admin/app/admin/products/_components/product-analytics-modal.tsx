@@ -338,13 +338,19 @@ export function ProductAnalyticsModal({
           <DialogHeader className="sticky top-0 z-10 bg-background border-b px-6 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Image
-                  src={product.images[0]?.url as string}
-                  width={200}
-                  height={200}
-                  alt={product.title}
-                  className="w-15 h-15 object-cover rounded-lg"
-                />
+                {product.images[0]?.url ? (
+                  <Image
+                    src={product.images[0]?.url as string}
+                    width={200}
+                    height={200}
+                    alt={product.title}
+                    className="w-15 h-15 object-cover rounded-lg"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <span className="text-muted-foreground">No image</span>
+                  </div>
+                )}
                 <div>
                   <DialogTitle className="text-xl font-semibold">
                     {product.title}

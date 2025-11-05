@@ -10,10 +10,10 @@ import { Hero } from "@/components/home/hero";
 import { ArrivalsSection } from "@/components/home/arrivals";
 import { CategoriesSection } from "@/components/home/categories";
 import { TestimonialsSection } from "@/components/home/testimonials";
+import { useProducts } from "@/hooks/products/use-products";
 
 export default function HomePage() {
   const { categories } = useCategory();
-  console.log(categories);
 
   // Sample images for the slideshow
   const slides = [

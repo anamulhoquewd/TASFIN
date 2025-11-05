@@ -21,7 +21,7 @@ export default function ProductsPage() {
   });
 
   const {
-    products,
+    infinityProducts: products,
     isLoading,
     hasMore,
     observerTarget,

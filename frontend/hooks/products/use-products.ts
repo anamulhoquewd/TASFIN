@@ -22,7 +22,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     priceRange,
   } = options;
 
-  const [products, setProducts] = useState<IProduct[]>([]);
+  const [infinityProducts, setInfinityProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +34,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   // Add a ref to track if we're currently fetching
   const isFetchingRef = useRef(false);
 
-  const fetchProducts = useCallback(
+  const fetchInfinityProducts = useCallback(
     async (pageNum: number, reset = false) => {
       // Prevent duplicate requests
       if (isFetchingRef.current) {
@@ -80,9 +80,9 @@ export function useProducts(options: UseProductsOptions = {}) {
           }
 
           if (reset) {
-            setProducts(newProducts);
+            setInfinityProducts(newProducts);
           } else {
-            setProducts((prev) => [...prev, ...newProducts]);
+            setInfinityProducts((prev) => [...prev, ...newProducts]);
           }
 
           // Check if we've reached the end using totalPage
@@ -98,6 +98,35 @@ export function useProducts(options: UseProductsOptions = {}) {
               setHasMore(false);
             }
           }
+        }
+      } catch (error) {
+        toast.error("Failed to fetch products");
+        console.error("Error fetching products:", error);
+      } finally {
+        setIsLoading(false);
+        isFetchingRef.current = false;
+      }
+    },
+    [initialLimit, sortConfig, filters, hasMore]
+  );
+
+  const fetchProducts = useCallback(
+    async ({
+      limit = 8,
+      isFeatured = true,
+      isActive = true,
+      sortType = "desc",
+      sortBy = "updatedAt",
+    }) => {
+      setIsLoading(true);
+
+      try {
+        const response = await api.get("/products", {
+          params: { limit, isFeatured, isActive, sortType, sortBy },
+        });
+
+        if (response.data.success && Array.isArray(response.data.data)) {
+          return response.data;
         }
       } catch (error) {
         toast.error("Failed to fetch products");
@@ -136,7 +165,7 @@ export function useProducts(options: UseProductsOptions = {}) {
       setPage(1);
       setHasMore(true);
       setTotalPages(null);
-      setProducts([]);
+      setInfinityProducts([]);
     },
     []
   );
@@ -146,7 +175,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     setPage(1);
     setHasMore(true);
     setTotalPages(null);
-    setProducts([]);
+    setInfinityProducts([]);
   }, []);
 
   // Intersection Observer Effect
@@ -162,7 +191,7 @@ export function useProducts(options: UseProductsOptions = {}) {
           console.log("Observer triggered, loading next page");
           setPage((prevPage) => {
             const nextPage = prevPage + 1;
-            fetchProducts(nextPage);
+            fetchInfinityProducts(nextPage);
             return nextPage;
           });
         }
@@ -181,16 +210,16 @@ export function useProducts(options: UseProductsOptions = {}) {
       }
       observer.disconnect();
     };
-  }, [hasMore, isLoading, fetchProducts]);
+  }, [hasMore, isLoading, fetchInfinityProducts]);
 
   // Initial load and filter/sort changes
   useEffect(() => {
     console.log("Filters or sort changed, resetting...");
-    fetchProducts(1, true);
+    fetchInfinityProducts(1, true);
   }, [sortConfig, filters]);
 
   return {
-    products,
+    infinityProducts,
     isLoading,
     hasMore,
     observerTarget,
@@ -201,5 +230,6 @@ export function useProducts(options: UseProductsOptions = {}) {
     totalPages,
     currentPage: page,
     getProductBySlug,
+    fetchProducts,
   };
 }

@@ -50,13 +50,19 @@ export default function Header() {
           href="/admin"
           className="flex items-center gap-2 font-semibold md:flex"
         >
-          <Image
-            src={logo}
-            width={40}
-            height={40}
-            alt={settings?.siteName || "TASFIN Admin"}
-            className="rounded"
-          />
+          {logo ? (
+            <Image
+              src={logo}
+              width={40}
+              height={40}
+              alt={settings?.siteName || "TASFIN Admin"}
+              className="rounded"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <span className="text-muted-foreground">No image</span>
+            </div>
+          )}
           <span className="hidden md:inline-block">
             {settings?.siteName || "TASFIN Admin"}
           </span>

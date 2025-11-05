@@ -83,13 +83,21 @@ export default function ShowItems({
                 products.map((product) => (
                   <TableRow key={product.variantId}>
                     <TableCell>
-                      <Image
-                        src={product.image.url || ""}
-                        width={48}
-                        height={48}
-                        alt={product.image.alt || product.title}
-                        className="object-cover rounded-md"
-                      />
+                      {product.image ? (
+                        <Image
+                          src={product.image.url || ""}
+                          width={48}
+                          height={48}
+                          alt={product.image.alt || product.title}
+                          className="object-cover rounded-md"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <span className="text-muted-foreground">
+                            No image
+                          </span>
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{product.title}</div>

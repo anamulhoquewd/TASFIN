@@ -56,13 +56,19 @@ export function HeroSection() {
         >
           {/* Image with overlay */}
           <div className="relative w-full h-full">
-            <Image
-              src={slide.url}
-              alt={slide.alt}
-              width={1000}
-              height={1000}
-              className="w-full h-full object-cover"
-            />
+            {slide.url ? (
+              <Image
+                src={slide.url}
+                alt={slide.alt}
+                width={1000}
+                height={1000}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-muted-foreground">No image</span>
+              </div>
+            )}
             <div className="absolute inset-0 bg-black/40"></div>
           </div>
 

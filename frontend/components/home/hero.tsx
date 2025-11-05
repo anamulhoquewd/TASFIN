@@ -41,13 +41,19 @@ export function Hero({
           <SwiperSlide key={index}>
             {/* Image with overlay */}
             <div className="relative w-full h-full">
-              <Image
-                src={slide.url}
-                alt={slide.alt}
-                fill
-                priority={index === 0}
-                className="object-cover"
-              />
+              {slide.url ? (
+                <Image
+                  src={slide.url}
+                  alt={slide.alt}
+                  fill
+                  priority={index === 0}
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <span className="text-muted-foreground">No image</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-black/40"></div>
             </div>
 

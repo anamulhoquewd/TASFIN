@@ -113,13 +113,19 @@ export function ProductImageZoomModal({
               transition: isDragging ? "none" : "transform 0.2s ease-out",
             }}
           >
-            <Image
-              src={imageUrl || "/placeholder.svg"}
-              alt={imageAlt}
-              fill
-              className="object-contain"
-              priority
-            />
+            {imageUrl ? (
+              <Image
+                src={imageUrl || "/placeholder.svg"}
+                alt={imageAlt}
+                fill
+                className="object-contain"
+                priority
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-muted-foreground">No image</span>
+              </div>
+            )}
           </div>
 
           <div className="absolute bottom-4 left-4 flex gap-2 z-10">

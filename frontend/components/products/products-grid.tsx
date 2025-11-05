@@ -174,15 +174,23 @@ function ProductCard({ product }: { product: any }) {
           {product.images && product.images.length > 0 ? (
             <>
               {product.images.map((img: IImage, index: number) => (
-                <Image
-                  key={index}
-                  src={img.url || "/placeholder.svg"}
-                  alt={product.title}
-                  fill
-                  className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
-                    index === currentIndex ? "opacity-100" : "opacity-0"
-                  }`}
-                />
+                <>
+                  {img.url ? (
+                    <Image
+                      key={index}
+                      src={img.url || "/placeholder.svg"}
+                      alt={product.title}
+                      fill
+                      className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
+                        index === currentIndex ? "opacity-100" : "opacity-0"
+                      }`}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <span className="text-muted-foreground">No image</span>
+                    </div>
+                  )}
+                </>
               ))}
             </>
           ) : (

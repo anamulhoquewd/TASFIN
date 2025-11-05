@@ -108,13 +108,21 @@ export default function ProductPage() {
                 key={index}
                 className="relative aspect-square rounded-lg overflow-hidden bg-muted"
               >
-                <Image
-                  width={200}
-                  height={200}
-                  src={image.url || "/placeholder.svg"}
-                  alt={image.alt || `${selectedVariant.size} view ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+                {image.url ? (
+                  <Image
+                    width={200}
+                    height={200}
+                    src={image.url || "/placeholder.svg"}
+                    alt={
+                      image.alt || `${selectedVariant.size} view ${index + 1}`
+                    }
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <span className="text-muted-foreground">No image</span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
