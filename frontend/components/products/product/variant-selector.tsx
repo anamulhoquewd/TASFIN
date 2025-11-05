@@ -48,6 +48,7 @@ export function ProductVariantSelector({
         maxStock: selectedVariant.stock,
         size: selectedVariant.size,
         quantity: 1, // optional, defaults to 1
+        slug: product.slug,
       });
     }
   };

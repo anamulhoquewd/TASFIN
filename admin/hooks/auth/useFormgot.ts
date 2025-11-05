@@ -6,7 +6,7 @@ import { z } from "zod";
 import api from "@/axios/interceptor";
 
 const forgotPasswordFormSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email({ message: "Please enter a valid email address." }),
 });
 
 const useForgot = () => {

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowUpDown, Ban, CirclePlus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
-import { IImage, IProduct } from "@/interfaces/products";
+import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart-context";
@@ -129,6 +129,10 @@ function ProductCard({ product }: { product: any }) {
 
   const { addItem } = useCart();
 
+  const variantsHasStock = product.variants.filter(
+    (v: IProductVariant) => v.stock > 0
+  );
+
   const handleAddToCart = () => {
     toast.success("Event has been created", {
       action: {
@@ -139,13 +143,14 @@ function ProductCard({ product }: { product: any }) {
     // When adding a product variant to cart
     addItem({
       productId: product._id,
-      variantId: product.variants[0]._id,
+      variantId: variantsHasStock[0]._id,
       title: product.title,
-      image: product.variants[0].images?.[0] || product.images[0],
-      price: product.variants[0].price,
-      maxStock: product.variants[0].stock,
-      size: product.variants[0].size,
+      image: variantsHasStock[0].images?.[0] || product.images[0],
+      price: variantsHasStock[0].price,
+      maxStock: variantsHasStock[0].stock,
+      size: variantsHasStock[0].size,
       quantity: 1, // optional, defaults to 1
+      slug: product.slug,
     });
   };
 
@@ -174,10 +179,9 @@ function ProductCard({ product }: { product: any }) {
           {product.images && product.images.length > 0 ? (
             <>
               {product.images.map((img: IImage, index: number) => (
-                <>
+                <Fragment key={index}>
                   {img.url ? (
                     <Image
-                      key={index}
                       src={img.url || "/placeholder.svg"}
                       alt={product.title}
                       fill
@@ -190,7 +194,7 @@ function ProductCard({ product }: { product: any }) {
                       <span className="text-muted-foreground">No image</span>
                     </div>
                   )}
-                </>
+                </Fragment>
               ))}
             </>
           ) : (
@@ -233,7 +237,7 @@ function ProductCard({ product }: { product: any }) {
             size="icon"
             className="cursor-pointer"
             onClick={handleAddToCart}
-            disabled={!product.isActive}
+            disabled={!product.isActive || variantsHasStock.length <= 0}
           >
             {product.isActive ? <CirclePlus /> : <Ban />}
           </Button>

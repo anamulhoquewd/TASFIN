@@ -42,10 +42,10 @@ export function Footer() {
                 About Us
               </Link>
               <Link
-                href="/contact"
+                href="/support"
                 className="text-sm w-fit text-muted-foreground hover:text-primary transition-colors"
               >
-                Contact
+                Support
               </Link>
               <Link
                 href="/faq"

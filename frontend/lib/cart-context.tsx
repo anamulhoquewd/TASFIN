@@ -1,24 +1,12 @@
 "use client";
 
-import { IImage } from "@/interfaces/global";
+import { ICartItem } from "@/interfaces/global";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-interface CartItem {
-  productId: string;
-  variantId: string;
-  title: string;
-  image: IImage;
-  price: number;
-  quantity: number;
-  maxStock: number;
-  // Include variant details for display
-  size: string;
-}
-
 interface CartContextType {
-  items: CartItem[];
+  items: ICartItem[];
   addItem: (
-    newItem: Omit<CartItem, "quantity"> & { quantity?: number }
+    newItem: Omit<ICartItem, "quantity"> & { quantity?: number }
   ) => void;
   removeItem: (productId: string, variantId: string) => void;
   updateQuantity: (
@@ -34,7 +22,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<ICartItem[]>([]);
 
   // Load cart from in-memory storage on mount
   useEffect(() => {
@@ -43,7 +31,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addItem = (
-    newItem: Omit<CartItem, "quantity"> & { quantity?: number }
+    newItem: Omit<ICartItem, "quantity"> & { quantity?: number }
   ) => {
     setItems((currentItems) => {
       const existingItemIndex = currentItems.findIndex(

@@ -108,7 +108,7 @@ export function Header() {
                   asChild
                   className={`${navigationMenuTriggerStyle()} transition-colors duration-300`}
                 >
-                  <Link href="/contact">Contact</Link>
+                  <Link href="/support">Support</Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             </NavigationMenuList>
@@ -271,11 +271,11 @@ export function Header() {
                       About
                     </Link>
                     <Link
-                      href="/contact"
+                      href="/support"
                       className="text-sm font-medium text-foreground hover:text-primary transition-colors"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Contact
+                      Support
                     </Link>
                   </nav>
                 </SheetHeader>

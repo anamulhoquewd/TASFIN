@@ -3,21 +3,24 @@ import { IOrder } from "@/interfaces/orders";
 import { useCart } from "@/lib/cart-context";
 import { CheckoutFormValues, CheckoutSchemaZ } from "@/lib/zod-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 const useOrders = () => {
-  const router = useRouter();
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [status, setStatus] = useState<"success" | "faild" | null>("success");
   const { items, clearCart } = useCart();
+  const [order, setOrder] = useState<{ message: string; data: IOrder } | null>(
+    null
+  );
 
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(CheckoutSchemaZ) as any,
     defaultValues: {
       name: "",
       phone: "",
+      email: "",
       address: {
         street: "",
         city: "",
@@ -47,18 +50,19 @@ const useOrders = () => {
       const response = await api.post("/orders/register", data);
 
       if (response.data.success) {
-        console.log(response.data);
-
         toast.success(response.data.message || "Order created successfully!");
         console.log(response.data.message || "Order created successfully!");
 
         // Clear cart and redirect to confirmation
-        router.push(`/order-status?orderId=${response.data.data._id}`);
+        setOrder(response.data);
+        setStatus("success");
         clearCart();
       }
     } catch (error: any) {
       toast.error("Failed to create order");
       console.error("Error create order:", error);
+      setStatus("faild");
+      setOrder(null);
 
       if (error.response.data.success === false) {
         error.response.data.fields.forEach((field: any) => {
@@ -120,6 +124,9 @@ const useOrders = () => {
     getOrderById,
     setIsProcessing,
     getOrdersByPhoneOrEmail,
+    status,
+    order,
+    setStatus,
   };
 };
 

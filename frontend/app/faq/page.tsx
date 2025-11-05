@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/accordion";
 import Link from "next/link";
 
+const FREE_SHIPPING_START_FROM = process.env
+  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
 export default function FAQPage() {
   const faqs = [
     {
@@ -28,8 +30,9 @@ export default function FAQPage() {
     },
     {
       question: "Do you offer free shipping?",
-      answer:
-        "Yes! We offer free shipping on all orders above ৳3000. For orders below this amount, a standard shipping fee of ৳100 applies.",
+      answer: `Yes! We offer free shipping on all orders above BDT ${Number(
+        FREE_SHIPPING_START_FROM
+      )}. For orders below this amount, a standard shipping fee of ৳100 applies.`,
     },
     {
       question: "What is your return policy?",
@@ -112,10 +115,10 @@ export default function FAQPage() {
               team is here to help.
             </p>
             <Link
-              href="/contact"
+              href="/support"
               className="text-sm font-medium text-primary hover:underline"
             >
-              Contact Support →
+              Support Support →
             </Link>
           </CardContent>
         </Card>

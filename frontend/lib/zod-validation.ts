@@ -22,6 +22,7 @@ export const CheckoutSchemaZ = z.object({
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
   address: addressZ,
+  email: z.string().optional(),
   paymentMethod: z.enum(["cod"], {
     error: "Please select a payment method",
   }),

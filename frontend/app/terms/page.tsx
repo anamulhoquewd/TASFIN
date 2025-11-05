@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 
+const FREE_SHIPPING_START_FROM =
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_START_FROM;
 export default function TermsPage() {
   return (
     <div className="container mx-auto px-4 py-16">
@@ -70,7 +72,8 @@ export default function TermsPage() {
               <p className="text-muted-foreground leading-relaxed">
                 We aim to dispatch orders within 2-3 business days. Delivery
                 times may vary depending on your location. Free shipping is
-                available for orders above ৳3000. We are not responsible for
+                available for orders above BDT{" "}
+                {Number(FREE_SHIPPING_START_FROM)}. We are not responsible for
                 delays caused by courier services or circumstances beyond our
                 control.
               </p>
@@ -135,10 +138,10 @@ export default function TermsPage() {
                 If you have any questions about these Terms & Conditions, please
                 contact us at tasfinshop@gmail.com or through our{" "}
                 <Link
-                  href="/contact"
+                  href="/support"
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  Contact →
+                  Support →
                 </Link>{" "}
                 page.
               </p>

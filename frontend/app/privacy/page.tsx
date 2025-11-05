@@ -120,10 +120,10 @@ export default function PrivacyPage() {
                 practices, please contact us at tasfinshop@gmail.com or through
                 our{" "}
                 <Link
-                  href="/contact"
+                  href="/support"
                   className="text-sm font-medium text-primary hover:underline"
                 >
-                  Contact →
+                  Support →
                 </Link>{" "}
                 page.
               </p>

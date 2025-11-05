@@ -462,7 +462,7 @@ export const changePassword = async ({
 export const forgotPassword = async (email: string) => {
   // Validate email
   const validateSchema = z.object({
-    email: z.string().email(),
+    email: z.string().email({ message: "Please enter a valid email address." }),
   });
 
   const validData = validateSchema.safeParse({ email });

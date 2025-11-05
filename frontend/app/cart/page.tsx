@@ -9,12 +9,17 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
 import { useState } from "react";
 import { formatPrice } from "@/lib/utils";
+import Image from "next/image";
+
+const FREE_SHIPPING_START_FROM = process.env
+  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
   const [promoCode, setPromoCode] = useState("");
 
-  const shippingFee = subtotal > 0 ? (subtotal >= 3000 ? 0 : 100) : 0;
+  const shippingFee =
+    subtotal > 0 ? (subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100) : 0;
   const total = subtotal + shippingFee;
 
   if (items.length === 0) {
@@ -59,22 +64,26 @@ export default function CartPage() {
                 <div className="flex gap-4">
                   {/* Product Image */}
                   <div className="w-24 h-32 shrink-0 rounded-md overflow-hidden border border-border">
-                    <img
-                      src={item.image.url || "/placeholder.svg"}
-                      alt={item.image.alt || item.title}
-                      className="w-full h-full object-cover"
-                    />
+                    <Link href={`/products/${item.slug}`}>
+                      <img
+                        src={item.image.url || "/placeholder.svg"}
+                        alt={item.image.alt || item.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </Link>
                   </div>
 
                   {/* Product Details */}
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between gap-4">
                       <div>
-                        <h3 className="font-semibold text-foreground">
-                          {item.title}
+                        <h3 className="font-semibold text-primary">
+                          <Link href={`/products/${item.slug}`}>
+                            {item.title}
+                          </Link>
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                          {item.size}
+                          Variant: {item.size}
                         </p>
                       </div>
                       <Button
@@ -181,9 +190,10 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {subtotal < 3000 && (
+              {subtotal < Number(FREE_SHIPPING_START_FROM) && (
                 <p className="text-xs text-muted-foreground">
-                  Add {formatPrice(3000 - subtotal)} more for free shipping!
+                  Add {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
+                  more for free shipping!
                 </p>
               )}
 
