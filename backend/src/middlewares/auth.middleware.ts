@@ -12,17 +12,14 @@ const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 //  Check if user is authenticated
 export const authenticatedUser = async (c: Context, next: Next) => {
-  const phone = c.req.header("X-User-Phone");
-  if (!phone) {
-    // Clear cookie using Hono's deleteCookie
-    deleteCookie(c, "X-User-Phone", {
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-    });
+  const phone =
+    (await getSignedCookie(
+      c,
+      process.env.COOKIE_SECRET as string,
+      "X-User-Phone"
+    )) || c.req.header("X-User-Phone");
 
-    return authenticationError(c);
-  }
+  console.log("Phone: ", phone);
 
   try {
     const user = await User.findOne({ phone });
@@ -36,6 +33,8 @@ export const authenticatedUser = async (c: Context, next: Next) => {
 
       return authenticationError(c);
     }
+
+    console.log("User: ", user);
 
     c.set("user", user);
     return next();

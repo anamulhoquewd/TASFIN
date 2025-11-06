@@ -185,7 +185,7 @@ export function Header() {
               </Button>
             </Link>
 
-            <Link href="#">
+            <Link href="/dashboard">
               <Button
                 variant="ghost"
                 size="icon"

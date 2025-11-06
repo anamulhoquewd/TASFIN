@@ -26,6 +26,26 @@ export interface IOrder {
   products: IOrderItem[];
 }
 
+export interface IFetchOrder {
+  filters?: IFilter;
+  page?: number;
+  userId: string;
+  limit?: number;
+}
+
+export interface IFilter {
+  status:
+    | "pending"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "all";
+  paymentStatus: "paid" | "unpaid" | "all";
+  dateRange: { from: Date | undefined; to: Date | undefined } | undefined;
+  singleDate: Date | undefined;
+}
+
 export interface IOrderItem {
   productId: string;
   variantId: string;
