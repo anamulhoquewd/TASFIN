@@ -70,7 +70,7 @@ import StatusDialog, {
 import { IOrder } from "@/interfaces/orders";
 import ShowItems from "./_components/show-items";
 import useOrder from "./_hook/useOrder";
-import { copyToClipboard, formatPrice } from "@/utils";
+import { copyToClipboard, formatPrice } from "@/lib/utils";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function OrdersPage() {

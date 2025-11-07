@@ -20,10 +20,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "../_hook/useCategory";
 
 interface Props {
-  form: any;
+  form: UseFormReturn<FormValues>;
   onSubmit: (data: FormValues) => void;
   isLoading: boolean;
   open: boolean;
@@ -37,7 +38,7 @@ export default function NewCategory({
   isLoading,
   open,
   changeOpen,
-  handleNameChange
+  handleNameChange,
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
@@ -61,11 +62,11 @@ export default function NewCategory({
                   </FormLabel>
                   <FormControl>
                     {/* <Input placeholder="Type name" {...field} /> */}
-                     <Input
-                        placeholder="Enter product title"
-                        {...field}
-                        onChange={(e) => handleNameChange(e.target.value)}
-                      />
+                    <Input
+                      placeholder="Enter product title"
+                      {...field}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                    />
                   </FormControl>
                   <FormDescription>
                     The name displayed in category listings

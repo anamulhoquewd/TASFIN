@@ -1,10 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { ListIcon as Category, User } from "lucide-react";
+import { User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,19 +14,18 @@ import {
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { ICustomer } from "@/interfaces/users";
 import { FormValues } from "../_hook/useCustomer";
+import { UseFormReturn } from "react-hook-form";
 
 interface Props {
-  form: any;
+  form: UseFormReturn<FormValues>;
   onSubmit: (data: FormValues) => void;
   isLoading: boolean;
   open: boolean;

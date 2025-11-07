@@ -14,8 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
 import { PasswordInputField } from "./password-input-field";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
 import useChangePass from "@/hooks/auth/useChangePass";
 
 interface PasswordChangeModalProps {

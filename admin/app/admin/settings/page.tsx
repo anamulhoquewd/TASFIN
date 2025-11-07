@@ -21,22 +21,11 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, Mail, MapPin, Phone, Save, Store, Upload } from "lucide-react";
+import { Camera, Mail, MapPin, Phone, Save, Store } from "lucide-react";
 import useSettings from "./_hooks/useSettings";
-import { UploadAvatar } from "@/components/upload-avatar";
 
 export default function SettingsPage() {
-  const {
-    form,
-    handleUpdate,
-    uploadHandler,
-    settings,
-    isLoading,
-    error,
-    setError,
-    isAvatarOpen,
-    setIsAvatarOpen,
-  } = useSettings();
+  const { form, handleUpdate, isLoading, setIsAvatarOpen } = useSettings();
 
   return (
     <Form {...form}>

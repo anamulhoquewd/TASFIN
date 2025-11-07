@@ -15,7 +15,6 @@ import {
 import { addDays, format } from "date-fns";
 import { DateRange } from "react-day-picker";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -40,6 +39,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const [date, setDate] = useState<DateRange | undefined>({

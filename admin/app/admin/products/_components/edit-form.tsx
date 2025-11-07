@@ -43,9 +43,11 @@ import { type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { Textarea } from "@/components/ui/textarea";
+import { UseFormReturn } from "react-hook-form";
+import Image from "next/image";
 
 interface EditProductFormProps {
-  form: any;
+  form: UseFormReturn<ProductUpdateInput>;
   product: IProduct;
   onSubmit: (
     data: ProductUpdateInput,
@@ -88,7 +90,6 @@ export function EditProductForm({
   variantImagePreviews,
   handleVariantImageUpload,
   removeVariantImage,
-  setExistingImagesToKeep,
   existingImagesToKeep,
   handleVariantImageRemove,
   handleVariantImageRestore,
@@ -254,11 +255,14 @@ export function EditProductForm({
                               }
                             }}
                           >
-                            <img
+                            <Image
+                              width={1000}
+                              height={1000}
                               src={imageUrl}
                               alt={`Current ${index + 1}`}
                               className="w-full h-24 object-cover rounded-lg"
                             />
+
                             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                               <span className="text-white flex flex-col items-center justify-center">
                                 {isRemoved ? (
@@ -342,7 +346,9 @@ export function EditProductForm({
                           {(field.value || []).map(
                             (file: File, index: number) => (
                               <div key={index} className="relative group">
-                                <img
+                                <Image
+                                  width={1000}
+                                  height={1000}
                                   src={
                                     URL.createObjectURL(file) ||
                                     "/placeholder.svg"
@@ -459,7 +465,6 @@ export function EditProductForm({
                             )}
                           />
 
-                      
                           <FormField
                             control={form.control}
                             name={`variants.${index}.stock`}
@@ -563,7 +568,9 @@ export function EditProductForm({
                                             }
                                           }}
                                         >
-                                          <img
+                                          <Image
+                                            width={1000}
+                                            height={1000}
                                             src={url || ""}
                                             alt={`Variant ${index + 1} Image ${
                                               imgIndex + 1
@@ -603,9 +610,6 @@ export function EditProductForm({
                               fields[index]._id || `new-${index}`;
                             const previews =
                               variantImagePreviews[variantId] || [];
-                            const uploadedFiles =
-                              form.getValues(`variants.${index}.images`) || [];
-
                             return (
                               previews.length > 0 && (
                                 <div className="mb-4">
@@ -619,7 +623,9 @@ export function EditProductForm({
                                           key={imageIndex}
                                           className="relative group"
                                         >
-                                          <img
+                                          <Image
+                                            width={1000}
+                                            height={1000}
                                             src={preview || "/placeholder.svg"}
                                             alt={`Variant ${
                                               index + 1

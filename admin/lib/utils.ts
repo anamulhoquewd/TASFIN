@@ -26,3 +26,6 @@ export function decodeJwtPayload(token: string) {
 export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
 };
+
+export const formatPrice = (price: number = 0) =>
+  `BDT ${price.toLocaleString()}`;

@@ -71,7 +71,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import useProducts from "../_hook/useProducts";
+import Image from "next/image";
 
 interface EditModalProps {
   type: string;
@@ -810,7 +810,9 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                           }
                         }}
                       >
-                        <img
+                        <Image
+                          width={1000}
+                          height={1000}
                           src={imageUrl}
                           alt={`Current ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
@@ -894,7 +896,9 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
                       {(field.value || []).map((file: File, index: number) => (
                         <div key={index} className="relative group">
-                          <img
+                          <Image
+                            width={1000}
+                            height={1000}
                             src={
                               URL.createObjectURL(file) || "/placeholder.svg"
                             }
@@ -1309,7 +1313,9 @@ function VariantImagesForm({
                                 }
                               }}
                             >
-                              <img
+                              <Image
+                                width={1000}
+                                height={1000}
                                 src={imageUrl}
                                 alt={image.alt}
                                 className="w-full h-24 object-cover rounded-lg"
@@ -1398,7 +1404,9 @@ function VariantImagesForm({
                         {(field.value || []).map(
                           (file: File, index: number) => (
                             <div key={index} className="relative group">
-                              <img
+                              <Image
+                                width={1000}
+                                height={1000}
                                 src={
                                   URL.createObjectURL(file) ||
                                   "/placeholder.svg"
@@ -1533,7 +1541,6 @@ function CreateVariantForm({
       (data.images || []).forEach((file) => {
         formData.append("images", file);
       });
-      const { images, size, stock, price } = data;
 
       const response = await api.patch(
         `/products/${product._id}/variant`,
@@ -1669,7 +1676,9 @@ function CreateVariantForm({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {selectedFiles.map((file, index) => (
               <div key={index} className="relative group">
-                <img
+                <Image
+                  width={1000}
+                  height={1000}
                   src={URL.createObjectURL(file)}
                   alt={`New ${index + 1}`}
                   className="w-full h-24 object-cover rounded-lg"

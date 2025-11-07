@@ -7,7 +7,6 @@ import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { usePathname } from "next/navigation";
 import {
   Card,
   CardContent,

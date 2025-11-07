@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Copy } from "lucide-react";
-import { copyToClipboard, formatPrice } from "@/utils";
+import { copyToClipboard, formatPrice } from "@/lib/utils";
 import Image from "next/image";
 
 export interface ShowItemsProps {

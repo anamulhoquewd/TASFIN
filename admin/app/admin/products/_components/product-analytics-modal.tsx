@@ -47,9 +47,6 @@ import {
   TrendingDown,
   MoreHorizontal,
   Calendar,
-  ShoppingCart,
-  DollarSign,
-  Package,
   Users,
   AlertTriangle,
   MapPin,
@@ -58,7 +55,7 @@ import {
 import Link from "next/link";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
-import { formatPrice } from "@/utils";
+import { formatPrice } from "@/lib/utils";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import Image from "next/image";
 
@@ -315,7 +312,7 @@ export function ProductAnalyticsModal({
       // You would show a toast here
       toast.success("Link copied to clipboard");
     } catch (err) {
-      console.error("Failed to copy link");
+      console.error("Failed to copy link", err);
     }
   };
 
@@ -376,7 +373,7 @@ export function ProductAnalyticsModal({
                         <span className="text-sm text-muted-foreground">
                           Categories:
                         </span>
-                        {product.categories.map((categoryId, index) => (
+                        {product.categories.map((categoryId) => (
                           <Tooltip key={categoryId}>
                             <TooltipTrigger asChild>
                               <Badge

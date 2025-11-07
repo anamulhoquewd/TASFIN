@@ -16,9 +16,12 @@ import { Separator } from "../ui/separator";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { ICartItem } from "@/interfaces/global";
+import { UseFormReturn } from "react-hook-form";
+import { CheckoutFormValues } from "@/lib/zod-validation";
+import Image from "next/image";
 
 interface CheckoutProps {
-  form: any;
+  form: UseFormReturn<CheckoutFormValues>;
   handleSubmit: (data: any) => void;
   items: ICartItem[];
   isProcessing: boolean;
@@ -252,7 +255,9 @@ function Checkout({
                         className="flex gap-3"
                       >
                         <div className="w-16 h-20 rounded-md overflow-hidden border">
-                          <img
+                          <Image
+                            width={1000}
+                            height={1000}
                             src={item.image.url}
                             alt={item.image.alt || item.title}
                             className="w-full h-full object-cover"

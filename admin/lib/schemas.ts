@@ -213,3 +213,16 @@ export const resetPasswordFormSchemaZ = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export const changePasswordFormSchema = z
+  .object({
+    currentPassword: z.string().min(8).max(20),
+    newPassword: z.string().min(8).max(20),
+    confirmPassword: z.string().min(8).max(20),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;

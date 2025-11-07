@@ -44,12 +44,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import z from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { OrderFormValues } from "@/lib/zod-validation";
 
 interface OrderLookupProps {
   onViewStatus: (order: IOrder) => void;
-  form: any;
+  form: UseFormReturn<OrderFormValues>;
   onSubmit: (data: any) => void;
   isLoading: boolean;
   orders: IOrder[];

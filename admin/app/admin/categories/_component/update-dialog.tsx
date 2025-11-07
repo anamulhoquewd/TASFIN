@@ -22,11 +22,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { UseFormReturn } from "react-hook-form";
 import { FormValues } from "../_hook/useCategory";
 import { ICategory } from "@/interfaces/categories";
 
 interface Props {
-  form: any;
+  form: UseFormReturn<FormValues>;
   onSubmit: (data: FormValues) => void;
   isLoading: boolean;
   open: boolean;

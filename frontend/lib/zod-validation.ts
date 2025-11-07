@@ -29,3 +29,17 @@ export const CheckoutSchemaZ = z.object({
 });
 
 export type CheckoutFormValues = z.infer<typeof CheckoutSchemaZ>;
+
+export const orderFormSchema = z.object({
+  input: z
+    .string()
+    .refine(
+      (value) =>
+        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+      {
+        message: "Must be a valid email or 11-digit phone number",
+      }
+    ),
+});
+
+export type OrderFormValues = z.infer<typeof orderFormSchema>;

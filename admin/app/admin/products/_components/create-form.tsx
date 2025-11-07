@@ -41,9 +41,13 @@ import { Badge } from "@/components/ui/badge";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import type { UseProductsReturn } from "../_hook/useProducts";
+import Image from "next/image";
+
+type ProductsForm = UseProductsReturn["form"];
 
 interface CreateProductFormProps {
-  form: any;
+  form: ProductsForm;
   onSubmit: (data: any) => void;
   handleTitleChange: (title: string) => void;
   setCategoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -148,11 +152,11 @@ export function CreateProductForm({
                   name="keyFeatures"
                   render={({ field }) => {
                     const [inputValue, setInputValue] = useState(
-                      field.value?.join(", ") || ""
+                      field.value?.join("* ") || ""
                     );
 
                     useEffect(() => {
-                      setInputValue(field.value?.join(", ") || "");
+                      setInputValue(field.value?.join("* ") || "");
                     }, [field.value]);
 
                     return (
@@ -247,9 +251,11 @@ export function CreateProductForm({
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
                               {field.value.map((file: File, index: number) => (
                                 <div key={index} className="relative group">
-                                  <img
+                                  <Image
                                     src={URL.createObjectURL(file)}
                                     alt={`Preview ${index + 1}`}
+                                    width={500}
+                                    height={500}
                                     className="w-full h-24 object-cover rounded-lg"
                                   />
                                   <button
@@ -411,11 +417,13 @@ export function CreateProductForm({
                                     key={imageIndex}
                                     className="relative group"
                                   >
-                                    <img
+                                    <Image
                                       src={preview || "/placeholder.svg"}
                                       alt={`Variant ${index + 1} Image ${
                                         imageIndex + 1
                                       }`}
+                                      width={500}
+                                      height={500}
                                       className="w-full h-20 object-cover rounded-md"
                                     />
                                     <button
@@ -750,11 +758,11 @@ export function CreateProductForm({
                   name="tags"
                   render={({ field }) => {
                     const [inputValue, setInputValue] = useState(
-                      field.value?.join(", ") || ""
+                      field.value?.join("* ") || ""
                     );
 
                     useEffect(() => {
-                      setInputValue(field.value?.join(", ") || "");
+                      setInputValue(field.value?.join("* ") || "");
                     }, [field.value]);
 
                     return (

@@ -1,5 +1,4 @@
 import api from "@/axios/interceptor";
-import { IAdmin } from "@/interfaces/users";
 import { useState } from "react";
 import useMe from "./useMe";
 import { toast } from "sonner";

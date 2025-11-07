@@ -9,18 +9,7 @@ import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import useOrders from "@/hooks/orders/use-orders";
-
-const formSchema = z.object({
-  input: z
-    .string()
-    .refine(
-      (value) =>
-        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      {
-        message: "Must be a valid email or 11-digit phone number",
-      }
-    ),
-});
+import { orderFormSchema, OrderFormValues } from "@/lib/zod-validation";
 
 export default function OrderTracker() {
   const [currentPage, setCurrentPage] = useState<"lookup" | "status">("lookup");
@@ -37,7 +26,7 @@ export default function OrderTracker() {
 
   const { getOrdersByPhoneOrEmail } = useOrders();
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: OrderFormValues) => {
     setIsLoading(true);
 
     try {
@@ -57,8 +46,8 @@ export default function OrderTracker() {
     }
   };
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<OrderFormValues>({
+    resolver: zodResolver(orderFormSchema),
     defaultValues: {
       input: "",
     },

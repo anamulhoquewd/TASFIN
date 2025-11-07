@@ -7,7 +7,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { ChangePasswordFormValues } from "@/lib/schemas";
 import { Eye, EyeOff } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
 
 const PasswordInputField = ({
   form,
@@ -17,10 +19,10 @@ const PasswordInputField = ({
   placeholder,
   label,
 }: {
-  form: any;
+  form: UseFormReturn<ChangePasswordFormValues>;
   showPassword: boolean;
   setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
-  name: string;
+  name: "currentPassword" | "newPassword" | "confirmPassword";
   placeholder: string;
   label: string;
 }) => {

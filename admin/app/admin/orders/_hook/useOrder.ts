@@ -53,9 +53,7 @@ function useOrder() {
   const [debouncedOrderId, setDebouncedOrderId] = useState<string>("");
   const [debouncedUserId, setdebouncedUserId] = useState<string>("");
   const [debouncedVariantId, setdebouncedVariantId] = useState<string>("");
-  const [debouncedAmountRange, setDebouncedAmountRange] = useState<
-    [number, number]
-  >([0, 10000]);
+  const [debouncedAmountRange] = useState<[number, number]>([0, 10000]);
 
   console.warn(orders);
 
@@ -234,6 +232,7 @@ function useOrder() {
     filterBy.singleDate,
     debouncedAmountRange,
     pagination.page,
+    filterBy,
   ]);
 
   return {

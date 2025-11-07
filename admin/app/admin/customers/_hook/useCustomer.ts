@@ -34,7 +34,7 @@ function useCustomer() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: selectedItem ?? { name: "", phone: "", address: "" },
+    defaultValues: { name: "", phone: "", address: "" },
   });
 
   const loadCustomers = async ({
@@ -146,7 +146,23 @@ function useCustomer() {
 
   useEffect(() => {
     if (selectedItem) {
-      form.reset(selectedItem);
+      const addr = selectedItem.address
+        ? [
+            selectedItem.address.street,
+            selectedItem.address.city,
+            selectedItem.address.state,
+            selectedItem.address.zipCode,
+            selectedItem.address.country,
+          ]
+            .filter(Boolean)
+            .join(", ")
+        : "";
+
+      form.reset({
+        name: selectedItem.name ?? "",
+        phone: selectedItem.phone ?? "",
+        address: addr,
+      });
     } else {
       form.reset({
         name: "",

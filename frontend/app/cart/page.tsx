@@ -65,7 +65,9 @@ export default function CartPage() {
                   {/* Product Image */}
                   <div className="w-24 h-32 shrink-0 rounded-md overflow-hidden border border-border">
                     <Link href={`/products/${item.slug}`}>
-                      <img
+                      <Image
+                        width={1000}
+                        height={1000}
                         src={item.image.url || "/placeholder.svg"}
                         alt={item.image.alt || item.title}
                         className="w-full h-full object-cover"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, MoreHorizontal, Trash2, User } from "lucide-react";
+import { Search, MoreHorizontal, Trash2, User, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -29,13 +27,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import api from "@/axios/interceptor";
-import { defaultPagination } from "@/utils/details";
-import Paginations, { Pagination } from "@/components/pagination";
+import Paginations from "@/components/pagination";
 import { ICustomer } from "@/interfaces/users";
 import useCustomer from "./_hook/useCustomer";
 import UpdateDialog from "./_component/update-dialog";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { copyToClipboard } from "@/lib/utils";
 
 export default function CustomersPage() {
   const {
@@ -92,6 +95,7 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Address</TableHead>
@@ -109,12 +113,41 @@ export default function CustomersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  customers.map((admin: ICustomer) => (
-                    <TableRow key={admin._id}>
-                      <TableCell>{admin?.name}</TableCell>
-                      <TableCell>{admin?.phone}</TableCell>
+                  customers.map((customer: ICustomer) => (
+                    <TableRow key={customer._id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2 flex-1">
+                          <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
+                            {customer._id.substring(0, 6)}...
+                          </code>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 cursor-pointer"
+                                  onClick={() => copyToClipboard(customer._id)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                  <span className="sr-only">Copy User ID</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copy ID</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
+                      <TableCell>{customer?.name}</TableCell>
                       <TableCell>
-                        {admin?.address?.street || "No address available"}
+                        {customer?.phone}
+                        <br />
+                        {customer?.email}
+                      </TableCell>
+                      <TableCell>
+                        {customer?.address?.street || "No address available"}
                       </TableCell>
 
                       <TableCell>
@@ -134,7 +167,7 @@ export default function CustomersPage() {
                               className="cursor-pointer"
                               onClick={() => {
                                 setUpdateOpen(true);
-                                setSelectedItem(admin);
+                                setSelectedItem(customer);
                               }}
                             >
                               <User className="mr-2 h-4 w-4" />
@@ -144,7 +177,7 @@ export default function CustomersPage() {
                             <DropdownMenuItem
                               onClick={() => {
                                 setDeleteOpen(true);
-                                setSelectedItem(admin);
+                                setSelectedItem(customer);
                               }}
                               className="text-destructive cursor-pointer"
                             >

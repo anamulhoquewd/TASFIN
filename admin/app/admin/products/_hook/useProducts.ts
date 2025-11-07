@@ -1,15 +1,8 @@
 import api from "@/axios/interceptor";
-import { IPagination } from "@/interfaces/global";
-import { IProduct } from "@/interfaces/products";
-import {
-  ProductCreateInput,
-  productSchemaZ,
-  ProductUpdateInput,
-} from "@/lib/schemas";
-import { defaultPagination } from "@/utils/details";
+import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -309,6 +302,7 @@ function useProducts() {
       });
     } catch (error) {
       toast.error("Failed to delete product");
+      console.log("Error: ", error);
       return false;
     }
   };
@@ -480,5 +474,7 @@ function useProducts() {
     getProducts,
   };
 }
+
+export type UseProductsReturn = ReturnType<typeof useProducts>;
 
 export default useProducts;

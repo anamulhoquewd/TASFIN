@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import type { IImage, IProduct } from "@/interfaces/products";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
 import useProducts from "../../_hook/useProducts";

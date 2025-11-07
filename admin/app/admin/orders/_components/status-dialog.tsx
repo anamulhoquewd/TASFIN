@@ -215,7 +215,7 @@ export default function StatusDialog({
                 rows={3}
               />
               <p className="text-sm text-destructive">
-                NOTE: Right now it's not working.
+                NOTE: Right now it&apos;s not working.
               </p>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import useCategory from "@/app/admin/categories/_hook/useCategory";
+import Image from "next/image";
 import Link from "next/link";
 
 const CategoriesSection = () => {
@@ -16,9 +17,11 @@ const CategoriesSection = () => {
           >
             <Link href={`/products?category=${category.slug}`}>
               <div className="h-64 overflow-hidden">
-                <img
-                  src={category?.avatar}
-                  alt={category.name}
+                <Image
+                  width={1000}
+                  height={1000}
+                  src={category?.image?.url || ""}
+                  alt={category?.image?.alt || ""}
                   className="w-full h-full object-cover transition duration-300 group-hover:scale-110"
                 />
               </div>

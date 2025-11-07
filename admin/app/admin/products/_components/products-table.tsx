@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,18 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Eye, Edit, Trash2, Search, ExternalLink } from "lucide-react";
 import {
-  Eye,
-  Edit,
-  Trash2,
-  Search,
-  ShoppingCart,
-  Star,
-  Package,
-  ExternalLink,
-} from "lucide-react";
-import {
-  KPICard,
   ProductAnalyticsModal,
   useProductAnalyticsModal,
 } from "./product-analytics-modal";
@@ -55,12 +45,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ProductEditDialogs } from "./product-edit-dialogs";
 import { toast } from "sonner";
 import {
@@ -73,13 +58,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Image from "next/image";
 
 export function ProductsTable() {
   const { isOpen, selectedProductId, openModal, closeModal } =
     useProductAnalyticsModal();
   const [statusFilter, setStatusFilter] = useState("all");
   const [featuredFilter, setFeaturedFilter] = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  // const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [products, setProducts] = useState<IProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -119,7 +105,7 @@ export function ProductsTable() {
         const result = await getProducts({
           page: pagination.page || 1,
           searchQuery,
-          categoryFilter,
+          categoryFilter: "all",
           isActive: mapStatusToBoolean(statusFilter),
           isFeatured: mapFeaturedToBoolean(featuredFilter),
         });
@@ -145,33 +131,33 @@ export function ProductsTable() {
   }, [
     pagination.page,
     searchQuery,
-    categoryFilter,
+    // categoryFilter,
     statusFilter,
     featuredFilter,
   ]);
 
   // Calculate analytics data
-  const analytics = useMemo(() => {
-    const activeProducts = products.filter((p) => p.isActive).length;
-    const featuredProducts = products.filter((p) => p.isFeatured).length;
-    const totalStock = products.reduce(
-      (acc, product) =>
-        acc +
-        product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
-      0
-    );
-    const totalVariants = products.reduce(
-      (acc, product) => acc + product.variants.length,
-      0
-    );
+  // const analytics = useMemo(() => {
+  //   const activeProducts = products.filter((p) => p.isActive).length;
+  //   const featuredProducts = products.filter((p) => p.isFeatured).length;
+  //   const totalStock = products.reduce(
+  //     (acc, product) =>
+  //       acc +
+  //       product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
+  //     0
+  //   );
+  //   const totalVariants = products.reduce(
+  //     (acc, product) => acc + product.variants.length,
+  //     0
+  //   );
 
-    return {
-      activeProducts,
-      featuredProducts,
-      totalStock,
-      totalVariants,
-    };
-  }, [products]);
+  //   return {
+  //     activeProducts,
+  //     featuredProducts,
+  //     totalStock,
+  //     totalVariants,
+  //   };
+  // }, [products]);
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString();
@@ -237,6 +223,7 @@ export function ProductsTable() {
       }
     } catch (error) {
       toast.error("Failed to delete product");
+      console.log("Error: ", error);
     } finally {
       setDeleteOpen(false);
       setDeletedProductId(null);
@@ -354,7 +341,9 @@ export function ProductsTable() {
                     return (
                       <TableRow key={product._id}>
                         <TableCell>
-                          <img
+                          <Image
+                            width={1000}
+                            height={1000}
                             src={
                               product.images[0]?.url ||
                               "/placeholder.svg?height=50&width=50&query=product"

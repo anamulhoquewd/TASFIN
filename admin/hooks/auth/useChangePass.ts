@@ -1,19 +1,12 @@
 import api from "@/axios/interceptor";
+import {
+  changePasswordFormSchema,
+  ChangePasswordFormValues,
+} from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-const changePasswordFormSchema = z
-  .object({
-    currentPassword: z.string().min(8).max(20),
-    newPassword: z.string().min(8).max(20),
-    confirmPassword: z.string().min(8).max(20),
-  })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
 
 const useChangePass = (onClose: () => void) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -21,7 +14,7 @@ const useChangePass = (onClose: () => void) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof changePasswordFormSchema>>({
+  const form = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordFormSchema),
     defaultValues: {
       currentPassword: "",
