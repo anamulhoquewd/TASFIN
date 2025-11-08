@@ -16,7 +16,7 @@ import {
 import { transporter } from "./../config/email.js";
 import z from "zod";
 import pagination from "./../utils/pagination.js";
-import type{ IAdmin, } from "./../interfaces/index.js";
+import type { IAdmin } from "./../interfaces/index.js";
 import s3 from "./../config/s3.js";
 import {
   generateAccessToken,
@@ -721,8 +721,6 @@ export const login = async (body: {
 
     // Generate access token
     const accessToken = await generateAccessToken({ user: admin });
-
-    console.log("Access Token:", accessToken);
 
     // Generate refresh token
     const refreshToken = await generateRefreshToken({ user: admin });

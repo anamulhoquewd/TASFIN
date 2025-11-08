@@ -72,6 +72,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
+import { getCookie } from "@/app/actions";
 
 interface EditModalProps {
   type: string;
@@ -142,6 +143,7 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
   const onSubmit = async (data: ProductUpdateInput) => {
     console.log("Submitting General Info:", data);
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -156,7 +158,10 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
         `/products/${product._id}/general`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -687,7 +692,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
 
   const onSubmit = async (data: any) => {
     if (!product) return;
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       setIsLoading(true);
 
@@ -704,10 +709,6 @@ export function MainImagesForm({ product, onClose }: FormProps) {
         formData.append("deleteImageUrl", url);
       });
 
-      console.log("FormData ready:", {
-        images: (data.images || []).map((f: File) => f.name),
-        deleteUrls: existingImagesToDelete,
-      });
       // ----- API Call -----
       const response = await api.patch(
         `/products/${product._id}/main-images`,
@@ -715,6 +716,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -996,13 +998,17 @@ function VariantInfoForm({ product, onClose }: FormProps) {
 
   const onSubmit = async (data: ProductVariantUpdateInput) => {
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
       console.log("Data: ", data);
       const response = await api.patch(
         `/products/${product._id}/v/${selectedVariant}/info`,
         data,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -1174,7 +1180,7 @@ function VariantImagesForm({
   // Submit
   const onSubmit = async (data: any) => {
     if (!selectedVariant) return;
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       setIsLoading(true);
 
@@ -1203,6 +1209,7 @@ function VariantImagesForm({
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1530,9 +1537,9 @@ function CreateVariantForm({
 
   // Submit
   const onSubmit = async (data: CreateVariantValues) => {
+    setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      setIsLoading(true);
-
       const formData = new FormData();
       formData.append("size", data.size);
       formData.append("stock", String(data.stock));
@@ -1546,7 +1553,10 @@ function CreateVariantForm({
         `/products/${product._id}/variant`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -1728,10 +1738,12 @@ export default function DeleteVariantForm({
   const handleDelete = async () => {
     if (!selectedVariant) return;
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.patch(
-        `/products/${product._id}/v/${selectedVariant}`
+        `/products/${product._id}/v/${selectedVariant}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {

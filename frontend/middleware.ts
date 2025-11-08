@@ -8,11 +8,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const cookie = request.cookies.get("X-User-Phone");
-  const phone = cookie?.value.split(".")[0];
+  const cookie = request.cookies.get("X-User-ID");
+  const userId = cookie?.value;
 
-  // If no valid phone number in cookie -> redirect to privacy policy page
-  if (!phone || !/^\d{11}$/.test(phone)) {
+  // If no valid userId number in cookie -> redirect to privacy policy page
+  if (!userId) {
     const policyUrl = new URL("/privacy", request.url);
     policyUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(policyUrl);

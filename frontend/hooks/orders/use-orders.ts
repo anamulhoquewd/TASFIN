@@ -1,3 +1,4 @@
+import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IFetchOrder, IFilter, IOrder } from "@/interfaces/orders";
@@ -78,6 +79,15 @@ const useOrders = () => {
         toast.success(response.data.message || "Order created successfully!");
         console.log(response.data.message || "Order created successfully!");
 
+        console.log("User: ", response.data);
+
+        // set cookie - user phone number
+        createCookie({
+          name: "X-User-ID",
+          value: response.data?.data?.user,
+          maxAgeAsSeconds: 60 * 60 * 24 * 365,
+        });
+
         // Clear cart and redirect to confirmation
         setOrder(response.data);
         setStatus("success");
@@ -125,6 +135,7 @@ const useOrders = () => {
   // fetch orders by userId
   const getOrdersByUserId = useCallback(
     async ({ filters, page, userId, limit = 10 }: IFetchOrder) => {
+      const phone = (await getCookie("X-User-ID")) as string;
       try {
         const response = await api.get(`/orders`, {
           params: {
@@ -146,6 +157,7 @@ const useOrders = () => {
             page: page === 1 ? undefined : page,
             limit,
           },
+          headers: { Authorization: phone },
         });
 
         if (!response.data.success || !Array.isArray(response.data.data)) {

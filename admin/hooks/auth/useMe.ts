@@ -1,3 +1,4 @@
+import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
 import { userFormSchemaZ } from "@/lib/schemas";
@@ -33,8 +34,12 @@ function useMe() {
   });
 
   const loadMe = async () => {
+    const token = (await getCookie("accessToken")) as string;
+
     try {
-      const response = await api.get("/admins/me");
+      const response = await api.get("/admins/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
@@ -49,8 +54,11 @@ function useMe() {
   const handleUpdate = async (data: z.infer<typeof userFormSchemaZ>) => {
     console.log("Update data: ", data);
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.patch("/admins/me", data);
+      const response = await api.patch("/admins/me", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -76,8 +84,11 @@ function useMe() {
   };
 
   const handleLogout = async () => {
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.post("/admins/log-out");
+      const response = await api.post("/admins/log-out", "", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);

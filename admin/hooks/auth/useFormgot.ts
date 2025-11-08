@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import api from "@/axios/interceptor";
+import { getCookie } from "@/app/actions";
 
 const forgotPasswordFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),
@@ -25,11 +26,12 @@ const useForgot = () => {
   const onSubmit = async () => {
     // Start loading
     setIsLoading(true);
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.post(
         `/admins/forgot-password`,
-        form.getValues()
+        form.getValues(),
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (!response.data.success) {

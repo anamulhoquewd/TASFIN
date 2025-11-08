@@ -1,6 +1,5 @@
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { orderService } from "./../services/index.js";
-import { setAuthCookie } from "./../utils/index.js";
 import type { Context } from "hono";
 
 export const register = async (c: Context) => {
@@ -16,12 +15,12 @@ export const register = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  await setAuthCookie(
-    c,
-    "X-User-Phone",
-    response.success.user.phone,
-    60 * 60 * 24 * 365
-  );
+  // await setAuthCookie(
+  //   c,
+  //   "X-User-ID",
+  //   response.success.user.phone,
+  //   60 * 60 * 24 * 365
+  // );
 
   return c.json(response.success, 201);
 };

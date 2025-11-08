@@ -1,4 +1,5 @@
-import { getStorage, removeStorage, setStorage } from "@/store/local";
+import { createCookie, getCookie } from "@/app/actions";
+import { removeStorage, setStorage } from "@/store/local";
 import axios from "axios";
 
 const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3200";
@@ -9,9 +10,6 @@ const baseURL = `${DOMAIN}${BASE_PATH}` || "http://localhost:3000/api/v1";
 const api = axios.create({
   baseURL,
   withCredentials: true,
-  headers: {
-    Authorization: `Bearer ${getStorage("accessToken")}`,
-  },
 });
 
 // Response interceptor for token refresh
@@ -57,6 +55,11 @@ const refreshToken = async () => {
 
     if (response.data.success && response.data.tokens?.accessToken) {
       setStorage("accessToken", response.data.tokens.accessToken);
+      createCookie({
+        name: "accessToken",
+        value: response.data.tokens.accessToken,
+        maxAgeAsSeconds: 60 * 15, // 15m
+      });
       return response.data.tokens.accessToken;
     }
     return null;

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ISettings } from "@/interfaces/global";
 import { settingCreateZ, SettingFromValue } from "@/lib/schemas";
 import api from "@/axios/interceptor";
+import { getCookie } from "@/app/actions";
 
 export default function useSettings() {
   const [settings, setSettings] = useState<ISettings | null>(null);
@@ -40,8 +41,11 @@ export default function useSettings() {
   // 🧠 Fetch settings
   const getSettings = async () => {
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.get("/settings");
+      const response = await api.get("/settings", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something went wrong!");
       }
@@ -56,9 +60,11 @@ export default function useSettings() {
   // 💾 Update handler
   const handleUpdate = async (data: SettingFromValue) => {
     setIsLoading(true);
-    console.log("Updating settings with data:", data);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.patch("/settings", data);
+      const response = await api.patch("/settings", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -92,10 +98,13 @@ export default function useSettings() {
 
     const formData = new FormData();
     formData.append("avatar", file);
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.post(`/settings/upload-logo`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (!response.data.success) {

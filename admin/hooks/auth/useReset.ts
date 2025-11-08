@@ -6,6 +6,7 @@ import { handleAxiosError } from "@/utils/error";
 import { useState } from "react";
 import api from "@/axios/interceptor";
 import { resetPasswordFormSchemaZ } from "@/lib/schemas";
+import { getCookie } from "@/app/actions";
 
 const useReset = () => {
   const router = useRouter();
@@ -25,10 +26,15 @@ const useReset = () => {
 
   const onSubmit = async (data: z.infer<typeof resetPasswordFormSchemaZ>) => {
     setIsLoading(true);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.patch(`/admins/reset-password/${key}`, {
-        password: data.newPassword,
-      });
+      const response = await api.patch(
+        `/admins/reset-password/${key}`,
+        {
+          password: data.newPassword,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (!response.data.success) {
         throw new Error(response.data?.error?.message || "Reset failed");

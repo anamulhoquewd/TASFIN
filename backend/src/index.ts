@@ -46,14 +46,14 @@ app.use(
   "*",
   cors({
     origin: (origin) => {
-      if (allowedOrigins.includes(origin)) {
-        return origin;
-      }
+      if (allowedOrigins.includes(origin)) return origin;
+
       return null;
     },
+    // origin: "http://localhost:3000",
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type", "Authorization", "X-User-Phone"],
+    allowHeaders: ["Content-Type", "Authorization", "X-User-ID"],
   })
 );
 

@@ -1,3 +1,4 @@
+import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { ICustomer } from "@/interfaces/users";
@@ -44,12 +45,14 @@ function useCustomer() {
     page: number;
     search: string;
   }) => {
+    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.get("/users", {
         params: {
           page,
           search,
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.data.success) {
@@ -72,11 +75,13 @@ function useCustomer() {
 
   const handleUpdate = async (data: FormValues) => {
     if (!selectedItem) return;
-
+    const token = (await getCookie("accessToken")) as string;
     setIsLoading(true);
 
     try {
-      const response = await api.put(`/customers/${selectedItem._id}`, data);
+      const response = await api.put(`/customers/${selectedItem._id}`, data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -108,9 +113,12 @@ function useCustomer() {
   };
 
   const handleDelete = async (data: string) => {
-    console.log(data);
+    const token = (await getCookie("accessToken")) as string;
+
     try {
-      const response = await api.delete(`/customers/${data}`);
+      const response = await api.delete(`/customers/${data}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Somthing went wrong!");
