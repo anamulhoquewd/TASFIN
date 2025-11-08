@@ -16,7 +16,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const DOMAIN = process.env.DOMAIN as string;
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 
 const app = new Hono().basePath("/api/v1");
 
@@ -43,14 +43,17 @@ connectDB()
   });
 
 app.use(
-  logger(),
-  prettyJSON(),
+  "*",
   cors({
-    // origin: "http://localhost:3001", // Your frontend URL
-    origin: DOMAIN, // Your frontend URL
-    credentials: true, // Allow cookies
-    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Ensure OPTIONS is handled
-    allowHeaders: ["Content-Type", "Authorization", "X-User-Phone"], // Allow necessary headers
+    origin: (origin) => {
+      if (allowedOrigins.includes(origin)) {
+        return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type", "Authorization", "X-User-Phone"],
   })
 );
 

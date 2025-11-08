@@ -296,9 +296,6 @@ export const updateVariantInfo = async ({
       };
     }
 
-    console.log("Valid data for variant update:", validData.data);
-    console.log("Current variant before update:", variant);
-
     // Update fields
     Object.assign(variant, validData.data);
 
@@ -1009,7 +1006,6 @@ export const uploadMultipleFiles = async ({
 
   const validData = imagesSchema.safeParse({ images });
   if (!validData.success) {
-    console.log("Validation error:", validData.error);
     return {
       error: schemaValidationError(validData.error, "Invalid request body"),
     };

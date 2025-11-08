@@ -55,8 +55,6 @@ export const generateAccessToken = async ({
   user: IUser | IAdmin;
   expMinutes?: number;
 }) => {
-  console.log(user);
-
   const token = await sign(
     {
       _id: user._id,

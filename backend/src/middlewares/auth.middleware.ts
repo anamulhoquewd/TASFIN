@@ -19,8 +19,6 @@ export const authenticatedUser = async (c: Context, next: Next) => {
       "X-User-Phone"
     )) || c.req.header("X-User-Phone");
 
-  console.log("Phone: ", phone);
-
   try {
     const user = await User.findOne({ phone });
 
@@ -33,8 +31,6 @@ export const authenticatedUser = async (c: Context, next: Next) => {
 
       return authenticationError(c);
     }
-
-    console.log("User: ", user);
 
     c.set("user", user);
     return next();
@@ -91,7 +87,7 @@ export const authenticatedAdmin = async (c: Context, next: Next) => {
     c.set("admin", admin);
     return next();
   } catch (error) {
-    console.log(error);
+    console.log("error", error);
     return authenticationError(c);
   }
 };
