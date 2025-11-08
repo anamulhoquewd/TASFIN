@@ -1,4 +1,4 @@
-import { IAddress, IAdmin, IImage } from "@/interfaces";
+import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
@@ -7,8 +7,8 @@ export const AddressSchema: mongoose.Schema<IAddress> = new mongoose.Schema(
   {
     street: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
-    state: { type: String, required: true, trim: true },
-    zipCode: { type: String, required: true, trim: true },
+    state: { type: String, required: false, trim: true },
+    zipCode: { type: String, required: false, trim: true },
     country: { type: String, required: true, trim: true },
   },
   { _id: false }
@@ -57,7 +57,7 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     role: {
       type: String,
       enum: ["super_admin", "admin"],
-      default: "admin",
+      required: true,
     },
     address: { type: AddressSchema },
     avatar: { type: ImageSchema, required: false },

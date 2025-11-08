@@ -1,15 +1,15 @@
-import { userController } from "@/controllers";
+import { userController } from "./../controllers/index.js";
 import {
   authenticatedAdmin,
   authenticatedUser,
-} from "@/middlewares/auth.middleware";
+} from "./../middlewares/auth.middleware.js";
 import { Hono } from "hono";
 
 const userRoutes = new Hono();
 
 userRoutes.post("/register", (c) => userController.register(c));
 
-userRoutes.post("/upload-avatar", authenticatedUser, (c) =>
+userRoutes.post("/upload-avatar", authenticatedAdmin, (c) =>
   userController.changeAvatar(c)
 );
 
@@ -20,20 +20,6 @@ userRoutes.patch("/by-admin/:_id", authenticatedAdmin, (c) =>
 );
 
 userRoutes.get("/me", authenticatedUser, (c) => userController.getMe(c));
-
-userRoutes.patch("/change-password", authenticatedUser, (c) =>
-  userController.changePassword(c)
-);
-
-userRoutes.patch("/reset-password/:resetToken", (c) =>
-  userController.resetPassword(c)
-);
-
-userRoutes.post("/forgot-password", (c) => userController.forgotPassword(c));
-
-userRoutes.post("/log-in", (c) => userController.login(c));
-
-userRoutes.post("/log-out", authenticatedUser, (c) => userController.logout(c));
 
 userRoutes.delete("/:_id", authenticatedAdmin, (c) =>
   userController.deleteUser(c)

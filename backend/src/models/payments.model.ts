@@ -1,4 +1,4 @@
-import { IPayment } from "@/interfaces";
+import type { IPayment } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 
 const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
@@ -14,7 +14,12 @@ const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
       required: true,
     },
     amount: { type: Number, required: true, min: 0 },
-    currency: { type: String, enum: ["BDT", "USD"], required: true },
+    currency: {
+      type: String,
+      enum: ["BDT", "USD"],
+      required: true,
+      default: "BDT",
+    },
     transactionId: { type: String },
     status: {
       type: String,

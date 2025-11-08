@@ -1,14 +1,14 @@
-import { schemaValidationError } from "@/error";
-import Category from "@/models/categorise.model";
-import pagination from "@/utils/pagination";
+import { schemaValidationError } from "./../error/index.js";
+import Category from "./../models/categorise.model.js";
+import pagination from "./../utils/pagination.js";
 import {
-  CategoryCreateInput,
   categoryCreateZ,
-  CategoryUpdateInput,
   categoryUpdateZ,
   idSchemaZ,
   querySchemaZ,
-} from "@/validations/zod";
+  type CategoryCreateInput,
+  type CategoryUpdateInput,
+} from "./../validations/zod.js";
 
 export const register = async (body: CategoryCreateInput) => {
   // Safe Parse for better error handling

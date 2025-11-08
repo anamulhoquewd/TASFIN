@@ -1,6 +1,6 @@
-import { ICategory } from "@/interfaces";
+import type { ICategory } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { ImageSchema } from "./admins.model";
+import { ImageSchema } from "./admins.model.js";
 
 const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
   {
@@ -8,7 +8,6 @@ const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
     slug: { type: String, required: true, trim: true, unique: true },
     description: { type: String },
     image: { type: ImageSchema },
-    isFeatured: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

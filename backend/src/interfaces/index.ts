@@ -8,7 +8,6 @@ export interface IImage {
 export interface IProductVariant extends mongoose.Document {
   _id: string;
   size: string;
-  color: string;
   stock: number;
   price: number;
   images?: IImage[];
@@ -19,7 +18,8 @@ export interface IProduct extends mongoose.Document {
   title: string;
   slug: string;
   description?: string;
-  category: mongoose.Types.ObjectId;
+  keyFeatures?: string[];
+  categories: mongoose.Types.ObjectId[];
 
   images: IImage[];
   variants: IProductVariant[];
@@ -28,12 +28,15 @@ export interface IProduct extends mongoose.Document {
   valueAddition?: string;
   cutFit?: string;
   collarNeck?: string;
-  fullSleeve?: string;
+  sleeve?: string;
   length?: string;
   washCare?: string;
   sideCut?: string;
 
   isFeatured?: boolean;
+
+  isActive: boolean;
+
   tags?: string[];
   createdAt: Date;
   updatedAt: Date;
@@ -45,12 +48,11 @@ export interface ICategory extends mongoose.Document {
   slug: string;
   description?: string;
   image?: IImage;
-  isFeatured?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface IAddress extends mongoose.Document {
+export interface IAddress {
   street: string;
   city: string;
   state: string;
@@ -86,55 +88,56 @@ export interface IUser extends mongoose.Document {
   _id: string;
   name: string;
   email: string;
-  password: string;
   phone: string;
-  shippingAddress?: IAddress;
-  billingAddress?: IAddress;
+  address?: IAddress;
   isActive: boolean;
   isBlocked?: boolean;
   blockedAt: Date;
   avatar: IImage;
 
-  matchPassword: (password: string) => Promise<boolean>;
-  generateAuthToken: () => Promise<string>;
-  generateResetPasswordToken: (expMinutes?: number) => string;
-
-  refresh?: string;
-  resetPasswordToken: string | null;
-  resetPasswordExpireDate: Date | null;
+  dob: Date;
+  gender: "male" | "female";
 
   createdAt: Date;
   updatedAt: Date;
 }
 
+export interface ICoupon extends mongoose.Document {
+  code: string;
+  discountType: "percent" | "fixed";
+  amount: number;
+  maxDiscount: number;
+  minSubtotal: number;
+
+  startAt: Date;
+  endAt: Date;
+
+  usageLimitTotal: number;
+  usageLimitPerUser: number;
+  usedCount: number;
+  applicableProductIds: mongoose.Types.ObjectId;
+
+  active: boolean;
+}
+
 export interface IOrderProduct extends mongoose.Document {
-  _id: string;
+  productId: string;
   variantId: string;
   title: string;
   image: IImage;
-  priceAtPurchase: number;
+  price: number;
   quantity: number;
-  discountApplied?: {
-    discountId: string;
-    value: number;
-    type: "percentage" | "fixed";
-  };
-}
-
-export interface IDiscountApplied {
-  discountId: string;
-  value: number;
-  type: "percentage" | "fixed";
 }
 
 export interface IOrder extends mongoose.Document {
   _id: string;
   user: mongoose.Types.ObjectId;
   products: IOrderProduct[];
-  shippingAddress: IAddress;
-  billingAddress: IAddress;
+  address: IAddress;
   paymentStatus: "unpaid" | "paid";
+  paymentMethod: "cod" | "bkash" | "nagad";
   totalAmount: number;
+  shippingCost: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate: Date;
 }
@@ -195,4 +198,22 @@ export interface IPagination {
   totalPages: number;
   nextPage?: number;
   prevPage?: number;
+}
+
+export interface ISettings extends mongoose.Document {
+  siteName: string;
+  siteDescription: string;
+  logo: IImage;
+  favicon?: IImage;
+  contactEmail: string;
+  contactPhone: string;
+  address: IAddress;
+  socialLinks: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }

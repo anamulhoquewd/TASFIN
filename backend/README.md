@@ -1,128 +1,448 @@
 # TASFIN Backend
 
-## Project Overview
+## 🌟 Project Overview
 
-TASFIN is a comprehensive e-commerce backend application built with Node.js, TypeScript, and the Hono framework. It provides a robust API for user management, admin operations, product catalog, order processing, and file management with AWS S3 integration.
+TASFIN is a modern, full-featured e-commerce backend built with Node.js, TypeScript, and the Hono framework. It powers robust APIs for user, admin, product, category, order, and file management, with advanced security and AWS S3 integration.
 
-## 🚀 Features
+---
+
+## 🚀 Key Features
 
 ### 🔐 Authentication & Authorization
 
-- **JWT-based Authentication**: Secure access tokens with configurable expiration
-- **Role-based Access Control**: Super admin and admin roles with different permissions
-- **Refresh Token System**: Automatic token refresh with secure cookie storage
-- **Password Security**: Bcrypt hashing with salt rounds for secure password storage
-- **Session Management**: Secure cookie-based session handling
+- JWT-based authentication with refresh tokens
+- Role-based access control (super admin, admin)
+- Secure session and cookie management
+- Password hashing (bcrypt)
+- Automatic super admin creation
 
-### 📂 Category Management
+### 👥 User & Admin Management
 
-- **Category CRUD Operations**: Full create, read, update, delete functionality
-- **Slug Generation**: Automatic unique slug creation for SEO-friendly URLs
-- **Image Management**: Category image upload and management with AWS S3
-- **Featured Categories**: Mark categories as featured for promotional purposes
-- **Search & Filtering**: Advanced search with pagination and sorting
-- **Unique Constraints**: Prevent duplicate category names and slugs
+- User registration/login (email/phone)
+- Profile and address management
+- Avatar upload (AWS S3)
+- Admin CRUD, hierarchical roles
+- Block/activate users, password reset
 
-### 👥 User Management
+### 📂 Category & Product Management
 
-- **User Registration & Login**: Email/phone-based authentication
-- **Profile Management**: Update personal information and addresses
-- **Avatar Management**: Profile picture upload and management
-- **Address Management**: Shipping and billing address support
-- **Account Security**: Password change, forgot password, and reset functionality
-- **User Status**: Active/blocked user management with timestamps
+- Category CRUD with image upload (S3)
+- Unique slug generation for SEO
+- Featured categories
+- Product CRUD with variants, images, tags, and details
+- Advanced search, filtering, and pagination
 
-### 🛡️ Admin Management
+### 🛒 Order & Review System
 
-- **Admin Registration**: Secure admin account creation
-- **Super Admin**: Initial super admin auto-creation on startup
-- **Admin Roles**: Hierarchical role system (super_admin, admin)
-- **Admin Operations**: Full CRUD operations for admin accounts
-- **Profile Management**: Admin profile updates and avatar management
-- **Access Control**: Secure admin-only endpoints
+- Order creation, update, and status management
+- Product reviews and ratings
+- Discount, coupon, and offer management
 
 ### 📁 File Management
 
-- **AWS S3 Integration**: Secure file storage and retrieval
-- **Avatar Uploads**: Image upload for users and admins
-- **File Validation**: Size, type, and format validation
-- **Image Processing**: Support for JPEG, PNG, JPG, and WebP formats
-- **Secure URLs**: Signed URLs for secure file access
+- AWS S3 integration for secure file storage
+- Image validation (JPEG, PNG, JPG, WebP)
+- Signed URLs for secure access
 
-### 🔒 Security Features
+### 🛡️ Security & Validation
 
-- **Input Validation**: Zod schema validation for all inputs
-- **CORS Configuration**: Configurable cross-origin resource sharing
-- **Error Handling**: Comprehensive error handling with proper HTTP status codes
-- **Rate Limiting**: Built-in request throttling
-- **Secure Headers**: Production-ready security headers
-- **Environment-based Security**: Different security settings for dev/prod
+- Zod schema validation for all inputs
+- CORS, secure headers, rate limiting
+- Custom error handling with HTTP status codes
+- Environment-based security settings
 
-### 📊 Data Management
+### 📊 Data & API Management
 
-- **MongoDB Integration**: Mongoose ODM with TypeScript support
-- **Data Validation**: Schema-level validation and constraints
-- **Pagination**: Efficient data pagination with sorting and filtering
-- **Search Functionality**: Text-based search across multiple fields
-- **Data Relationships**: Proper MongoDB relationships and references
-- **Category Management**: Hierarchical category system with slug-based routing
+- MongoDB (Mongoose ODM, TypeScript)
+- Efficient pagination, sorting, and filtering
+- Text-based search across multiple fields
+- Proper data relationships and references
 
-## 🏗️ Architecture
+---
 
-### Technology Stack
+## 🏗️ Architecture & Tech Stack
 
-- **Runtime**: Node.js with TypeScript
-- **Framework**: Hono (lightweight, fast web framework)
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT with bcrypt
-- **File Storage**: AWS S3
-- **Email**: Nodemailer with Gmail SMTP
-- **Validation**: Zod schema validation
-- **Package Manager**: pnpm
+- **Node.js** + **TypeScript**
+- **Hono** (web framework)
+- **MongoDB** (Mongoose ODM)
+- **JWT** (auth)
+- **AWS S3** (file storage)
+- **Nodemailer** (email)
+- **Zod** (validation)
+- **pnpm** (package manager)
 
 ### Project Structure
 
 ```
 backend/
 ├── src/
-│   ├── config/          # Configuration files
-│   │   ├── db.ts       # MongoDB connection
-│   │   ├── email.ts    # Email configuration
-│   │   └── s3.ts       # AWS S3 configuration
-│   ├── controllers/    # Request handlers
-│   │   ├── admins.controller.ts
-│   │   ├── categorise.controller.ts
-│   │   └── users.controller.ts
-│   ├── error/          # Custom error handlers
-│   │   └── index.ts
-│   ├── interfaces/     # TypeScript interfaces
-│   │   └── index.ts
-│   ├── middlewares/    # Authentication middleware
-│   │   └── auth.middleware.ts
-│   ├── models/         # Database models
-│   │   ├── admins.model.ts
-│   │   ├── categorise.model.ts
-│   │   └── users.model.ts
-│   ├── routes/         # API route definitions
-│   │   ├── admins.route.ts
-│   │   ├── categorise.route.ts
-│   │   └── users.route.ts
-│   ├── services/       # Business logic
-│   │   ├── admins.service.ts
-│   │   ├── categorise.service.ts
-│   │   └── users.service.ts
-│   ├── utils/          # Utility functions
-│   │   ├── index.ts
-│   │   ├── pagination.ts
-│   │   └── string-generator.ts
-│   ├── validations/    # Zod validation schemas
-│   │   └── zod.ts
-│   └── index.ts        # Main application entry point
+│   ├── config/          # DB, email, S3 configs
+│   ├── controllers/     # Route handlers
+│   ├── error/           # Custom error handlers
+│   ├── interfaces/      # TypeScript interfaces
+│   ├── middlewares/     # Auth middleware
+│   ├── models/          # Mongoose models
+│   ├── routes/          # API routes
+│   ├── services/        # Business logic
+│   ├── utils/           # Utility functions
+│   ├── validations/     # Zod schemas
+│   └── index.ts         # App entry point
 ├── package.json
 ├── pnpm-lock.yaml
 ├── tsconfig.json
 └── README.md
 ```
+
+---
+
+## 🔧 Configuration & Setup
+
+### Environment Variables
+
+```env
+# Database
+MONGO_CLUSTER_URI=mongodb://localhost:27017/tasfin
+# JWT Secrets
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+# AWS S3
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+# Email (Gmail)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_password
+# Cookie
+COOKIE_SECRET=your_cookie_secret
+# Environment
+NODE_ENV=development
+```
+
+### Installation & Development
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd TASFIN/backend
+# Install dependencies
+pnpm install
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your configuration
+# Start development server
+pnpm dev
+```
+
+### Build & Production
+
+```bash
+pnpm build
+pnpm start
+```
+
+---
+
+## 📡 API Endpoints
+
+### Authentication
+
+- `POST /api/v1/admins/register` – Register admin
+- `POST /api/v1/admins/log-in` – Admin login
+- `POST /api/v1/admins/log-out` – Admin logout
+- `POST /api/v1/admins/refresh` – Refresh token
+- `POST /api/v1/admins/forgot-password` – Request password reset
+- `PATCH /api/v1/admins/reset-password/:resetToken` – Reset password
+- `POST /api/v1/users/register` – User registration
+- `POST /api/v1/users/log-in` – User login
+- `POST /api/v1/users/log-out` – User logout
+- `POST /api/v1/users/forgot-password` – Request password reset
+- `PATCH /api/v1/users/reset-password/:resetToken` – Reset password
+
+### User & Admin Management
+
+- `GET /api/v1/users/me` – Get user profile
+- `PATCH /api/v1/users/me` – Update profile
+- `PATCH /api/v1/users/change-password` – Change password
+- `POST /api/v1/users/upload-avatar` – Upload avatar
+- `GET /api/v1/users` – List users (admin)
+- `GET /api/v1/users/:_id` – Get user (admin)
+- `PATCH /api/v1/users/by-admin/:_id` – Update user (admin)
+- `DELETE /api/v1/users/:_id` – Delete user (admin)
+- `GET /api/v1/admins/me` – Get admin profile
+- `PATCH /api/v1/admins/me` – Update admin profile
+- `PATCH /api/v1/admins/change-password` – Change admin password
+- `POST /api/v1/admins/upload-avatar` – Upload admin avatar
+- `GET /api/v1/admins` – List admins
+- `GET /api/v1/admins/:_id` – Get admin
+- `PATCH /api/v1/admins/:_id` – Update admin
+- `DELETE /api/v1/admins/:_id` – Delete admin
+
+### Category & Product Management
+
+- `POST /api/v1/categories/register` – Create category
+- `GET /api/v1/categories` – List categories (pagination, search)
+- `GET /api/v1/categories/:_id` – Get category
+- `PATCH /api/v1/categories/:_id` – Update category
+- `DELETE /api/v1/categories/:_id` – Delete category
+- `POST /api/v1/categories/:_id/upload-avatar` – Upload category image
+- `POST /api/v1/products/register` – Create product
+- `GET /api/v1/products` – List products
+- `GET /api/v1/products/:_id` – Get product
+- `PATCH /api/v1/products/:_id` – Update product
+- `DELETE /api/v1/products/:_id` – Delete product
+
+### Orders, Reviews, Discounts, Offers
+
+- `POST /api/v1/orders/register` – Create order
+- `GET /api/v1/orders` – List orders
+- `GET /api/v1/orders/:_id` – Get order
+- `PATCH /api/v1/orders/:_id` – Update order
+- `DELETE /api/v1/orders/:_id` – Delete order
+- `POST /api/v1/reviews/register` – Add review
+- `GET /api/v1/reviews` – List reviews
+- `POST /api/v1/discounts/register` – Create discount
+- `GET /api/v1/discounts` – List discounts
+- `POST /api/v1/offers/register` – Create offer
+- `GET /api/v1/offers` – List offers
+
+### Utility
+
+- `GET /api/v1/health` – Health check
+
+---
+
+## 🗄️ Data Models
+
+### User
+
+```typescript
+interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  address?: IAddress;
+  avatar?: IImage;
+  isActive: boolean;
+  isBlocked?: boolean;
+  blockedAt?: Date;
+  refresh?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpireDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Admin
+
+```typescript
+interface IAdmin {
+  _id: string;
+  name: string;
+  email: string;
+  nid: string;
+  password: string;
+  phone: string;
+  address?: IAddress;
+  avatar?: IImage;
+  role: "super_admin" | "admin";
+  refresh?: string;
+  resetPasswordToken?: string;
+  resetPasswordExpireDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Address
+
+```typescript
+interface IAddress {
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+}
+```
+
+### Image
+
+```typescript
+interface IImage {
+  alt: string;
+  url: string;
+}
+```
+
+### Category
+
+```typescript
+interface ICategory {
+  _id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: IImage;
+  isFeatured: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+---
+
+## 🔒 Security & Validation
+
+- Zod schema validation for all inputs
+- Bangladesh phone/email validation
+- Password requirements (min 8, max 20)
+- File validation (max 2MB, allowed types)
+- Unique constraints for categories/products
+- JWT token verification, role checking
+- Secure, httpOnly cookies
+- CORS protection
+- Custom error types and messages
+
+---
+
+## 📝 API Documentation
+
+### Postman Collections
+
+- [User APIs](https://documenter.getpostman.com/view/31092031/2sB3BEnVMh)
+- [Admin APIs](https://documenter.getpostman.com/view/31092031/2sB3BEnVMg)
+- [Category APIs](https://documenter.getpostman.com/view/31092031/2sB3BEoAvs)
+
+### Request/Response Format
+
+```typescript
+// Success
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+// Error
+{
+  "success": false,
+  "message": "Error description",
+  "fields": [
+    { "name": "fieldName", "message": "Field-specific error" }
+  ]
+}
+```
+
+### Auth Headers
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### File Upload
+
+```http
+Content-Type: multipart/form-data
+Body: avatar=<file>
+```
+
+### Category Image Upload
+
+```http
+POST /api/v1/categories/:_id/upload-avatar
+Content-Type: multipart/form-data
+Body: avatar=<file>
+Query: filename=<optional_filename>
+```
+
+### Pagination & Search
+
+```http
+GET /api/v1/users?page=1&limit=10&sortBy=name&sortType=asc
+GET /api/v1/categories?page=1&limit=10&sortBy=name&sortType=asc&search=electronics
+```
+
+---
+
+## 🧪 Testing & Debugging
+
+- Test all endpoints (auth, CRUD, file upload)
+- Verify error handling and security
+- Use Postman, Insomnia, Thunder Client
+- Enable debug logging: `NODE_ENV=development`, `DEBUG=true`
+
+---
+
+## 🚀 Deployment & Production
+
+- Set `NODE_ENV=production`
+- Secure cookies, CORS, HTTPS
+- Configure S3 bucket policies
+- Use strong JWT secrets
+- Production DB/email settings
+
+---
+
+## 🛠️ Troubleshooting
+
+1. **MongoDB Connection**: Check URI and network
+2. **JWT Errors**: Verify secrets and expiration
+3. **File Upload**: Check S3 credentials and permissions
+4. **Email Issues**: Verify Gmail app password and SMTP
+
+---
+
+## 📚 Resources & Contributing
+
+- [Hono Documentation](https://hono.dev/)
+- [Mongoose](https://mongoosejs.com/)
+- [Zod](https://zod.dev/)
+- [AWS SDK](https://docs.aws.amazon.com/sdk-for-javascript/)
+
+### Contributing
+
+- Use TypeScript best practices
+- Zod for validation
+- Proper error handling
+- Comprehensive docs
+- Test endpoints before commit
+
+---
+
+## 📄 License
+
+Proprietary software. All rights reserved.
+
+---
+
+## 🆕 Recent Updates
+
+### Avatar Upload Fix (Latest)
+
+- Fixed `SyntaxError: No number after minus sign in JSON at position 1`
+- Improved file validation and error handling
+- Restored S3 upload functionality
+- Enhanced debugging and logging
+
+### New Features & Improvements
+
+- Product CRUD with variants, images, tags
+- Discount, coupon, offer management
+- Review and rating system
+- Advanced search, filtering, and pagination
+- Improved error handling and validation
+
+### Current Status
+
+✅ All core features implemented and tested
+✅ JWT-based authentication with refresh tokens
+✅ AWS S3 file management
+✅ User/admin CRUD and role management
+✅ Category/product CRUD with image support
+✅ Security, validation, and error handling
+✅ Comprehensive API documentation
 
 ## 🔧 Configuration
 
@@ -251,8 +571,7 @@ interface IUser {
   email: string;
   password: string;
   phone: string;
-  shippingAddress?: IAddress;
-  billingAddress?: IAddress;
+  address?: IAddress;
   avatar?: IImage;
   isActive: boolean;
   isBlocked?: boolean;

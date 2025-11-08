@@ -1,10 +1,15 @@
-import { adminController } from "@/controllers";
-import { authenticatedAdmin } from "@/middlewares/auth.middleware";
+import { adminController } from "./../controllers/index.js";
+import {
+  authenticatedAdmin,
+  authorize,
+} from "./../middlewares/auth.middleware.js";
 import { Hono } from "hono";
 
 const adminRoutes = new Hono();
 
-adminRoutes.get("/", authenticatedAdmin, (c) => adminController.getAdmins(c));
+adminRoutes.get("/", authenticatedAdmin, authenticatedAdmin, (c) =>
+  adminController.getAdmins(c)
+);
 
 adminRoutes.post("/register", authenticatedAdmin, (c) =>
   adminController.register(c)
@@ -34,7 +39,7 @@ adminRoutes.post("/log-out", authenticatedAdmin, (c) =>
 
 adminRoutes.get("/me", authenticatedAdmin, (c) => adminController.getMe(c));
 
-adminRoutes.patch("/:_id", authenticatedAdmin, (c) =>
+adminRoutes.patch("/me", authenticatedAdmin, (c) =>
   adminController.updateMe(c)
 );
 
@@ -42,7 +47,7 @@ adminRoutes.get("/:_id", authenticatedAdmin, (c) =>
   adminController.getAdmin(c)
 );
 
-adminRoutes.delete("/:_id", authenticatedAdmin, (c) =>
+adminRoutes.delete("/:_id", authenticatedAdmin, authorize, (c) =>
   adminController.deleteAdmin(c)
 );
 

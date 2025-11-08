@@ -3,17 +3,17 @@ import {
   authorizationError,
   badRequestHandler,
   serverErrorHandler,
-} from "@/error";
-import Admin from "@/models/admins.model";
-import { adminService } from "@/services";
-import { generateAccessToken, setAuthCookie } from "@/utils";
+} from "./../error/index.js";
+import Admin from "./../models/admins.model.js";
+import { adminService } from "./../services/index.js";
+import { generateAccessToken, setAuthCookie } from "./../utils/index.js";
 import axios from "axios";
-import { Context } from "hono";
+import type { Context } from "hono";
 import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { decode, verify } from "hono/jwt";
 
-const JWT_REFRESH_SECRET =
-  (process.env.JWT_REFRESH_SECRET as string) || "JWT_REFRESH_SECRET";
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
+const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -169,8 +169,8 @@ export const login = async (c: Context) => {
     c,
     "accessToken",
     response.success.tokens.accessToken,
-    60 * 60
-  ); // 1h
+    60 * 20
+  ); // 20 minutes
 
   return c.json(response.success, 200);
 };
@@ -206,6 +206,12 @@ export const refreshToken = async (c: Context) => {
     // Generate new access token
     const accessToken = await generateAccessToken({ user: admin });
 
+    if (!accessToken) {
+      return serverErrorHandler(c, {
+        message: "Access token generation failed",
+      });
+    }
+
     await setAuthCookie(c, "accessToken", accessToken, 60 * 60 * 24); // 1 day
 
     // Response
@@ -220,6 +226,7 @@ export const refreshToken = async (c: Context) => {
       200
     );
   } catch (error: any) {
+    console.log("Error during token refresh:", error);
     if (error.name === "JwtTokenExpired") {
       return authorizationError(
         c,
@@ -242,6 +249,11 @@ export const refreshToken = async (c: Context) => {
 export const logout = async (c: Context) => {
   try {
     // Clear cookie using Hono's deleteCookie
+    deleteCookie(c, "accessToken", {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
+    });
     const refreshToken = deleteCookie(c, "refreshToken", {
       path: "/",
       secure: process.env.NODE_ENV === "production",
@@ -249,6 +261,21 @@ export const logout = async (c: Context) => {
     });
 
     if (!refreshToken) {
+      deleteCookie(c, "accessToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+      deleteCookie(c, "refreshToken", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
+      deleteCookie(c, "X-User-Phone", {
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
+      });
       return authenticationError(c);
     }
 
@@ -335,9 +362,7 @@ export const deleteAdmin = async (c: Context) => {
 export const forgotPassword = async (c: Context) => {
   const { email } = await c.req.json();
 
-  const response = await adminService.forgotPassword(email, {
-    userType: "admin",
-  });
+  const response = await adminService.forgotPassword(email);
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -358,13 +383,10 @@ export const resetPassword = async (c: Context) => {
   // Password come from body
   const { password } = await c.req.json();
 
-  const response = await adminService.resetPassword(
-    {
-      password,
-      resetToken,
-    },
-    { userType: "admin" }
-  );
+  const response = await adminService.resetPassword({
+    password,
+    resetToken,
+  });
 
   if (response.error) {
     return badRequestHandler(c, response.error);

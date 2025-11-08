@@ -1,29 +1,29 @@
-import { schemaValidationError } from "@/error";
-import Admin from "@/models/admins.model";
-import { stringGenerator } from "@/utils/string-generator";
+import { schemaValidationError } from "./../error/index.js";
+import Admin from "./../models/admins.model.js";
+import { stringGenerator } from "./../utils/string-generator.js";
 import dotenv from "dotenv";
 import {
-  AdminCreateInput,
   adminCreateZ,
-  AdminUpdateInput,
   adminUpdateZ,
   avatarSchemaZ,
   changePasswordZ,
   idSchemaZ,
   loginSchemeZ,
   querySchemaZ,
-} from "@/validations/zod";
-import { transporter } from "@/config/email";
+  type AdminCreateInput,
+  type AdminUpdateInput,
+} from "./../validations/zod.js";
+import { transporter } from "./../config/email.js";
 import z from "zod";
-import pagination from "@/utils/pagination";
-import { IAdmin, IUser } from "@/interfaces";
-import s3 from "@/config/s3";
+import pagination from "./../utils/pagination.js";
+import type{ IAdmin, } from "./../interfaces/index.js";
+import s3 from "./../config/s3.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   uploadAvatar,
-} from "@/utils";
-import User from "@/models/users.model";
+} from "./../utils/index.js";
+import User from "./../models/users.model.js";
 dotenv.config();
 
 // Get environment variables
@@ -107,6 +107,7 @@ export const register = async (body: AdminCreateInput) => {
       },
     };
   } catch (error: any) {
+    console.error("Error in user register service: ", error);
     return {
       serverError: {
         success: false,
@@ -305,7 +306,9 @@ export const updateProfile = async ({
   body: AdminUpdateInput;
 }) => {
   // Validation without NID for update
-  const validData = adminUpdateZ.omit({ nid: true }).safeParse(body);
+  const validData = adminUpdateZ
+    .omit({ nid: true, role: true })
+    .safeParse(body);
 
   if (!validData.success) {
     return {
@@ -388,7 +391,7 @@ export const changePassword = async ({
   collection,
   body,
 }: {
-  collection: IUser | IAdmin;
+  collection: IAdmin;
   body: {
     currentPassword: string;
     newPassword: string;
@@ -456,13 +459,10 @@ export const changePassword = async ({
   }
 };
 
-export const forgotPassword = async (
-  email: string,
-  { userType }: { userType: "user" | "admin" }
-) => {
+export const forgotPassword = async (email: string) => {
   // Validate email
   const validateSchema = z.object({
-    email: z.string().email(),
+    email: z.string().email({ message: "Please enter a valid email address." }),
   });
 
   const validData = validateSchema.safeParse({ email });
@@ -473,13 +473,7 @@ export const forgotPassword = async (
   }
 
   try {
-    let data;
-
-    if (userType === "admin") {
-      data = await Admin.findOne({ email: validData.data.email });
-    } else if (userType === "user") {
-      data = await User.findOne({ email: validData.data.email });
-    }
+    const data = await Admin.findOne({ email: validData.data.email });
 
     if (!data) {
       return {
@@ -502,7 +496,7 @@ export const forgotPassword = async (
     await data.save();
 
     // Generate URL
-    const resetUrl = `${process.env.DOMAIN_BASE_URL}/auth/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.DOMAIN}/auth/reset-password/${resetToken}`;
 
     // Send Email
     const mailOptions = {
@@ -532,20 +526,13 @@ export const forgotPassword = async (
   }
 };
 
-export const resetPassword = async (
-  {
-    password,
-    resetToken,
-  }: {
-    password: string;
-    resetToken: string;
-  },
-  {
-    userType,
-  }: {
-    userType: "user" | "admin";
-  }
-) => {
+export const resetPassword = async ({
+  password,
+  resetToken,
+}: {
+  password: string;
+  resetToken: string;
+}) => {
   const bodySchema = z.object({
     password: z.string().min(8).max(20),
   });
@@ -575,19 +562,10 @@ export const resetPassword = async (
   }
 
   try {
-    let data;
-
-    if (userType === "admin") {
-      data = await Admin.findOne({
-        resetPasswordToken: resetToken,
-        resetPasswordExpireDate: { $gt: Date.now() },
-      });
-    } else if (userType === "user") {
-      data = await User.findOne({
-        resetPasswordToken: resetToken,
-        resetPasswordExpireDate: { $gt: Date.now() },
-      });
-    }
+    const data = await Admin.findOne({
+      resetPasswordToken: resetToken,
+      resetPasswordExpireDate: { $gt: Date.now() },
+    });
 
     if (!data) {
       return {
@@ -743,6 +721,8 @@ export const login = async (body: {
 
     // Generate access token
     const accessToken = await generateAccessToken({ user: admin });
+
+    console.log("Access Token:", accessToken);
 
     // Generate refresh token
     const refreshToken = await generateRefreshToken({ user: admin });

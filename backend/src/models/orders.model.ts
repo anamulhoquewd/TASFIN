@@ -1,43 +1,38 @@
 import mongoose from "mongoose";
-import { AddressSchema, ImageSchema } from "./admins.model";
-import { IDiscountApplied, IOrder, IOrderProduct } from "@/interfaces";
-
-const DiscountAppliedSchema = new mongoose.Schema<IDiscountApplied>(
-  {
-    discountId: { type: String, required: true },
-    value: { type: Number, required: true },
-    type: { type: String, enum: ["percentage", "fixed"], required: true },
-  },
-  { _id: false }
-);
+import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
+import type { IOrder, IOrderProduct } from "./../interfaces/index.js";
 
 const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema({
-  _id: { type: String, required: true },
+  productId: { type: String, required: true },
   variantId: { type: String, required: true },
   title: { type: String, required: true },
   image: { type: ImageSchema, required: true },
-  priceAtPurchase: { type: Number, required: true, min: 0 },
+  price: { type: Number, required: true, min: 0 },
   quantity: { type: Number, required: true, min: 1 },
-  discountApplied: { type: DiscountAppliedSchema, required: false },
 });
 
 const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     products: { type: [OrderProductSchema], required: true },
-    shippingAddress: { type: AddressSchema, required: true },
-    billingAddress: { type: AddressSchema, required: true },
+    address: { type: AddressSchema, required: true },
     paymentStatus: {
       type: String,
       enum: ["unpaid", "paid"],
       required: true,
     },
+    paymentMethod: {
+      type: String,
+      enum: ["cod"],
+    },
     totalAmount: { type: Number, required: true, min: 0 },
+    shippingCost: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
+
     orderDate: { type: Date, default: Date.now },
   },
   { timestamps: true }

@@ -1,4 +1,4 @@
-import { IReview } from "@/interfaces";
+import type { IReview } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 
 const ReviewSchema: mongoose.Schema<IReview> = new mongoose.Schema(

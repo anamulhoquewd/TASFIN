@@ -1,4 +1,4 @@
-import { IDiscount } from "@/interfaces";
+import type { IDiscount } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 
 const DiscountSchema: mongoose.Schema<IDiscount> = new mongoose.Schema(

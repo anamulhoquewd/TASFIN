@@ -1,46 +1,72 @@
-# dev
-.yarn/
-!.yarn/releases
-.vscode/*
-!.vscode/launch.json
-!.vscode/*.code-snippets
-.idea/workspace.xml
-.idea/usage.statistics.xml
-.idea/shelf
+# ----------------------
+# Example
+# ----------------------
+example
 
-# Node modules (all)
-node_modules/
-frontend/node_modules/
-dashboard/node_modules/
+# ----------------------
+# Node.js dependencies
+# ----------------------
 backend/node_modules/
+admin/node_modules/
+frontend/node_modules/
+node_modules/
 
-# Env files
-.env
-.env.production
-.env.*
-frontend/.env
-frontend/.env.*
-dashboard/.env
-dashboard/.env.*
-backend/.env
-backend/.env.*
-
-# Build output
-frontend/.next/
-frontend/out/
-dashboard/.next/
-dashboard/out/
+# ----------------------
+# Build outputs
+# ----------------------
 backend/dist/
-backend/build/
+admin/dist/
+frontend/dist/
 
-# logs
-logs/
+backend/build/
+admin/build/
+frontend/build/
+
+backend/.next/
+admin/.next/
+frontend/.next/
+
+# ----------------------
+# Environment files
+# ----------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+backend/.env
+admin/.env
+frontend/.env
+
+# ----------------------
+# Logs
+# ----------------------
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+.pnpm-debug.log*
 
-# misc
+logs/
+
+# ----------------------
+# Editors / IDE
+# ----------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ----------------------
+# OS generated files
+# ----------------------
 .DS_Store
+Thumbs.db
+
+# ----------------------
+# Misc
+# ----------------------
+.pnp
+.pnp.js

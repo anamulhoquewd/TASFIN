@@ -2,11 +2,11 @@ import {
   badRequestHandler,
   schemaValidationError,
   serverErrorHandler,
-} from "@/error";
-import Category from "@/models/categorise.model";
-import { adminService, categoryService } from "@/services";
-import { idSchemaZ } from "@/validations/zod";
-import { Context } from "hono";
+} from "./../error/index.js";
+import Category from "./../models/categorise.model.js";
+import { adminService, categoryService } from "./../services/index.js";
+import { idSchemaZ } from "./../validations/zod.js";
+import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -71,6 +71,8 @@ export const getCategory = async (c: Context) => {
 // Update category
 export const updateCategory = async (c: Context) => {
   const _id = c.req.param("_id");
+  if (!_id) return badRequestHandler(c, { message: "Category ID is required" });
+
   const body = await c.req.json();
 
   const response = await categoryService.updateCategory({ _id, body });
