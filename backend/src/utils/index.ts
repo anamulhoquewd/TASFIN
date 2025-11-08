@@ -6,7 +6,11 @@ import { setSignedCookie } from "hono/cookie";
 import type { IAdmin, IUser } from "./../interfaces/index.js";
 dotenv.config();
 
-const DOMAIN = process.env.DOMAIN as string;
+const allowedOrigins =
+  process.env.ALLOWED_ORIGINS?.split(",").map((o) =>
+    o.replace(/^https?:\/\//, "").trim()
+  ) || [];
+
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
@@ -101,10 +105,14 @@ export const setAuthCookie = async (
   value: string,
   maxAgeSeconds: number
 ) => {
+  const origin = c.req.header("Origin") || "";
+
+  const domain = allowedOrigins.find((o) => origin.includes(o));
+
   return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? DOMAIN : undefined,
+    domain: process.env.NODE_ENV === "production" ? domain : undefined,
     httpOnly: true,
     maxAge: maxAgeSeconds,
     expires: new Date(Date.now() + maxAgeSeconds * 1000),
