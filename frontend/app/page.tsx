@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import useCategory from "@/hooks/categories/useCategory";
-import Image from "next/image";
 import { Hero } from "@/components/home/hero";
 import { ArrivalsSection } from "@/components/home/arrivals";
 import { CategoriesSection } from "@/components/home/categories";
 import { TestimonialsSection } from "@/components/home/testimonials";
-import { useProducts } from "@/hooks/products/use-products";
 
 export default function HomePage() {
   const { categories } = useCategory();
@@ -22,14 +20,14 @@ export default function HomePage() {
       alt: "Elegance Meets Style",
       // title: "Elegance Meets Style",
       description:
-        "Discover the finest collection of women's fashion designed for the modern Bangladeshi woman",
+        "Discover the finest collection of women&apos;s fashion designed for the modern Bangladeshi woman",
     },
     {
       url: "https://twelvebd.com/cdn/shop/files/slider-1150x2250.jpg",
       alt: "Multiple Varieties",
       title: "Multiple Varieties",
       description:
-        "Discover the finest collection of women's fashion designed for the modern Bangladeshi woman",
+        "Discover the finest collection of women&apos;s fashion designed for the modern Bangladeshi woman",
     },
   ];
 

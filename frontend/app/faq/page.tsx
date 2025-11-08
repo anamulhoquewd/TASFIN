@@ -111,8 +111,8 @@ export default function FAQPage() {
               Still have questions?
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Can't find the answer you're looking for? Our customer support
-              team is here to help.
+              Can&apos;t find the answer you&apos;re looking for? Our customer
+              support team is here to help.
             </p>
             <Link
               href="/support"

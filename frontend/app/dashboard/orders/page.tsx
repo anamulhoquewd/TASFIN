@@ -14,15 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Calendar,
-  Copy,
-  Download,
-  Filter,
-  RotateCcw,
-  Truck,
-  X,
-} from "lucide-react";
+import { Calendar, Filter, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import useOrders from "@/hooks/orders/use-orders";
@@ -31,13 +23,7 @@ import { DateRangePicker } from "@/components/user-dashboard/date-range-picker";
 import { format } from "date-fns";
 import { IOrder } from "@/interfaces/orders";
 import useUsers from "@/hooks/users/use-users";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { OrderTrackingModal } from "@/components/user-dashboard/order-tracking-modal";
 import Paginations from "@/components/user-dashboard/pagination";
 import Link from "next/link";
@@ -45,7 +31,7 @@ import MyOrderCard from "@/components/user-dashboard/my-order-card";
 
 function MyOrders() {
   const [orders, setOrders] = useState<IOrder[]>([]);
-  const [selectedOrder, setSelectedOrder] = useState<IOrder | null>(null);
+  const [selectedOrder] = useState<IOrder | null>(null);
   const [trackingOpen, setTrackingOpen] = useState(false);
 
   const {

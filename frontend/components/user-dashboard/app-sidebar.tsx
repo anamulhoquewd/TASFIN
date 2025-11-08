@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  GalleryVerticalEnd,
-  LayoutDashboard,
-  Settings,
-  User,
-} from "lucide-react";
+import { LayoutDashboard, Settings, ShoppingCart, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +21,7 @@ import LoadingPage from "../loading-page";
 const data = {
   navMain: [
     { icon: LayoutDashboard, label: "Dashboard", url: "/dashboard" },
-    { icon: Settings, label: "My orders", url: "/dashboard/orders" },
+    { icon: ShoppingCart, label: "My orders", url: "/dashboard/orders" },
     { icon: Settings, label: "Account", url: "/dashboard/account" },
   ],
 };

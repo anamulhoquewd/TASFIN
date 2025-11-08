@@ -1,18 +1,16 @@
-import s3 from "@/config/s3";
-import mongoose from "mongoose";
-import { schemaValidationError } from "@/error";
-import Product from "@/models/products.model";
-import { uploadAvatar } from "@/utils";
-import pagination from "@/utils/pagination";
+import s3 from "./../config/s3.js";
+import { schemaValidationError } from "./../error/index.js";
+import Product from "./../models/products.model.js";
+import { uploadAvatar } from "./../utils/index.js";
+import pagination from "./../utils/pagination.js";
 import {
   avatarSchemaZ,
   idSchemaZ,
   objectIdSchemaZ,
-  ProductCreateInput,
+  type ProductCreateInput,
   productSchemaZ,
-  ProductVariantUpdateInput,
   productVariantUpdateZ,
-} from "@/validations/zod";
+} from "./../validations/zod.js";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import z from "zod";
 
@@ -376,7 +374,7 @@ export const updateMainImages = async ({
 
       const res = await uploadMultipleFiles({
         body: { images: validData.data.mainImages },
-        folder: "products", // @TODO: Path thik moto dite hobe.
+        folder: "products", // ./..TODO: Path thik moto dite hobe.
         filenames,
       });
 

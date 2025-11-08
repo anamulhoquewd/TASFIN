@@ -61,7 +61,7 @@ export default function ProductPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">Product not found</h1>
           <p className="text-muted-foreground">
-            The product you're looking for doesn't exist.
+            The product you&apos;re looking for doesn&apos;t exist.
           </p>
         </div>
       </div>

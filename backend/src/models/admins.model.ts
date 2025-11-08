@@ -1,4 +1,4 @@
-import { IAddress, IAdmin, IImage } from "@/interfaces";
+import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";

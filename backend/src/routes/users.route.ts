@@ -1,8 +1,8 @@
-import { userController } from "@/controllers";
+import { userController } from "./../controllers/index.js";
 import {
   authenticatedAdmin,
   authenticatedUser,
-} from "@/middlewares/auth.middleware";
+} from "./../middlewares/auth.middleware.js";
 import { Hono } from "hono";
 
 const userRoutes = new Hono();

@@ -1,5 +1,5 @@
 import api from "@/axios/interceptor";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 function useUsers() {
   const [isLoading, setIsLoading] = useState(false);

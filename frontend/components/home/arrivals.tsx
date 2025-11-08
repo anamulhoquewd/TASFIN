@@ -2,20 +2,12 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
-
-interface ArrivalsProduct {
-  id: string;
-  title: string;
-  image: string;
-  price: number;
-  originalPrice?: number;
-}
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);

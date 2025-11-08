@@ -1,6 +1,6 @@
-import { IUser } from "@/interfaces";
+import type { IUser } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { AddressSchema, ImageSchema } from "@/models/admins.model";
+import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 
 const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
   {

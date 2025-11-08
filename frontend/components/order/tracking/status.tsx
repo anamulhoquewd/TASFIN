@@ -248,7 +248,7 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
         <Card className="bg-blue-50 border border-blue-200 p-6 mb-6">
           <p className="text-sm text-blue-900">
             Thank you for your order! We appreciate your business. If you have
-            any questions about your order, please don't hesitate to contact our
+            any questions about your order, please don&apos;t hesitate to contact our
             support team.
           </p>
         </Card>

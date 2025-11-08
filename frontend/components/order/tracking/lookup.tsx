@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -11,20 +8,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Package,
-  Clock,
-  Truck,
-  CheckCircle2,
-  XCircle,
-  Search,
-  Loader2,
-  Copy,
-} from "lucide-react";
-import { toast } from "sonner";
-import useOrders from "@/hooks/orders/use-orders";
+import { Clock, Search, Loader2, Copy } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
-import Link from "next/link";
 import { format } from "date-fns";
 import { copyToClipboard, formatPrice } from "@/lib/utils";
 import {
@@ -40,12 +25,9 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import z from "zod";
-import { useForm, UseFormReturn } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { UseFormReturn } from "react-hook-form";
 import { OrderFormValues } from "@/lib/zod-validation";
 
 interface OrderLookupProps {

@@ -105,7 +105,7 @@ export interface IUser extends mongoose.Document {
 export interface ICoupon extends mongoose.Document {
   code: string;
   discountType: "percent" | "fixed";
-  value: number;
+  amount: number;
   maxDiscount: number;
   minSubtotal: number;
 

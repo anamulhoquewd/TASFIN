@@ -1,5 +1,4 @@
-import { productController } from "@/controllers";
-import { authenticatedAdmin } from "@/middlewares/auth.middleware";
+import { productController } from "./../controllers/index.js";
 import { Hono } from "hono";
 
 const productRoutes = new Hono();

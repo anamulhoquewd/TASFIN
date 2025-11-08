@@ -73,24 +73,21 @@ export function ProductVariantSelector({
         <h3 className="text-sm font-semibold mb-3">Size</h3>
         <div className="flex flex-wrap gap-2">
           {/* Size Buttons */}
-          {sizes.map((size) => {
-            const isAvailable = variants.some((v) => v.size === size);
-            return (
-              <Button
-                key={size}
-                size={"sm"}
-                variant={"secondary"}
-                onClick={() => handleSizeChange(size)}
-                className={`px-4 py-2 rounded-md border-2 cursor-pointer duration-300 transition-colors ${
-                  selectedSize === size
-                    ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border-border hover:bg-accent/10"
-                }`}
-              >
-                {size}
-              </Button>
-            );
-          })}
+          {sizes.map((size) => (
+            <Button
+              key={size}
+              size={"sm"}
+              variant={"secondary"}
+              onClick={() => handleSizeChange(size)}
+              className={`px-4 py-2 rounded-md border-2 cursor-pointer duration-300 transition-colors ${
+                selectedSize === size
+                  ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "border-border hover:bg-accent/10"
+              }`}
+            >
+              {size}
+            </Button>
+          ))}
         </div>
       </div>
 

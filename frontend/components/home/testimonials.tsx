@@ -3,7 +3,6 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";

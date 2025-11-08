@@ -2,10 +2,10 @@ import {
   authenticationError,
   badRequestHandler,
   serverErrorHandler,
-} from "@/error";
-import { adminService, userService } from "@/services";
+} from "./../error/index.js";
+import { adminService, userService } from "./../services/index.js";
 import axios from "axios";
-import { Context } from "hono";
+import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();

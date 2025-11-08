@@ -4,10 +4,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart-context";
-import { useState } from "react";
 import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
 
@@ -16,7 +14,7 @@ const FREE_SHIPPING_START_FROM = process.env
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
-  const [promoCode, setPromoCode] = useState("");
+  // const [promoCode, setPromoCode] = useState("");
 
   const shippingFee =
     subtotal > 0 ? (subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100) : 0;

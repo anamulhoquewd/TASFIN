@@ -2,12 +2,7 @@
 
 import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
 import { ProductsGrid } from "@/components/products/products-grid";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useProducts } from "@/hooks/products/use-products";
 import { useState } from "react";
 

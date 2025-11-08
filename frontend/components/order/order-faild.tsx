@@ -80,7 +80,7 @@ export default function OrderFailed({
           {/* Troubleshooting Guide */}
           <div className="space-y-3">
             <h3 className="font-semibold text-foreground text-sm">
-              Here's what you can do:
+              Here&apos;s what you can do:
             </h3>
             <ul className="space-y-2">
               {[

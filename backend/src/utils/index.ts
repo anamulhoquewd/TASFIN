@@ -1,9 +1,9 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { sign } from "hono/jwt";
 import dotenv from "dotenv";
-import { Context } from "hono";
+import type { Context } from "hono";
 import { setSignedCookie } from "hono/cookie";
-import { IAdmin, IUser } from "@/interfaces";
+import type { IAdmin, IUser } from "./../interfaces/index.js";
 dotenv.config();
 
 const DOMAIN = process.env.DOMAIN as string;

@@ -1,33 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
-import Image from "next/image";
-import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Loader2 } from "lucide-react";
 import api from "@/axios/interceptor";
 import { IProduct } from "@/interfaces/products";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { ScrollArea } from "./ui/scroll-area";
-import Link from "next/link";
 
 interface SearchProps {
   open: boolean;

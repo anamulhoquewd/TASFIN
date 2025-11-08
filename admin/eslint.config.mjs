@@ -22,7 +22,7 @@ const eslintConfig = [
     rules: {
       // 🚫 Disable the 'Unexpected any' rule
       "@typescript-eslint/no-explicit-any": "off",
-      "react-hooks/exhaustive-deps": "off",
+      // "react-hooks/exhaustive-deps": "off",
       "react-hooks/rules-of-hooks": "off",
     },
   },

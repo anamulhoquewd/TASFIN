@@ -1,7 +1,7 @@
 "use client";
 
 import { ICategory } from "@/interfaces/categories";
-import { BrushCleaning, Squirrel } from "lucide-react";
+import { Squirrel } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -19,7 +19,7 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
             Shop by Category
           </h2>
           <p className="text-lg mb-6 opacity-90">
-            Explore our curated collection of elegant women's fashion
+            Explore our curated collection of elegant women&apos;s fashion
           </p>
         </div>
 

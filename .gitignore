@@ -8,6 +8,7 @@ example
 # ----------------------
 backend/node_modules/
 admin/node_modules/
+frontend/node_modules/
 node_modules/
 
 # ----------------------
@@ -15,12 +16,15 @@ node_modules/
 # ----------------------
 backend/dist/
 admin/dist/
+frontend/dist/
 
 backend/build/
 admin/build/
+frontend/build/
 
 backend/.next/
 admin/.next/
+frontend/.next/
 
 # ----------------------
 # Environment files
@@ -33,6 +37,7 @@ admin/.next/
 
 backend/.env
 admin/.env
+frontend/.env
 
 # ----------------------
 # Logs

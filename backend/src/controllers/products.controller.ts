@@ -1,7 +1,7 @@
-import { badRequestHandler, serverErrorHandler } from "@/error";
-import { productService } from "@/services";
-import { parseDeleteUrls } from "@/utils";
-import { Context } from "hono";
+import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
+import { productService } from "./../services/index.js";
+import { parseDeleteUrls } from "./../utils/index.js";
+import type{ Context } from "hono";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();

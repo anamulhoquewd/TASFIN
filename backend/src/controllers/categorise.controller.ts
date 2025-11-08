@@ -2,11 +2,11 @@ import {
   badRequestHandler,
   schemaValidationError,
   serverErrorHandler,
-} from "@/error";
-import Category from "@/models/categorise.model";
-import { adminService, categoryService } from "@/services";
-import { idSchemaZ } from "@/validations/zod";
-import { Context } from "hono";
+} from "./../error/index.js";
+import Category from "./../models/categorise.model.js";
+import { adminService, categoryService } from "./../services/index.js";
+import { idSchemaZ } from "./../validations/zod.js";
+import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();

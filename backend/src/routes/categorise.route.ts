@@ -1,5 +1,5 @@
-import { categoryController } from "@/controllers";
-import { authenticatedAdmin } from "@/middlewares/auth.middleware";
+import { categoryController } from "./../controllers/index.js";
+import { authenticatedAdmin } from "./../middlewares/auth.middleware.js";
 import { Hono } from "hono";
 
 const categoryRoutes = new Hono();

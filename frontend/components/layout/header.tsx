@@ -1,34 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ShoppingCart,
-  Menu,
-  X,
-  SearchIcon,
-  Calendar,
-  Smile,
-  Calculator,
-  User,
-  CreditCard,
-  Settings,
-} from "lucide-react";
+import { ShoppingCart, Menu, X, SearchIcon, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import Image from "next/image";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@/components/ui/command";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -285,25 +263,5 @@ export function Header() {
         )}
       </div>
     </header>
-  );
-}
-
-function ListItem({
-  title,
-  children,
-  href,
-  ...props
-}: React.ComponentPropsWithoutRef<"li"> & { href: string }) {
-  return (
-    <li {...props}>
-      <NavigationMenuLink asChild>
-        <Link href={href}>
-          <div className="text-sm leading-none font-medium">{title}</div>
-          <p className="text-muted-foreground line-clamp-2 text-sm leading-snug">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
   );
 }

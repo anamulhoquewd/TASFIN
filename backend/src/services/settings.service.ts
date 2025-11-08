@@ -1,10 +1,10 @@
-import { schemaValidationError } from "@/error";
-import Settings from "@/models/settings.model";
+import { schemaValidationError } from "./../error/index.js";
+import Settings from "./../models/settings.model.js";
 import {
   settingCreateZ,
-  SettingUpdateInput,
+  type SettingUpdateInput,
   settingUpdateZ,
-} from "@/validations/zod";
+} from "./../validations/zod.js";
 import dotenv from "dotenv";
 dotenv.config();
 

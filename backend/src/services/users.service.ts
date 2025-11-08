@@ -1,17 +1,15 @@
-import { schemaValidationError } from "@/error";
-import { IUser } from "@/interfaces";
-import User from "@/models/users.model";
-import { generateAccessToken, generateRefreshToken } from "@/utils";
-import pagination from "@/utils/pagination";
+import { schemaValidationError } from "./../error/index.js";
+import type { IUser } from "./../interfaces/index.js";
+import User from "./../models/users.model.js";
+import pagination from "./../utils/pagination.js";
 import {
   idSchemaZ,
-  loginSchemeZ,
   querySchemaZ,
-  UserCreateInput,
+  type UserCreateInput,
   userCreateZ,
-  UserUpdateInput,
+  type UserUpdateInput,
   userUpdateZ,
-} from "@/validations/zod";
+} from "./../validations/zod.js";
 import dotenv from "dotenv";
 
 dotenv.config();

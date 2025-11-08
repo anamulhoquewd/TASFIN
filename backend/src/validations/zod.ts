@@ -1,5 +1,5 @@
 // validation/admin.validation.ts
-import { isValidDate } from "@/utils";
+import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
 import { z } from "zod";
 

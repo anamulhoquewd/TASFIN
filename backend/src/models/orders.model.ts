@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { AddressSchema, ImageSchema } from "@/models/admins.model";
-import { IOrder, IOrderProduct } from "@/interfaces";
+import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
+import type { IOrder, IOrderProduct } from "./../interfaces/index.js";
 
 const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema({
   productId: { type: String, required: true },

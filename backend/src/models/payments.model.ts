@@ -1,4 +1,4 @@
-import { IPayment } from "@/interfaces";
+import type { IPayment } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 
 const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(

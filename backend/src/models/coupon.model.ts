@@ -1,4 +1,4 @@
-import { ICoupon } from "@/interfaces";
+import type { ICoupon } from "./../interfaces/index.js";
 import { Schema, model } from "mongoose";
 
 const CouponSchema = new Schema<ICoupon>(

@@ -1,6 +1,6 @@
-import { IOffers } from "@/interfaces";
+import type { IOffers } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { ImageSchema } from "./admins.model";
+import { ImageSchema } from "./admins.model.js";
 
 const OffersSchema: mongoose.Schema<IOffers> = new mongoose.Schema(
   {

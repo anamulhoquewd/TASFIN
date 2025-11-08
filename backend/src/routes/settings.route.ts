@@ -1,5 +1,8 @@
-import { settingsController } from "@/controllers";
-import { authenticatedAdmin, authorize } from "@/middlewares/auth.middleware";
+import { settingsController } from "./../controllers/index.js";
+import {
+  authenticatedAdmin,
+  authorize,
+} from "./../middlewares/auth.middleware.js";
 import { Hono } from "hono";
 
 const settingsRoutes = new Hono();

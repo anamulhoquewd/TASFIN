@@ -14,7 +14,7 @@ export function Footer() {
               TASFIN
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Fashion for Her. Elegant women's clothing for the modern
+              Fashion for Her. Elegant women&apos;s clothing for the modern
               Bangladeshi woman.
             </p>
           </div>

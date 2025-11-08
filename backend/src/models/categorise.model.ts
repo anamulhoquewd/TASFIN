@@ -1,6 +1,6 @@
-import { ICategory } from "@/interfaces";
+import type { ICategory } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { ImageSchema } from "./admins.model";
+import { ImageSchema } from "./admins.model.js";
 
 const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
   {

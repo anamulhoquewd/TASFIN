@@ -1,6 +1,6 @@
-import { IProduct, IProductVariant } from "@/interfaces";
+import type { IProduct, IProductVariant } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { ImageSchema } from "./admins.model";
+import { ImageSchema } from "./admins.model.js";
 
 const ProductVariantSchema: mongoose.Schema<IProductVariant> =
   new mongoose.Schema({

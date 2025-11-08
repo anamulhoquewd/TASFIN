@@ -1,7 +1,7 @@
-import { badRequestHandler, serverErrorHandler } from "@/error";
-import Settings from "@/models/settings.model";
-import { adminService, settingsService } from "@/services";
-import { Context } from "hono";
+import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
+import Settings from "./../models/settings.model.js";
+import { adminService, settingsService } from "./../services/index.js";
+import type { Context } from "hono";
 
 export const getSettings = async (c: Context) => {
   const response = await settingsService.getSettings();

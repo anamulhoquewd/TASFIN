@@ -1,29 +1,29 @@
-import { schemaValidationError } from "@/error";
-import Admin from "@/models/admins.model";
-import { stringGenerator } from "@/utils/string-generator";
+import { schemaValidationError } from "./../error/index.js";
+import Admin from "./../models/admins.model.js";
+import { stringGenerator } from "./../utils/string-generator.js";
 import dotenv from "dotenv";
 import {
-  AdminCreateInput,
   adminCreateZ,
-  AdminUpdateInput,
   adminUpdateZ,
   avatarSchemaZ,
   changePasswordZ,
   idSchemaZ,
   loginSchemeZ,
   querySchemaZ,
-} from "@/validations/zod";
-import { transporter } from "@/config/email";
+  type AdminCreateInput,
+  type AdminUpdateInput,
+} from "./../validations/zod.js";
+import { transporter } from "./../config/email.js";
 import z from "zod";
-import pagination from "@/utils/pagination";
-import { IAdmin, IUser } from "@/interfaces";
-import s3 from "@/config/s3";
+import pagination from "./../utils/pagination.js";
+import type{ IAdmin, } from "./../interfaces/index.js";
+import s3 from "./../config/s3.js";
 import {
   generateAccessToken,
   generateRefreshToken,
   uploadAvatar,
-} from "@/utils";
-import User from "@/models/users.model";
+} from "./../utils/index.js";
+import User from "./../models/users.model.js";
 dotenv.config();
 
 // Get environment variables

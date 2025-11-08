@@ -1,9 +1,9 @@
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 import { verify } from "hono/jwt";
 import { config } from "dotenv";
-import { authenticationError, authorizationError } from "@/error";
-import Admin from "@/models/admins.model";
-import User from "@/models/users.model";
+import { authenticationError, authorizationError } from "./../error/index.js";
+import Admin from "./../models/admins.model.js";
+import User from "./../models/users.model.js";
 import { deleteCookie, getSignedCookie } from "hono/cookie";
 config();
 

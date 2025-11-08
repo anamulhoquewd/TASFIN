@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +18,16 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
         return "bg-green-100 text-green-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "unpaid":
+        return "bg-blue-100 text-blue-800";
+      case "paid":
+        return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -50,9 +57,18 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
               {new Date(order.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <Badge className={getStatusColor(order.status) + " capitalize"}>
-            {order.status}
-          </Badge>
+          <div className="flex gap-2">
+            <Badge
+              className={
+                getPaymentStatusColor(order.paymentStatus) + " capitalize"
+              }
+            >
+              {order.paymentStatus}
+            </Badge>
+            <Badge className={getStatusColor(order.status) + " capitalize"}>
+              {order.status}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

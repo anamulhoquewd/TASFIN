@@ -3,12 +3,12 @@ import {
   authorizationError,
   badRequestHandler,
   serverErrorHandler,
-} from "@/error";
-import Admin from "@/models/admins.model";
-import { adminService } from "@/services";
-import { generateAccessToken, setAuthCookie } from "@/utils";
+} from "./../error/index.js";
+import Admin from "./../models/admins.model.js";
+import { adminService } from "./../services/index.js";
+import { generateAccessToken, setAuthCookie } from "./../utils/index.js";
 import axios from "axios";
-import { Context } from "hono";
+import type { Context } from "hono";
 import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { decode, verify } from "hono/jwt";
 

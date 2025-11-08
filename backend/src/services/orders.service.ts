@@ -1,19 +1,19 @@
-import { schemaValidationError } from "@/error";
-import { IOrder } from "@/interfaces";
-import Order from "@/models/orders.model";
-import Product from "@/models/products.model";
-import User from "@/models/users.model";
-import pagination from "@/utils/pagination";
+import { schemaValidationError } from "./../error/index.js";
+import type{ IOrder } from "./../interfaces/index.js";
+import Order from "./../models/orders.model.js";
+import Product from "./../models/products.model.js";
+import User from "./../models/users.model.js";
+import pagination from "./../utils/pagination.js";
 import {
   addressZ,
   idSchemaZ,
   orderFetchQuerySchema,
-  OrderInput,
+ type OrderInput,
   orderSchemaZ,
   orderStatusEnumZ,
-  OrderUpdateInput,
+ type OrderUpdateInput,
   paymentStatusEnumZ,
-} from "@/validations/zod";
+} from "./../validations/zod.js";
 import z from "zod";
 
 export interface GetOrderServiceProps {
@@ -349,7 +349,7 @@ export const getOrder = async (_id: string) => {
   }
 };
 
-// TODO@ Test kora baki ache. order cancelled hole stock back korbe.
+// TODO./.. Test kora baki ache. order cancelled hole stock back korbe.
 export async function updateOrder({
   body,
   _id,
@@ -489,7 +489,7 @@ export async function updateOrder({
   }
 }
 
-// TODO@ Test kora baki ache.
+// TODO./.. Test kora baki ache.
 export const deleteOrder = async (_id: string) => {
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id: _id });

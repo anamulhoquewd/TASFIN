@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 const img = "/tasfin-logo-text-black-bg-white.png";
 

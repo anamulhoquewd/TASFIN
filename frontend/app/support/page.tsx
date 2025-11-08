@@ -79,8 +79,8 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions or need assistance? We're here to help! Reach out to
-            us and we'll respond as soon as possible.
+            Have questions or need assistance? We&apos;re here to help! Reach out to
+            us and we&apos;ll respond as soon as possible.
           </p>
         </div>
 

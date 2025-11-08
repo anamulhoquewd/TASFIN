@@ -1,6 +1,6 @@
-import { ISettings } from "@/interfaces";
+import type { ISettings } from "./../interfaces/index.js";
 import mongoose from "mongoose";
-import { AddressSchema, ImageSchema } from "./admins.model";
+import { AddressSchema, ImageSchema } from "./admins.model.js";
 
 const SettingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
   {
