@@ -214,7 +214,7 @@ function useProducts() {
       });
 
       // Send to backend
-      const response = await api.post("/register", formData, {
+      const response = await api.post("/products/register", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
