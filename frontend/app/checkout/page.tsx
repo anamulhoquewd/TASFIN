@@ -21,6 +21,8 @@ export default function CheckoutPage() {
   const shippingFee = subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100;
   const total = subtotal + shippingFee;
 
+  form.setValue("shippingCost", shippingFee);
+
   if (status === "success" && order)
     return (
       <OrderConfirmed

@@ -26,6 +26,6 @@ export async function getCookie(name: "X-User-ID") {
   return cookieStore.get(name)?.value;
 }
 
-export async function deleteCookie(data: { name: string; value: string }) {
-  (await cookies()).set(data.name, data.value, { maxAge: 0 });
+export async function deleteCookie(name: "X-User-ID") {
+  (await cookies()).set(name, "", { maxAge: 0 });
 }

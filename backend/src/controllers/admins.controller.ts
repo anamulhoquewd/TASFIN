@@ -159,19 +159,6 @@ export const login = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  // await setAuthCookie(
-  //   c,
-  //   "refreshToken",
-  //   response.success.tokens.refreshToken,
-  //   60 * 60 * 24 * 7
-  // ); // 7d
-  // await setAuthCookie(
-  //   c,
-  //   "accessToken",
-  //   response.success.tokens.accessToken,
-  //   60 * 20
-  // ); // 20 minutes
-
   return c.json(response.success, 200);
 };
 
@@ -248,12 +235,6 @@ export const refreshToken = async (c: Context) => {
 // Logout admin
 export const logout = async (c: Context) => {
   try {
-    // Clear cookie using Hono's deleteCookie
-    // deleteCookie(c, "accessToken", {
-    //   path: "/",
-    //   secure: process.env.NODE_ENV === "production",
-    //   domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
-    // });
     const refreshToken = deleteCookie(c, "refreshToken", {
       path: "/",
       secure: process.env.NODE_ENV === "production",
@@ -261,22 +242,7 @@ export const logout = async (c: Context) => {
     });
 
     if (!refreshToken) {
-      // deleteCookie(c, "accessToken", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-      // deleteCookie(c, "refreshToken", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-      // deleteCookie(c, "X-User-ID", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-      return authenticationError(c);
+       return authenticationError(c);
     }
 
     const { payload } = decode(refreshToken as string) as any;

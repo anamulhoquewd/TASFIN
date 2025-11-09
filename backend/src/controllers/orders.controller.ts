@@ -15,13 +15,6 @@ export const register = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  // await setAuthCookie(
-  //   c,
-  //   "X-User-ID",
-  //   response.success.user.phone,
-  //   60 * 60 * 24 * 365
-  // );
-
   return c.json(response.success, 201);
 };
 

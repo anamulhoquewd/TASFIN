@@ -7,10 +7,11 @@ function useUsers() {
 
   const getProfile = async () => {
     setIsLoading(true);
-    const phone = (await getCookie("X-User-ID")) as string;
+    const id = (await getCookie("X-User-ID")) as string;
+    console.log("Id: ", id);
     try {
       const response = await api.get("/users/me", {
-        headers: { Authorization: phone },
+        headers: { "X-User-ID": id },
       });
 
       if (response.data.success) {

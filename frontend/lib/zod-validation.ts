@@ -26,6 +26,7 @@ export const CheckoutSchemaZ = z.object({
   paymentMethod: z.enum(["cod"], {
     error: "Please select a payment method",
   }),
+  shippingCost: z.coerce.number().nonnegative("Cost must be 0 or up"),
 });
 
 export type CheckoutFormValues = z.infer<typeof CheckoutSchemaZ>;

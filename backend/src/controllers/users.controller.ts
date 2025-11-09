@@ -72,6 +72,7 @@ export const getMe = async (c: Context) => {
   try {
     // Get user from auth token
     const me = c.get("user");
+    console.log("Me: ", me);
 
     // Check if user is authenticated
     if (!me) {

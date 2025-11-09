@@ -4,18 +4,15 @@ import { config } from "dotenv";
 import { authenticationError, authorizationError } from "./../error/index.js";
 import Admin from "./../models/admins.model.js";
 import User from "./../models/users.model.js";
-import { deleteCookie, getSignedCookie } from "hono/cookie";
 config();
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
-const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 export const authenticatedAnyUser = async (c: Context, next: Next) => {
   const phone = c.req.header("X-User-ID");
   const token = c.req.header("Authorization")?.replace("Bearer ", "");
 
   try {
-    // যদি phone থাকে → normal user
     if (phone) {
       const user = await User.findOne({ phone });
       if (!user || user.isBlocked) {
@@ -41,7 +38,6 @@ export const authenticatedAnyUser = async (c: Context, next: Next) => {
       return next();
     }
 
-    // যদি phone বা token দুটিই না থাকে → unauthorized
     return authenticationError(c);
   } catch (error) {
     console.log("Authentication error:", error);
@@ -51,17 +47,12 @@ export const authenticatedAnyUser = async (c: Context, next: Next) => {
 
 //  Check if user is authenticated
 export const authenticatedUser = async (c: Context, next: Next) => {
-  const phone = c.req.header("X-User-ID");
+  const id = c.req.header("X-User-ID");
+
   try {
-    const user = await User.findOne({ phone });
+    const user = await User.findOne({ _id: id });
 
     if (!user || user.isBlocked) {
-      // deleteCookie(c, "X-User-ID", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-
       return authenticationError(c);
     }
 

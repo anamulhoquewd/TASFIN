@@ -70,7 +70,7 @@ const useOrders = () => {
           variantId: item.variantId,
           quantity: item.quantity,
         })),
-        shippingCost: 0,
+        shippingCost: values.shippingCost,
       };
 
       const response = await api.post("/orders/register", data);
