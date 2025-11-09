@@ -5,6 +5,14 @@ import { ProductsGrid } from "@/components/products/products-grid";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useProducts } from "@/hooks/products/use-products";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function ProductsPage() {
   const [filters, setFilters] = useState<{
@@ -61,13 +69,27 @@ export default function ProductsPage() {
           />
         </div>
 
-        {/* 🔹 Drawer (Mobile Filter) */}
-        <Drawer
+        {/* Drawer (Mobile Filter) */}
+
+        <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+          {/* <DialogTrigger>Open</DialogTrigger> */}
+          <DialogContent className="p-0 border-0 m-0">
+            <ProductsFilterSidebar
+              onFilterChange={(data: any) => {
+                handleFilterChange_(data);
+              }}
+              onClose={setIsFilterOpen}
+              initialFilters={filters}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* <Drawer
           direction="left"
           open={isFilterOpen}
           onOpenChange={setIsFilterOpen}
         >
-          <DrawerContent className="p-6 w-4/5 sm:w-2/3 md:w-1/2">
+          <DrawerContent className="p-6 w-4/5 sm:w-2/3 md:w-1/2 touch-none">
             <ProductsFilterSidebar
               onFilterChange={(data: any) => {
                 handleFilterChange_(data);
@@ -75,7 +97,7 @@ export default function ProductsPage() {
               initialFilters={filters}
             />
           </DrawerContent>
-        </Drawer>
+        </Drawer> */}
       </div>
     </div>
   );

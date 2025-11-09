@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCart } from "@/lib/cart-context";
 import Image from "next/image";
-import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -14,10 +13,9 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Searching from "../search";
+import { MobileMenu } from "./mobile-menu";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -106,44 +104,6 @@ export function Header() {
             </Button>
 
             <Searching open={open} setOpen={setOpen} />
-            {/* <CommandDialog open={open} onOpenChange={setOpen}>
-              <CommandInput placeholder="Type keyword to search..." />
-              <CommandList>
-                <CommandEmpty>No results found.</CommandEmpty>
-                <CommandGroup heading="Suggestions">
-                  <CommandItem>
-                    <Calendar />
-                    <span>Calendar</span>
-                  </CommandItem>
-                  <CommandItem>
-                    <Smile />
-                    <span>Search Emoji</span>
-                  </CommandItem>
-                  <CommandItem>
-                    <Calculator />
-                    <span>Calculator</span>
-                  </CommandItem>
-                </CommandGroup>
-                <CommandSeparator />
-                <CommandGroup heading="Settings">
-                  <CommandItem>
-                    <User />
-                    <span>Profile</span>
-                    <CommandShortcut>⌘P</CommandShortcut>
-                  </CommandItem>
-                  <CommandItem>
-                    <CreditCard />
-                    <span>Billing</span>
-                    <CommandShortcut>⌘B</CommandShortcut>
-                  </CommandItem>
-                  <CommandItem>
-                    <Settings />
-                    <span>Settings</span>
-                    <CommandShortcut>⌘S</CommandShortcut>
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </CommandDialog> */}
           </>
 
           {/* Cart & Mobile Menu */}
@@ -190,77 +150,7 @@ export function Header() {
         </div>
 
         {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <>
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetContent>
-                <SheetHeader className="p-0">
-                  {false ? (
-                    <Link href="#" onClick={() => setMobileMenuOpen(false)}>
-                      <Button
-                        size="lg"
-                        className="text-foreground bg-muted no-hover rounded-t-none px-4 py-8 mb-4 w-full justify-start"
-                      >
-                        <Avatar className="h-12 w-12 rounded-full grayscale border border-border">
-                          <AvatarImage src={"/"} alt={"User"} />
-                          <AvatarFallback className="rounded-full">
-                            TS
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="grid flex-1 text-left leading-tight text-xl">
-                          <span className="truncate font-medium">
-                            {"Anamul hoque"}
-                          </span>
-                          <span className="text-muted-foreground truncate text-sm">
-                            {"anamulhoque@gmail.com"}
-                          </span>
-                        </div>
-                      </Button>
-                    </Link>
-                  ) : (
-                    <div>
-                      <p className="p-4 text-foreground text-xs font-medium">
-                        Menubar
-                      </p>
-                      <Separator />
-                    </div>
-                  )}
-                  <nav className="px-6 pb-6 flex flex-col gap-4">
-                    <Link
-                      href="/"
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Home
-                    </Link>
-                    <Link
-                      href="/products"
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Shop
-                    </Link>
-                    <Separator />
-                    <Link
-                      href="/about"
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      About
-                    </Link>
-                    <Link
-                      href="/support"
-                      className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Support
-                    </Link>
-                  </nav>
-                </SheetHeader>
-              </SheetContent>
-            </Sheet>
-          </>
-        )}
+        <MobileMenu isOpen={mobileMenuOpen} onClose={setMobileMenuOpen} />
       </div>
     </header>
   );

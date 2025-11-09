@@ -2,6 +2,7 @@ import api from "@/axios/interceptor";
 import { useState } from "react";
 import useMe from "./useMe";
 import { toast } from "sonner";
+import { getCookie } from "@/app/actions";
 
 const useAvatar = () => {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
@@ -26,7 +27,7 @@ const useAvatar = () => {
 
     const formData = new FormData();
     formData.append("avatar", file);
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.post(
         `/admins/upload-avatar?filename=${
@@ -36,6 +37,7 @@ const useAvatar = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
         }
       );

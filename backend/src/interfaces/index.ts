@@ -87,6 +87,7 @@ export interface IAdmin extends mongoose.Document {
 export interface IUser extends mongoose.Document {
   _id: string;
   name: string;
+  occupation: string;
   email: string;
   phone: string;
   address?: IAddress;

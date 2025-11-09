@@ -64,6 +64,7 @@ export const generateAccessToken = async ({
       _id: user._id,
       email: user.email,
       exp: Math.floor(Date.now() / 1000) + 60 * expMinutes,
+      // exp: Math.floor(Date.now() / 1000) + 60,
     },
     JWT_ACCESS_SECRET
   );
@@ -87,8 +88,8 @@ export const generateRefreshToken = async ({
     {
       _id: user._id,
       email: user.email,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * expDays,
-      // exp: Math.floor(Date.now() / 1000) + 60 * 5,
+      // exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * expDays,
+      exp: Math.floor(Date.now() / 1000) + 60 * 12, // 2m
     },
     JWT_REFRESH_SECRET as string
   );
@@ -99,7 +100,7 @@ export const generateRefreshToken = async ({
   return token;
 };
 
-export const setAuthCookie = async (
+const setAuthCookie = async (
   c: Context,
   name: string,
   value: string,

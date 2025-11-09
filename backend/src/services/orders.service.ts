@@ -1,5 +1,5 @@
 import { schemaValidationError } from "./../error/index.js";
-import type{ IOrder } from "./../interfaces/index.js";
+import type { IOrder } from "./../interfaces/index.js";
 import Order from "./../models/orders.model.js";
 import Product from "./../models/products.model.js";
 import User from "./../models/users.model.js";
@@ -8,10 +8,10 @@ import {
   addressZ,
   idSchemaZ,
   orderFetchQuerySchema,
- type OrderInput,
+  type OrderInput,
   orderSchemaZ,
   orderStatusEnumZ,
- type OrderUpdateInput,
+  type OrderUpdateInput,
   paymentStatusEnumZ,
 } from "./../validations/zod.js";
 import z from "zod";
@@ -45,14 +45,16 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const { phone, address, products, name, shippingCost } = validData.data;
+    const { phone, address, products, name, shippingCost, email } =
+      validData.data;
 
     // 🔹 Step 1: Find or Create User
-    let user = await User.findOne({ phone });
+    let user = await User.findOne({ phone, email });
 
     if (!user) {
       const newUser = new User({
         phone,
+        ...(email && { email }),
         address,
         name,
       });

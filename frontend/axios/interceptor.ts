@@ -10,9 +10,6 @@ const baseURL = `${DOMAIN}${BASE_PATH}` || "http://localhost:4000/api/v1";
 const api = axios.create({
   baseURL,
   withCredentials: true,
-  headers: {
-    Authorization: `Bearer ${getStorage("accessToken")}`,
-  },
 });
 
 // Response interceptor for token refresh

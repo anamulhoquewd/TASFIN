@@ -1,3 +1,4 @@
+import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { setStorage } from "@/store/local";
 import { handleAxiosError } from "@/utils/error";
@@ -40,28 +41,40 @@ const useLogin = () => {
   const onSubmit = async (data: z.infer<typeof loginFormSchema>) => {
     // Start loading
     setIsLoading(true);
-
+    const token = (await getCookie("accessToken")) as string;
     try {
       // Send login request
-      const response = await api.post(`/admins/log-in`, {
-        ...(data.email.includes("@")
-          ? { email: data.email }
-          : { phone: data.email }),
-        password: data.password,
-      });
-
-      console.log("response");
-
-      // if response is successful
+      const response = await api.post(
+        `/admins/log-in`,
+        {
+          ...(data.email.includes("@")
+            ? { email: data.email }
+            : { phone: data.email }),
+          password: data.password,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (!response.data.success) {
         throw new Error(response.data?.error?.message || "Login failed");
       }
-      // Set access token
-      const accessToken = response.data.tokens.accessToken;
+      // get tokens
+      const tokens = response.data.tokens;
 
-      // Set access token in local storage
-      setStorage("accessToken", accessToken);
+      // set access token in local storage
+      setStorage("accessToken", tokens.accessToken);
+
+      // Set tokens in cookie
+      createCookie({
+        name: "accessToken",
+        value: tokens.accessToken,
+        maxAgeAsSeconds: 60 * 15, // 15m
+      });
+      createCookie({
+        name: "refreshToken",
+        value: tokens.refreshToken,
+        maxAgeAsSeconds: 60 * 60 * 24 * 7, // 7d
+      });
 
       // Clear form
       form.reset({

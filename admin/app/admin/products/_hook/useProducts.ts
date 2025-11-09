@@ -1,3 +1,4 @@
+import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -282,8 +283,11 @@ function useProducts() {
   };
 
   const onDelete = async (productId: string) => {
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const result = await api.delete(`/products/${productId}`);
+      const result = await api.delete(`/products/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       console.log("Delete product result:", result);
 
@@ -391,11 +395,14 @@ function useProducts() {
       if (catId) formData.append("categories", catId);
     });
 
+    const token = (await getCookie("accessToken")) as string;
+
     try {
       // ----- API Call -----
       const response = await api.put("/products/" + productId, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
         },
       });
 

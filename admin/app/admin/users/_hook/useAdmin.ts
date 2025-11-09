@@ -1,3 +1,4 @@
+import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IAdmin } from "@/interfaces/users";
@@ -42,8 +43,12 @@ function useAdmin() {
   const handleSubmit = async (data: UserFormValues) => {
     setIsLoading(true);
 
+    const token = (await getCookie("accessToken")) as string;
+
     try {
-      const response = await api.post("/admins/register", data);
+      const response = await api.post("/admins/register", data, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -88,12 +93,14 @@ function useAdmin() {
     page: number;
     search: string;
   }) => {
+    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.get("/admins", {
         params: {
           page,
           search,
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.data.success) {
@@ -115,8 +122,11 @@ function useAdmin() {
 
   const handleDelete = async (data: string) => {
     console.log(data);
+    const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.delete(`/admins/${data}`);
+      const response = await api.delete(`/admins/${data},`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Somthing went wrong!");
