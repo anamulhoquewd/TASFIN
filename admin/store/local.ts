@@ -1,5 +1,5 @@
 // Set to local storage
-export const setStorage = (key: string, value: object) => {
+const setStorage = (key: string, value: object) => {
   if (typeof window !== "undefined") {
     return localStorage.setItem(key, JSON.stringify(value));
   }
@@ -7,7 +7,7 @@ export const setStorage = (key: string, value: object) => {
 };
 
 // Get from local storage
-export const getStorage = (key: string) => {
+const getStorage = (key: string) => {
   if (typeof window !== "undefined") {
     return localStorage.getItem(key);
   }
@@ -15,7 +15,7 @@ export const getStorage = (key: string) => {
 };
 
 // Remove from local storage
-export const removeStorage = (key: string) => {
+const removeStorage = (key: string) => {
   if (typeof window !== "undefined") {
     localStorage.removeItem(key);
   }

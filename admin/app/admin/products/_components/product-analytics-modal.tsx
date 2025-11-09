@@ -531,7 +531,7 @@ export function ProductAnalyticsModal({
                   {product.keyFeatures && product.keyFeatures.length > 0 && (
                     <Card>
                       <CardHeader>
-                        <CardTitle>Key Features</CardTitle>
+                        <CardTitle>Key Benefits</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <ul className="list-disc list-inside text-sm space-y-1">

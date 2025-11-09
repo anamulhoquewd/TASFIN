@@ -16,6 +16,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  ArrowDown,
+  ArrowUp,
   CheckCheck,
   ChevronsUpDown,
   Plus,
@@ -184,7 +186,6 @@ export function CreateProductForm({
                 />
               </CardContent>
             </Card>
-
             {/* Product Images */}
             <Card>
               <CardHeader>
@@ -215,7 +216,6 @@ export function CreateProductForm({
                                   e.target.files || []
                                 );
                                 const existing = field.value || [];
-
                                 // Duplicate check (name + size + lastModified)
                                 const filtered = newFiles.filter(
                                   (file) =>
@@ -226,7 +226,6 @@ export function CreateProductForm({
                                         f.lastModified === file.lastModified
                                     )
                                 );
-
                                 if (
                                   filtered.length === 0 &&
                                   newFiles.length > 0
@@ -241,12 +240,10 @@ export function CreateProductForm({
                                       "Only new images have been added.",
                                   });
                                 }
-
                                 field.onChange([...existing, ...filtered]);
                               }}
                             />
                           </label>
-
                           {field.value?.length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
                               {field.value.map((file: File, index: number) => (
@@ -271,6 +268,50 @@ export function CreateProductForm({
                                   >
                                     <X className="w-3 h-3" />
                                   </button>
+                                  <div className="absolute bottom-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button
+                                      type="button"
+                                      disabled={index === 0}
+                                      onClick={() => {
+                                        if (index > 0) {
+                                          const newArray = [...field.value];
+                                          [
+                                            newArray[index - 1],
+                                            newArray[index],
+                                          ] = [
+                                            newArray[index],
+                                            newArray[index - 1],
+                                          ];
+                                          field.onChange(newArray);
+                                        }
+                                      }}
+                                      className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50 cursor-pointer"
+                                    >
+                                      <ArrowUp className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={
+                                        index === field.value.length - 1
+                                      }
+                                      onClick={() => {
+                                        if (index < field.value.length - 1) {
+                                          const newArray = [...field.value];
+                                          [
+                                            newArray[index + 1],
+                                            newArray[index],
+                                          ] = [
+                                            newArray[index],
+                                            newArray[index + 1],
+                                          ];
+                                          field.onChange(newArray);
+                                        }
+                                      }}
+                                      className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50 cursor-pointer"
+                                    >
+                                      <ArrowDown className="w-3 h-3" />
+                                    </button>
+                                  </div>
                                 </div>
                               ))}
                             </div>
@@ -283,7 +324,6 @@ export function CreateProductForm({
                 />
               </CardContent>
             </Card>
-
             {/* Product Variants */}
             <Card>
               <CardHeader>
@@ -446,7 +486,6 @@ export function CreateProductForm({
                 </div>
               </CardContent>
             </Card>
-
             {/* Product Details */}
             <Card>
               <CardHeader>

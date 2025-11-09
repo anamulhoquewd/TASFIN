@@ -88,8 +88,8 @@ export const generateRefreshToken = async ({
     {
       _id: user._id,
       email: user.email,
-      // exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * expDays,
-      exp: Math.floor(Date.now() / 1000) + 60 * 12, // 2m
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * expDays,
+      // exp: Math.floor(Date.now() / 1000) + 60 * 12, // 2m
     },
     JWT_REFRESH_SECRET as string
   );

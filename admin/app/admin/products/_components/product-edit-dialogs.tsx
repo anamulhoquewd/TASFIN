@@ -21,6 +21,8 @@ import {
   AlertTriangle,
   ChevronsUpDown,
   CheckCheck,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
@@ -681,9 +683,9 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
 // Main Images Form
 export function MainImagesForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [existingImagesToDelete, setExistingImagesToDelete] = useState<
-    string[]
-  >([]);
+  const [existingImagesToKeep, setExistingImagesToKeep] = useState<any[]>(
+    product.images ? [...product.images] : []
+  );
 
   const form = useForm<ProductUpdateInput>({
     resolver: zodResolver(productUpdateZ),
@@ -703,6 +705,13 @@ export function MainImagesForm({ product, onClose }: FormProps) {
       (data.images || []).forEach((file: File) => {
         formData.append("images", file);
       });
+
+      // compute deleted urls
+      const originalUrls = product.images.map((img: any) => img.url);
+      const keptUrls = existingImagesToKeep.map((img: any) => img.url);
+      const existingImagesToDelete = originalUrls.filter(
+        (url: string) => !keptUrls.includes(url)
+      );
 
       // append delete image urls
       existingImagesToDelete.forEach((url) => {
@@ -754,16 +763,14 @@ export function MainImagesForm({ product, onClose }: FormProps) {
     }
   };
 
-  const handleRemove = (url: string) => {
-    setExistingImagesToDelete((prev) =>
-      prev.includes(url) ? prev : [...prev, url]
+  const handleMainImageRemove = (imageUrl: string) => {
+    setExistingImagesToKeep((prev) =>
+      prev.filter((img) => img.url !== imageUrl)
     );
   };
 
-  const handleRestore = (url: string) => {
-    setExistingImagesToDelete((prev) =>
-      prev.filter((deleteUrl) => deleteUrl !== url)
-    );
+  const handleMainImageRestore = (image: any) => {
+    setExistingImagesToKeep((prev) => [...prev, image]);
   };
 
   return (
@@ -785,32 +792,20 @@ export function MainImagesForm({ product, onClose }: FormProps) {
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <FormLabel className="text-sm font-medium">
-                    Current Images (
-                    {product.images.length - existingImagesToDelete.length} of{" "}
-                    {product.images.length} kept)
+                    Current Kept Images ({existingImagesToKeep.length})
                   </FormLabel>
                   <div className="text-xs text-muted-foreground">
                     Hover to see options
                   </div>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
-                  {product.images.map((image: any, index: number) => {
+                  {existingImagesToKeep.map((image: any, index: number) => {
                     const imageUrl = image.url;
-                    const isRemoved = existingImagesToDelete.includes(imageUrl);
 
                     return (
                       <div
-                        key={index}
-                        className={`relative group cursor-pointer ${
-                          isRemoved ? "opacity-50" : ""
-                        }`}
-                        onClick={() => {
-                          if (isRemoved) {
-                            handleRestore(imageUrl);
-                          } else {
-                            handleRemove(imageUrl);
-                          }
-                        }}
+                        key={imageUrl}
+                        className="relative group cursor-pointer"
                       >
                         <Image
                           width={1000}
@@ -819,28 +814,108 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                           alt={`Current ${index + 1}`}
                           className="w-full h-24 object-cover rounded-lg"
                         />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <span className="text-white flex flex-col items-center justify-center">
-                            {isRemoved ? (
-                              <>
-                                <span>Removed</span>
-                                <span className="text-xs">
-                                  Click to restore
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <span>Current</span>
-                                <span className="text-xs">Click to remove</span>
-                              </>
-                            )}
-                          </span>
+
+                        <button
+                          type="button"
+                          onClick={() => handleMainImageRemove(imageUrl)}
+                          className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+
+                        <div className="absolute bottom-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            type="button"
+                            disabled={index === 0}
+                            onClick={() => {
+                              if (index > 0) {
+                                const newArray = [...existingImagesToKeep];
+                                [newArray[index - 1], newArray[index]] = [
+                                  newArray[index],
+                                  newArray[index - 1],
+                                ];
+                                setExistingImagesToKeep(newArray);
+                              }
+                            }}
+                            className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={index === existingImagesToKeep.length - 1}
+                            onClick={() => {
+                              if (index < existingImagesToKeep.length - 1) {
+                                const newArray = [...existingImagesToKeep];
+                                [newArray[index + 1], newArray[index]] = [
+                                  newArray[index],
+                                  newArray[index + 1],
+                                ];
+                                setExistingImagesToKeep(newArray);
+                              }
+                            }}
+                            className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                {existingImagesToDelete.length === product.images.length && (
+
+                {existingImagesToKeep.length < product.images.length && (
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <FormLabel className="text-sm font-medium">
+                        Removed Images (
+                        {product.images.length - existingImagesToKeep.length})
+                      </FormLabel>
+                      <div className="text-xs text-muted-foreground">
+                        Click to restore
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
+                      {product.images
+                        .filter(
+                          (image: any) =>
+                            !existingImagesToKeep.some(
+                              (img: any) => img.url === image.url
+                            )
+                        )
+                        .map((image: any, index: number) => {
+                          const imageUrl = image.url;
+
+                          return (
+                            <div
+                              key={imageUrl}
+                              className="relative group cursor-pointer opacity-50"
+                              onClick={() => handleMainImageRestore(image)}
+                            >
+                              <Image
+                                width={1000}
+                                height={1000}
+                                src={imageUrl}
+                                alt={`Removed ${index + 1}`}
+                                className="w-full h-24 object-cover rounded-lg"
+                              />
+
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                <span className="text-white flex flex-col items-center justify-center">
+                                  <span>Removed</span>
+                                  <span className="text-xs">
+                                    Click to restore
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
+
+                {existingImagesToKeep.length === 0 && (
                   <div className="text-center py-4 text-sm text-muted-foreground">
                     All current images will be removed. Add new images below or
                     restore some.
@@ -920,6 +995,45 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                           >
                             <X className="w-3 h-3" />
                           </button>
+
+                          <div className="absolute bottom-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              disabled={index === 0}
+                              onClick={() => {
+                                if (index > 0) {
+                                  const newArray = [...(field.value || [])];
+                                  [newArray[index - 1], newArray[index]] = [
+                                    newArray[index],
+                                    newArray[index - 1],
+                                  ];
+                                  field.onChange(newArray);
+                                }
+                              }}
+                              className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={
+                                index === (field.value || []).length - 1
+                              }
+                              onClick={() => {
+                                if (index < (field.value || []).length - 1) {
+                                  const newArray = [...(field.value || [])];
+                                  [newArray[index + 1], newArray[index]] = [
+                                    newArray[index],
+                                    newArray[index + 1],
+                                  ];
+                                  field.onChange(newArray);
+                                }
+                              }}
+                              className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -936,8 +1050,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
               </div>
               <div className="text-xs text-muted-foreground space-y-1">
                 <div>
-                  • Current main images to keep:{" "}
-                  {product.images.length - existingImagesToDelete.length}
+                  • Current main images to keep: {existingImagesToKeep.length}
                 </div>
                 <div>
                   • New main images to upload:{" "}
@@ -945,8 +1058,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                 </div>
                 <div>
                   • Total main images after update:{" "}
-                  {product.images.length -
-                    existingImagesToDelete.length +
+                  {existingImagesToKeep.length +
                     (form.getValues("images") || []).length}
                 </div>
               </div>
