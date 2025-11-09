@@ -1,6 +1,5 @@
 import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
-import { setStorage } from "@/store/local";
 import { handleAxiosError } from "@/utils/error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -58,11 +57,12 @@ const useLogin = () => {
       if (!response.data.success) {
         throw new Error(response.data?.error?.message || "Login failed");
       }
+
+      // Redirect to home page
+      router.push(redirectTo);
+
       // get tokens
       const tokens = response.data.tokens;
-
-      // set access token in local storage
-      setStorage("accessToken", tokens.accessToken);
 
       // Set tokens in cookie
       createCookie({
@@ -81,9 +81,6 @@ const useLogin = () => {
         email: "",
         password: "",
       });
-
-      // Redirect to home page
-      router.push(redirectTo);
     } catch (error: any) {
       // Handle error
       handleAxiosError(error);

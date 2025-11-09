@@ -45,10 +45,10 @@ export function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
         </div>
       )}
 
-      {/* Key Features */}
+      {/* Key benefits */}
       {product.keyFeatures && product.keyFeatures.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">Key Features</h2>
+          <h2 className="text-lg font-semibold mb-3">Key Benefits</h2>
           <ul className="space-y-2">
             {product.keyFeatures.map((feature, index) => (
               <li key={index} className="flex items-start gap-2">

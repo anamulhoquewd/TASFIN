@@ -43,7 +43,8 @@ connectDB()
   });
 
 app.use(
-  "*",
+  logger(),
+  prettyJSON(),
   cors({
     origin: (origin) => {
       if (allowedOrigins.includes(origin)) return origin;

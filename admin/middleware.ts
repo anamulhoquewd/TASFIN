@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decodeJwtPayload } from "./lib/utils";
+import { deleteCookie } from "./app/actions";
 
 const PUBLIC_AUTH_ROUTES = [
   "/auth/sign-in",
@@ -22,6 +23,8 @@ export async function middleware(request: NextRequest) {
     if (token) {
       const decoded = decodeJwtPayload(token as string);
       if (!decoded) {
+        deleteCookie({ name: "accessToken" });
+        deleteCookie({ name: "refreshToken" });
         return redirectToLogin(request);
       }
       if (decoded.exp < Date.now() / 1000) {
@@ -38,6 +41,8 @@ export async function middleware(request: NextRequest) {
 
   const decoded = decodeJwtPayload(token);
   if (!decoded || decoded.exp < Date.now() / 1000) {
+    deleteCookie({ name: "accessToken" });
+    deleteCookie({ name: "refreshToken" });
     return redirectToLogin(request);
   }
 

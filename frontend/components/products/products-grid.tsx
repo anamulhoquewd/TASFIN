@@ -54,7 +54,7 @@ export function ProductsGrid({
 
   return (
     <div className="w-full space-y-6">
-      {/* 🔹 Sort & Filter Header */}
+      {/* Sort & Filter Header */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-2 items-stretch">
         {/* Mobile Filter Button */}
         <div className="lg:hidden block col-span-1 md:col-span2">
@@ -88,7 +88,7 @@ export function ProductsGrid({
         </span>
       </div>
 
-      {/* 🔹 Product Grid */}
+      {/* Product Grid */}
       {products.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
@@ -101,7 +101,7 @@ export function ProductsGrid({
         </div>
       )}
 
-      {/* 🔹 Infinite scroll status */}
+      {/* Infinite scroll status */}
       <div ref={observerTarget} className="mt-12 flex justify-center">
         {isLoading && (
           <div className="flex items-center gap-2">
@@ -121,8 +121,8 @@ export function ProductsGrid({
   );
 }
 
-/* 🔹 Product Card with auto slide effect */
-function ProductCard({ product }: { product: any }) {
+/* Product Card with auto slide effect */
+export function ProductCard({ product }: { product: any }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const router = useRouter();

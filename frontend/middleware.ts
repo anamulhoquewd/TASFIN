@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteCookie } from "./app/actions";
+import { toast } from "sonner";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -15,7 +16,7 @@ export async function middleware(request: NextRequest) {
   // If no valid userId number in cookie -> redirect to privacy policy page
   if (!userId) {
     deleteCookie("X-User-ID");
-    const policyUrl = new URL("/privacy", request.url);
+    const policyUrl = new URL("/", request.url);
     policyUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(policyUrl);
   }

@@ -13,28 +13,10 @@ import { TestimonialsSection } from "@/components/home/testimonials";
 export default function HomePage() {
   const { categories } = useCategory();
 
-  // Sample images for the slideshow
-  const slides = [
-    {
-      url: "https://www.aarong.com/_next/image?url=https%3A%2F%2Fmcprod.aarong.com%2Fmedia%2Fcollateral%2Faarong%2Fbrands_slider_banner%2F1-D-Herstory-Brand-Slider-1920x820-19-07-2025-SM.png&w=1920&q=75",
-      alt: "Elegance Meets Style",
-      // title: "Elegance Meets Style",
-      description:
-        "Discover the finest collection of women&apos;s fashion designed for the modern Bangladeshi woman",
-    },
-    {
-      url: "https://twelvebd.com/cdn/shop/files/slider-1150x2250.jpg",
-      alt: "Multiple Varieties",
-      title: "Multiple Varieties",
-      description:
-        "Discover the finest collection of women&apos;s fashion designed for the modern Bangladeshi woman",
-    },
-  ];
-
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <Hero slides={slides} />
+      <Hero />
 
       {/* New Arrivals Section */}
       <ArrivalsSection />

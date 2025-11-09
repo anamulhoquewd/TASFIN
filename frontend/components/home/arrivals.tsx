@@ -8,6 +8,8 @@ import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
+import { ProductCard } from "../products/products-grid";
+import { Skeleton } from "../ui/skeleton";
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -31,53 +33,33 @@ export function ArrivalsSection() {
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
             New Arrivals
           </h2>
-          <p className="text-lg mb-6 opacity-90">
-            Get 20% off on all new collection items this week
+          <p className="text-lg mb-6 opacity-90 w-3/4 md:w-1/2 m-auto">
+            New Arrivals! Shop the season's latest styles and freshest fashion
+            drops now.
           </p>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className="group relative overflow-hidden rounded-lg bg-card hover:shadow-lg transition-shadow duration-300"
-            >
-              {/* Product Image Container */}
-              <div className="relative w-full aspect-square overflow-hidden bg-muted">
-                {product.images[0].url ? (
-                  <Image
-                    src={product.images[0].url || ""}
-                    alt={product.images[0].alt || product.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-muted-foreground">No image</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Product Details */}
-              <div className="p-3 md:p-4">
-                <h3 className="text-sm md:text-base font-medium text-foreground truncate mb-2">
-                  {product.title}
-                </h3>
-                <div className="flex items-center gap-1 md:gap-2">
-                  <span className="text-base md:text-lg font-bold text-primary">
-                    {formatPrice(product.variants[0].price)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Product Grid */}
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {/* <p className="text-muted-foreground">No products found</p> */}
+            <Skeleton className="w-70 h-90 bg-white" />
+            <Skeleton className="w-70 h-90 bg-white" />
+            <Skeleton className="w-70 h-90 bg-white" />
+            <Skeleton className="w-70 h-90 bg-white" />
+          </div>
+        )}
 
         {/* View All Button */}
         <div className="mt-10 md:mt-14 flex justify-center">
           <Button asChild size="lg">
-            <Link href="/products?sortType=desc">
+            <Link href="/products">
               Shop New Arrivals
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>

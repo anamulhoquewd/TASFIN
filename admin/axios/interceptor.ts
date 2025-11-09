@@ -1,5 +1,4 @@
-import { createCookie, getCookie } from "@/app/actions";
-import { removeStorage, setStorage } from "@/store/local";
+import { createCookie, deleteCookie } from "@/app/actions";
 import axios from "axios";
 
 const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3200";
@@ -29,12 +28,11 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
 
-        removeStorage("accessToken");
+        deleteCookie({ name: "accessToken" });
+        deleteCookie({ name: "refreshToken" });
 
         return Promise.reject(new Error("Session expired please login again"));
       } catch (refreshError) {
-        removeStorage("accessToken");
-
         return Promise.reject(refreshError);
       }
     }
@@ -54,7 +52,6 @@ const refreshToken = async () => {
     );
 
     if (response.data.success && response.data.tokens?.accessToken) {
-      setStorage("accessToken", response.data.tokens.accessToken);
       createCookie({
         name: "accessToken",
         value: response.data.tokens.accessToken,

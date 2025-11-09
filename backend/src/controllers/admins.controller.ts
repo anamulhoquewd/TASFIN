@@ -13,7 +13,6 @@ import { deleteCookie, getSignedCookie } from "hono/cookie";
 import { decode, verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
-const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -242,7 +241,7 @@ export const logout = async (c: Context) => {
     });
 
     if (!refreshToken) {
-       return authenticationError(c);
+      return authenticationError(c);
     }
 
     const { payload } = decode(refreshToken as string) as any;

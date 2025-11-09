@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 
 export async function createCookie(data: {
-  name: string;
+  name: "accessToken" | "refreshToken";
   value: string;
   maxAgeAsSeconds: number;
 }) {
@@ -26,6 +26,8 @@ export async function getCookie(name: "accessToken" | "refreshToken") {
   return cookieStore.get(name)?.value;
 }
 
-export async function deleteCookie(data: { name: string; value: string }) {
-  (await cookies()).set(data.name, data.value, { maxAge: 0 });
+export async function deleteCookie(data: {
+  name: "accessToken" | "refreshToken";
+}) {
+  (await cookies()).set(data.name, "", { maxAge: 0 });
 }

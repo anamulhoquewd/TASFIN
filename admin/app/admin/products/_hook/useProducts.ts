@@ -2,7 +2,6 @@ import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
 import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -150,20 +149,17 @@ function useProducts() {
     isFeatured: boolean | undefined;
   }) => {
     try {
-      const response = await axios.get(
-        "http://localhost:4000/api/v1/products",
-        {
-          params: {
-            search: searchQuery,
-            page,
-            ...(isActive !== undefined && { isActive }),
-            ...(isFeatured !== undefined && { isFeatured }),
-            ...(categoryFilter !== "all" && {
-              category: categoryFilter,
-            }),
-          },
-        }
-      );
+      const response = await api.get(`/products`, {
+        params: {
+          search: searchQuery,
+          page,
+          ...(isActive !== undefined && { isActive }),
+          ...(isFeatured !== undefined && { isFeatured }),
+          ...(categoryFilter !== "all" && {
+            category: categoryFilter,
+          }),
+        },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
@@ -218,15 +214,11 @@ function useProducts() {
       });
 
       // Send to backend
-      const response = await axios.post(
-        "http://localhost:4000/api/v1/products/register",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.post("/register", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (!response.data.success) {
         console.log("Failed to create product:", response.data.error);
@@ -313,9 +305,7 @@ function useProducts() {
 
   const getProductById = async (id: string) => {
     try {
-      const response = await axios.get(
-        `http://localhost:4000/api/v1/products/${id}`
-      );
+      const response = await api.get(`/products/${id}`);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
