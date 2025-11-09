@@ -19,11 +19,13 @@ interface ProductsFilterSidebarProps {
     categories: string[];
     priceRange: { minPrice: number; maxPrice: number };
   };
+  onClose?: (close: boolean) => void;
 }
 
 export function ProductsFilterSidebar({
   onFilterChange,
   initialFilters,
+  onClose,
 }: ProductsFilterSidebarProps) {
   const { categories } = useCategory();
   const router = useRouter();
@@ -113,6 +115,7 @@ export function ProductsFilterSidebar({
 
   // 🔹 Apply Filters Button (optional if not instant)
   const handleApplyFilters = () => {
+    onClose && onClose(false);
     updateURLParams({
       categories: selectedCategories,
       priceRange,
@@ -138,8 +141,13 @@ export function ProductsFilterSidebar({
         {(selectedCategories.length > 0 ||
           priceRange[0] !== 0 ||
           priceRange[1] !== 10000) && (
-          <Button variant="ghost" size="sm" onClick={handleResetFilters}>
-            <X className="h-4 w-4" />
+          <Button
+            className="cursor-pointer"
+            variant="ghost"
+            size="sm"
+            onClick={handleResetFilters}
+          >
+            Clear <X className="h-4 w-4" />
           </Button>
         )}
       </div>

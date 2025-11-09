@@ -5,6 +5,7 @@ import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
   {
     name: { type: String, trim: true },
+    occupation: { type: String },
     email: {
       type: String,
       lowercase: true,

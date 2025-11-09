@@ -157,6 +157,7 @@ export const userCreateZ = z.object({
     .min(2, "Name must be at least 2 characters")
     .trim()
     .optional(),
+  occupation: z.string().optional(),
   email: z
     .string()
     .email("Invalid email address")
@@ -319,6 +320,12 @@ export const orderSchemaZ = z.object({
   address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
+  email: z
+    .string()
+    .email("Invalid email address")
+    .trim()
+    .toLowerCase()
+    .optional(),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
