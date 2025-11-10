@@ -176,7 +176,7 @@ export const updateGeneralInfo = async ({
         .optional(),
       description: z.string().optional(),
       fabric: z.string().max(100).optional(),
-      keyFeatures: z.array(z.string().max(100)).optional(),
+      keyFeatures: z.array(z.string().max(500)).optional(),
       valueAddition: z.string().max(500).optional(),
       cutFit: z.string().max(100).optional(),
       collarNeck: z.string().max(100).optional(),
@@ -187,7 +187,7 @@ export const updateGeneralInfo = async ({
       isFeatured: z.boolean().optional(),
       isActive: z.boolean().optional(),
       categories: z.array(objectIdSchemaZ),
-      tags: z.array(z.string().max(10)).optional(),
+      tags: z.array(z.string().max(100)).optional(),
     })
     .safeParse(data);
 
@@ -736,8 +736,8 @@ export const getProducts = async (queryParams: {
         ),
       priceRange: z
         .object({
-          min: z.number().min(0).optional().default(0),
-          max: z.number().min(0).optional().default(10000),
+          min: z.number().min(0).default(0),
+          max: z.number().min(0).default(10000),
         })
         .optional(),
       categories: z.array(z.string()).optional(),

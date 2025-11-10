@@ -52,7 +52,6 @@ function useCustomer() {
           page,
           search,
         },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.data.success) {
@@ -79,9 +78,11 @@ function useCustomer() {
     setIsLoading(true);
 
     try {
-      const response = await api.put(`/customers/${selectedItem._id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.put(
+        `/customers/${selectedItem._id}`,
+        data,
+        {}
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -116,9 +117,7 @@ function useCustomer() {
     const token = (await getCookie("accessToken")) as string;
 
     try {
-      const response = await api.delete(`/customers/${data}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.delete(`/customers/${data}`, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Somthing went wrong!");

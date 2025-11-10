@@ -9,7 +9,7 @@ import { adminService } from "./../services/index.js";
 import { generateAccessToken } from "./../utils/index.js";
 import axios from "axios";
 import type { Context } from "hono";
-import { deleteCookie, getSignedCookie } from "hono/cookie";
+import { deleteCookie, getCookie, getSignedCookie } from "hono/cookie";
 import { decode, verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
@@ -164,12 +164,7 @@ export const login = async (c: Context) => {
 // Refresh Token
 export const refreshToken = async (c: Context) => {
   try {
-    // Get refresh token from cookie
-    const rToken = await getSignedCookie(
-      c,
-      process.env.COOKIE_SECRET as string,
-      "refreshToken"
-    );
+    const rToken = getCookie(c, "refreshToken");
 
     if (!rToken) {
       return authenticationError(c);

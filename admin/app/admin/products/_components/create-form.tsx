@@ -797,11 +797,11 @@ export function CreateProductForm({
                   name="tags"
                   render={({ field }) => {
                     const [inputValue, setInputValue] = useState(
-                      field.value?.join("* ") || ""
+                      field.value?.join("*") || ""
                     );
 
                     useEffect(() => {
-                      setInputValue(field.value?.join("* ") || "");
+                      setInputValue(field.value?.join("*") || "");
                     }, [field.value]);
 
                     return (

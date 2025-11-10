@@ -43,9 +43,7 @@ export default function useSettings() {
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.get("/settings", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/settings", {});
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something went wrong!");
       }
@@ -62,9 +60,7 @@ export default function useSettings() {
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.patch("/settings", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.patch("/settings", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);

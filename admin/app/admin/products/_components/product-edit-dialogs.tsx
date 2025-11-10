@@ -75,6 +75,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
 import { getCookie } from "@/app/actions";
+import useProducts from "../_hook/useProducts";
 
 interface EditModalProps {
   type: string;
@@ -89,8 +90,6 @@ interface FormProps {
 
 export function ProductEditDialogs({ type, product, onClose }: EditModalProps) {
   if (!product) return null;
-
-  console.log("Product: ", product);
 
   switch (type) {
     case "general":
@@ -115,6 +114,7 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const { categories } = useCategory();
+  const { getProducts } = useProducts();
 
   const getCategoryName = (categoryId: string) => {
     return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
@@ -142,13 +142,17 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
     },
   });
 
+  console.log("Fomr values: ", form.getValues());
+
   const onSubmit = async (data: ProductUpdateInput) => {
-    console.log("Submitting General Info:", data);
+    console.log("Submit data: ", data);
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
+        console.log("Key: ", key);
+        console.log("Vlaue: ", value);
         if (Array.isArray(value)) {
           formData.append(key, JSON.stringify(value));
         } else {
@@ -168,8 +172,14 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
       );
 
       if (response.data.success) {
+        getProducts({
+          searchQuery: "",
+          page: 1,
+          categoryFilter: "",
+          isActive: true,
+          isFeatured: false,
+        });
         toast.success("Product updated successfully");
-        console.log("Data: ", response.data);
       } else {
         toast.error("Failed to update product");
         return false;
@@ -301,11 +311,11 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
               name="keyFeatures"
               render={({ field }) => {
                 const [inputValue, setInputValue] = useState(
-                  field.value?.join(", ") || ""
+                  field.value?.join("* ") || ""
                 );
 
                 useEffect(() => {
-                  setInputValue(field.value?.join(", ") || "");
+                  setInputValue(field.value?.join("* ") || "");
                 }, [field.value]);
 
                 return (
@@ -317,12 +327,11 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onBlur={() => {
-                          const tags = inputValue
-
+                          const teatures = inputValue
                             .split("*")
-                            .map((tag: string) => tag.trim())
-                            .filter((tag: string) => tag.length > 0);
-                          field.onChange(tags);
+                            .map((teature: string) => teature.trim())
+                            .filter((teature: string) => teature.length > 0);
+                          field.onChange(teatures);
                         }}
                       />
                     </FormControl>
@@ -626,19 +635,18 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
               name="tags"
               render={({ field }) => {
                 const [inputValue, setInputValue] = useState(
-                  field.value?.join(", ") || ""
+                  field.value?.join("* ") || ""
                 );
 
                 useEffect(() => {
-                  setInputValue(field.value?.join(", ") || "");
+                  setInputValue(field.value?.join("* ") || "");
                 }, [field.value]);
 
                 return (
                   <FormItem>
                     <FormLabel>Tags</FormLabel>
                     <FormControl>
-                      <Input
-                        type="text"
+                      <Textarea
                         placeholder="Enter tags (star-*-separated)"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
@@ -651,9 +659,6 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                         }}
                       />
                     </FormControl>
-                    <FormDescription>
-                      Add tags to help customers find your product
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 );
@@ -1112,7 +1117,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
-      console.log("Data: ", data);
       const response = await api.patch(
         `/products/${product._id}/v/${selectedVariant}/info`,
         data,
@@ -1126,7 +1130,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
 
       if (response.data.success) {
         toast.success("Product updated successfully");
-        console.log("Data: ", response.data);
       } else {
         toast.error("Failed to update product");
         return false;
@@ -1307,11 +1310,6 @@ function VariantImagesForm({
       // append delete image urls
       existingImagesToDelete.forEach((url) => {
         formData.append("deleteImageUrl", url);
-      });
-
-      console.log("FormData ready:", {
-        images: (data.images || []).map((f: File) => f.name),
-        deleteUrls: existingImagesToDelete,
       });
 
       // ----- API Call -----

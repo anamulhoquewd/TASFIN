@@ -14,16 +14,10 @@ export default function Header() {
   const { settings } = useSettings();
   const { theme } = useTheme();
 
-  // tasfin-logo-text-white-bg-black-2.png
-  // tasfin-logo-text-white-bg-black.png
-
-  // tasfin-logo-text-black-bg-white.png
-  // tasfin-logo-text-black-bg-white-2.png
-
   const logo =
-    theme === "dark"
-      ? "/tasfin-logo-text-white-bg-transparent-2.png"
-      : "/tasfin-logo-text-black-bg-transparent-2.png";
+    theme !== "dark"
+      ? "/tasfin-logo-text-black-bg-transparent.png"
+      : "/tasfin-logo-text-white-bg-transparent.png";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">

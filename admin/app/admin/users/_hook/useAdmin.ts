@@ -46,9 +46,7 @@ function useAdmin() {
     const token = (await getCookie("accessToken")) as string;
 
     try {
-      const response = await api.post("/admins/register", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.post("/admins/register", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -100,7 +98,6 @@ function useAdmin() {
           page,
           search,
         },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.data.success) {
@@ -124,9 +121,7 @@ function useAdmin() {
     console.log(data);
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.delete(`/admins/${data},`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.delete(`/admins/${data},`, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Somthing went wrong!");

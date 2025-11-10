@@ -10,7 +10,7 @@ export const getSettings = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Update settings

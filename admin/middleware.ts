@@ -40,9 +40,11 @@ export async function middleware(request: NextRequest) {
   }
 
   const decoded = decodeJwtPayload(token);
+
   if (!decoded || decoded.exp < Date.now() / 1000) {
-    deleteCookie({ name: "accessToken" });
-    deleteCookie({ name: "refreshToken" });
+    // In middleware, await deletions
+    await deleteCookie({ name: "accessToken" });
+    await deleteCookie({ name: "refreshToken" });
     return redirectToLogin(request);
   }
 

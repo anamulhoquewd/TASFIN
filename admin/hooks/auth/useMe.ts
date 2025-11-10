@@ -37,9 +37,7 @@ function useMe() {
     const token = (await getCookie("accessToken")) as string;
 
     try {
-      const response = await api.get("/admins/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/admins/me", {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
@@ -56,9 +54,7 @@ function useMe() {
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.patch("/admins/me", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.patch("/admins/me", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -86,9 +82,7 @@ function useMe() {
   const handleLogout = async () => {
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.post("/admins/log-out", "", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.post("/admins/log-out", "", {});
 
       if (!response.data.success) {
         toast("Logout faild!");

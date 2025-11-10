@@ -277,9 +277,7 @@ function useProducts() {
   const onDelete = async (productId: string) => {
     const token = (await getCookie("accessToken")) as string;
     try {
-      const result = await api.delete(`/products/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const result = await api.delete(`/products/${productId}`, {});
 
       console.log("Delete product result:", result);
 

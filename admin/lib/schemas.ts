@@ -98,7 +98,7 @@ export const productSchemaZ = z.object({
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
   description: z.string().max(100).optional(),
-  keyFeatures: z.array(z.string().min(1).max(100)).optional(),
+  keyFeatures: z.array(z.string().min(1).max(500)).optional(),
 
   categories: z.array(z.string()),
 

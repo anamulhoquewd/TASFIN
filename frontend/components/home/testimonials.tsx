@@ -35,7 +35,7 @@ const defaultTestimonials: Testimonial[] = [
     id: "2",
     name: "Priya Sharma",
     role: "Style Blogger",
-    image: "/woman-avatar-2.png",
+    image: "/tasfin-logo-text-black-bg-white.png",
     message:
       "The collection is absolutely stunning! Every piece is carefully designed and the fit is perfect. Best shopping experience ever!",
     rating: 5,
@@ -44,7 +44,7 @@ const defaultTestimonials: Testimonial[] = [
     id: "3",
     name: "Ananya Patel",
     role: "Professional",
-    image: "/woman-avatar-3.png",
+    image: "/tasfin-logo-text-black-bg-white.png",
     message:
       "I love the variety and quality of products. The delivery was quick and the packaging was excellent. Highly recommended!",
     rating: 5,
@@ -53,7 +53,7 @@ const defaultTestimonials: Testimonial[] = [
     id: "4",
     name: "Neha Gupta",
     role: "Student",
-    image: "/woman-avatar-4.jpg",
+    image: "/tasfin-logo-text-black-bg-white.png",
     message:
       "Great prices and amazing designs! The website is easy to navigate and the checkout process is smooth. Will definitely shop again!",
     rating: 5,
@@ -62,7 +62,7 @@ const defaultTestimonials: Testimonial[] = [
     id: "5",
     name: "Meera Singh",
     role: "Homemaker",
-    image: "/woman-avatar-5.jpg",
+    image: "/tasfin-logo-text-black-bg-white.png",
     message:
       "Excellent quality and beautiful designs. The customer support team was very helpful. I'm very satisfied with my purchase!",
     rating: 5,

@@ -535,8 +535,8 @@ export function ProductAnalyticsModal({
                       </CardHeader>
                       <CardContent>
                         <ul className="list-disc list-inside text-sm space-y-1">
-                          {product.keyFeatures.map((feature, index) => (
-                            <li key={index}>{feature}</li>
+                          {product.keyFeatures.map((feature) => (
+                            <li key={feature}>{feature}</li>
                           ))}
                         </ul>
                       </CardContent>
@@ -600,9 +600,9 @@ export function ProductAnalyticsModal({
                                   Tags:
                                 </span>
                                 <div className="flex flex-wrap gap-1">
-                                  {product.tags.map((tag, index) => (
+                                  {product.tags.map((tag) => (
                                     <Badge
-                                      key={index}
+                                      key={tag}
                                       variant="outline"
                                       className="text-xs"
                                     >

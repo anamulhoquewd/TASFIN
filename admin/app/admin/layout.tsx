@@ -9,7 +9,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar />
       <div className="flex-1 min-h-screen flex-col">
         <Header />

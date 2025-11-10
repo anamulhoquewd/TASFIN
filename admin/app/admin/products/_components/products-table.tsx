@@ -111,7 +111,6 @@ export function ProductsTable() {
         });
 
         setProducts(result.data);
-        console.log("Fetched products:", result.data);
 
         setPagination(() => ({
           page: result.pagination.page,
@@ -356,11 +355,8 @@ export function ProductsTable() {
                         <TableCell>
                           <div>
                             <div className="font-medium">{product.title}</div>
-                            {/* <div className="text-sm text-muted-foreground">
-                            {product.slug}
-                          </div> */}
                             <Link
-                              href={`/products/${product.slug}`}
+                              href={`${process.env.NEXT_PUBLIC_DOMAIN}/products/${product.slug}`}
                               className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
                             >
                               /{product.slug}{" "}

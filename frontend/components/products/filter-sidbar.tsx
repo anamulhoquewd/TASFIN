@@ -1,14 +1,12 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { X } from "lucide-react";
 import useCategory from "@/hooks/categories/useCategory";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { X } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
+import { Slider } from "../ui/slider";
 
 interface ProductsFilterSidebarProps {
   onFilterChange: (filters: {
@@ -19,7 +17,7 @@ interface ProductsFilterSidebarProps {
     categories: string[];
     priceRange: { minPrice: number; maxPrice: number };
   };
-  onClose?: (close: boolean) => void;
+  onClose?: (open: boolean) => void;
 }
 
 export function ProductsFilterSidebar({
@@ -31,98 +29,70 @@ export function ProductsFilterSidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // 🔹 Get initial query params
-  const queryCategories = searchParams.get("categories")
-    ? searchParams.get("categories")!.split(",")
-    : [];
-  const minPriceQuery = searchParams.get("minPrice");
-  const maxPriceQuery = searchParams.get("maxPrice");
-
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialFilters?.categories || queryCategories || []
+    initialFilters?.categories || []
   );
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    initialFilters?.priceRange.minPrice || 0,
+    initialFilters?.priceRange.maxPrice || 10000,
+  ]);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>(
-    initialFilters?.priceRange
-      ? [initialFilters.priceRange.minPrice, initialFilters.priceRange.maxPrice]
-      : [Number(minPriceQuery) || 0, Number(maxPriceQuery) || 10000]
-  );
-
-  // 🔹 Update UI + Filters when URL query changes
+  // Sync local state with URL changes and notify parent
   useEffect(() => {
-    const updatedCategories = searchParams.get("categories")
-      ? searchParams.get("categories")!.split(",")
-      : [];
-
+    const updatedCategories = searchParams.get("categories")?.split(",") || [];
     const updatedMin = Number(searchParams.get("minPrice")) || 0;
     const updatedMax = Number(searchParams.get("maxPrice")) || 10000;
 
-    // ✅ Update local UI state
     setSelectedCategories(updatedCategories);
     setPriceRange([updatedMin, updatedMax]);
 
-    // ✅ Notify parent to fetch products
     onFilterChange({
       categories: updatedCategories,
-      priceRange: {
-        minPrice: updatedMin,
-        maxPrice: updatedMax,
-      },
+      priceRange: { minPrice: updatedMin, maxPrice: updatedMax },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 🔹 Update URL query params
-  const updateURLParams = (filters: {
-    categories: string[];
-    priceRange: [number, number];
-  }) => {
-    const params = new URLSearchParams();
+  const updateURLParams = useCallback(
+    (newCategories: string[], newPriceRange: [number, number]) => {
+      const params = new URLSearchParams();
 
-    if (filters.categories.length > 0) {
-      params.set("categories", filters.categories.join(","));
-    }
-    if (filters.priceRange[0] > 0) {
-      params.set("minPrice", String(filters.priceRange[0]));
-    }
-    if (filters.priceRange[1] < 10000) {
-      params.set("maxPrice", String(filters.priceRange[1]));
-    }
+      if (newCategories.length > 0) {
+        params.set("categories", newCategories.join(","));
+      }
+      if (newPriceRange[0] > 0) {
+        params.set("minPrice", String(newPriceRange[0]));
+      }
+      if (newPriceRange[1] < 10000) {
+        params.set("maxPrice", String(newPriceRange[1]));
+      }
 
-    const query = params.toString();
-    router.push(`?${query}`, { scroll: false });
-  };
+      const query = params.toString();
+      router.push(`?${query}`, { scroll: false });
+    },
+    [router]
+  );
 
-  // 🔹 Category Change
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
       ? [...selectedCategories, categoryId]
       : selectedCategories.filter((id) => id !== categoryId);
 
     setSelectedCategories(newCategories);
-
-    // ✅ Update URL instantly
-    updateURLParams({
-      categories: newCategories,
-      priceRange,
-    });
   };
 
-  // 🔹 Price Change (Slider)
   const handlePriceChange = (value: number[]) => {
     setPriceRange([value[0], value[1]]);
   };
 
-  // 🔹 Apply Filters Button (optional if not instant)
-  const handleApplyFilters = () => {
-    onClose && onClose(false);
-    updateURLParams({
-      categories: selectedCategories,
-      priceRange,
-    });
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateURLParams(selectedCategories, priceRange);
+    }, 1000);
 
-  // 🔹 Reset Filters
+    return () => clearTimeout(timer);
+  }, [priceRange, selectedCategories, updateURLParams]);
+
   const handleResetFilters = () => {
     setSelectedCategories([]);
     setPriceRange([0, 10000]);
@@ -141,12 +111,7 @@ export function ProductsFilterSidebar({
         {(selectedCategories.length > 0 ||
           priceRange[0] !== 0 ||
           priceRange[1] !== 10000) && (
-          <Button
-            className="cursor-pointer"
-            variant="ghost"
-            size="sm"
-            onClick={handleResetFilters}
-          >
+          <Button variant="ghost" size="sm" onClick={handleResetFilters}>
             Clear <X className="h-4 w-4" />
           </Button>
         )}
@@ -194,7 +159,7 @@ export function ProductsFilterSidebar({
             min={0}
             max={10000}
             step={100}
-            className="w-full"
+            className="w-full cursor-pointer"
           />
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">{priceRange[0]}</span>
@@ -202,19 +167,6 @@ export function ProductsFilterSidebar({
           </div>
         </div>
       </div>
-
-      {/* Apply Button */}
-      <Button
-        disabled={
-          !selectedCategories.length &&
-          priceRange[0] === 0 &&
-          priceRange[1] === 10000
-        }
-        onClick={handleApplyFilters}
-        className="w-full"
-      >
-        Apply Filters
-      </Button>
     </div>
   );
 }

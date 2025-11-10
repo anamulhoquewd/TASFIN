@@ -7,6 +7,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const useChangePass = (onClose: () => void) => {
@@ -29,9 +30,7 @@ const useChangePass = (onClose: () => void) => {
     const token = (await getCookie("accessToken")) as string;
 
     try {
-      const response = await api.patch("/admins/change-password", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.patch("/admins/change-password", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -42,6 +41,9 @@ const useChangePass = (onClose: () => void) => {
         newPassword: "",
         confirmPassword: "",
       });
+      toast.success(
+        response.data.success.message || "Password change successfully!"
+      );
       onClose();
     } catch (error: any) {
       console.error("Error while changing password", error);

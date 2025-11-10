@@ -89,7 +89,6 @@ function useOrder() {
           variantId: search?.variantId || undefined,
           page: page === 1 ? undefined : page,
         },
-        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.data.success || !Array.isArray(response.data.data)) {
@@ -115,9 +114,7 @@ function useOrder() {
     const token = (await getCookie("accessToken")) as string;
 
     try {
-      const response = await api.patch(`/orders/${selectedItem._id}`, data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.patch(`/orders/${selectedItem._id}`, data, {});
 
       if (!response.data.success) {
         throw new Error("Failed to update order");
@@ -147,9 +144,7 @@ function useOrder() {
   const handleDelete = async (id: string) => {
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.delete(`/orders/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.delete(`/orders/${id}`, {});
 
       if (!response.data.success) {
         throw new Error("Failed to delete order");

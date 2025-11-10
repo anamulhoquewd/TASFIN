@@ -62,7 +62,7 @@ export function Hero() {
             "inline-block h-1.5 md:h-2 rounded-full bg-secondary w-1.5 md:w-2 mx-0.5 md:mx-1 transition-all duration-300",
         }}
         autoplay={{
-          delay: 5000,
+          delay: 2500,
           disableOnInteraction: false,
         }}
         loop={true}
@@ -90,7 +90,7 @@ export function Hero() {
           </SwiperSlide>
         ))}
 
-        <div className="absolute bottom-1/6 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-20 lg:bottom-10 z-10">
+        <div className="absolute bottom-[12%] left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:translate-y-0 lg:left-20 lg:bottom-10 z-10">
           {/* Content Layout */}
           <div className="flex flex-col gap-6">
             {/* Text Content */}

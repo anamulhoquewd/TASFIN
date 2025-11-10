@@ -50,7 +50,6 @@ function useCategory() {
 
     try {
       const response = await api.get("/categories", {
-        headers: { Authorization: `Bearer ${token}` },
         params: {
           search: searchQuery,
           page,
@@ -78,9 +77,7 @@ function useCategory() {
     setIsLoading(true);
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.post("/categories/register", data, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.post("/categories/register", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -155,9 +152,7 @@ function useCategory() {
   const handleDelete = async (id: string) => {
     const token = (await getCookie("accessToken")) as string;
     try {
-      const response = await api.delete(`/categories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.delete(`/categories/${id}`, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
