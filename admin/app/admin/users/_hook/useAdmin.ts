@@ -1,4 +1,3 @@
-import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IAdmin } from "@/interfaces/users";
@@ -42,8 +41,6 @@ function useAdmin() {
   // Form submission
   const handleSubmit = async (data: UserFormValues) => {
     setIsLoading(true);
-
-    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.post("/admins/register", data, {});
@@ -91,7 +88,6 @@ function useAdmin() {
     page: number;
     search: string;
   }) => {
-    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.get("/admins", {
         params: {
@@ -119,7 +115,7 @@ function useAdmin() {
 
   const handleDelete = async (data: string) => {
     console.log(data);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.delete(`/admins/${data},`, {});
 

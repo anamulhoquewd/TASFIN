@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpDown, Ban, CirclePlus } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";

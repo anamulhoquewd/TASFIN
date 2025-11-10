@@ -1,4 +1,4 @@
-import { createCookie, getCookie } from "@/app/actions";
+import { createCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { handleAxiosError } from "@/utils/error";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -39,19 +39,15 @@ const useLogin = () => {
   const onSubmit = async (data: z.infer<typeof loginFormSchema>) => {
     // Start loading
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       // Send login request
-      const response = await api.post(
-        `/admins/log-in`,
-        {
-          ...(data.email.includes("@")
-            ? { email: data.email }
-            : { phone: data.email }),
-          password: data.password,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post(`/admins/log-in`, {
+        ...(data.email.includes("@")
+          ? { email: data.email }
+          : { phone: data.email }),
+        password: data.password,
+      });
 
       if (!response.data.success) {
         throw new Error(response.data?.error?.message || "Login failed");

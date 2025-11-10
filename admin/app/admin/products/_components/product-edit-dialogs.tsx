@@ -74,7 +74,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import Image from "next/image";
-import { getCookie } from "@/app/actions";
 import useProducts from "../_hook/useProducts";
 
 interface EditModalProps {
@@ -147,7 +146,7 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
   const onSubmit = async (data: ProductUpdateInput) => {
     console.log("Submit data: ", data);
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -166,7 +165,6 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -699,7 +697,7 @@ export function MainImagesForm({ product, onClose }: FormProps) {
 
   const onSubmit = async (data: any) => {
     if (!product) return;
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       setIsLoading(true);
 
@@ -730,7 +728,6 @@ export function MainImagesForm({ product, onClose }: FormProps) {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1115,7 +1112,7 @@ function VariantInfoForm({ product, onClose }: FormProps) {
 
   const onSubmit = async (data: ProductVariantUpdateInput) => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.patch(
         `/products/${product._id}/v/${selectedVariant}/info`,
@@ -1123,7 +1120,6 @@ function VariantInfoForm({ product, onClose }: FormProps) {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1295,7 +1291,7 @@ function VariantImagesForm({
   // Submit
   const onSubmit = async (data: any) => {
     if (!selectedVariant) return;
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       setIsLoading(true);
 
@@ -1319,7 +1315,6 @@ function VariantImagesForm({
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1648,7 +1643,7 @@ function CreateVariantForm({
   // Submit
   const onSubmit = async (data: CreateVariantValues) => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const formData = new FormData();
       formData.append("size", data.size);
@@ -1665,7 +1660,6 @@ function CreateVariantForm({
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -1848,12 +1842,10 @@ export default function DeleteVariantForm({
   const handleDelete = async () => {
     if (!selectedVariant) return;
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.patch(
-        `/products/${product._id}/v/${selectedVariant}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `/products/${product._id}/v/${selectedVariant}`
       );
 
       if (response.data.success) {

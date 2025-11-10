@@ -1,4 +1,3 @@
-import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IOrder } from "@/interfaces/orders";
@@ -66,7 +65,6 @@ function useOrder() {
   });
 
   const loadOrders = async ({ search, filters, page }: ILoadOrder) => {
-    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.get("/orders", {
         params: {
@@ -111,7 +109,6 @@ function useOrder() {
 
   const handleUpdate = async (data: any) => {
     if (!selectedItem) return;
-    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.patch(`/orders/${selectedItem._id}`, data, {});
@@ -142,7 +139,6 @@ function useOrder() {
   };
 
   const handleDelete = async (id: string) => {
-    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.delete(`/orders/${id}`, {});
 

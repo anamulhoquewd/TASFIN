@@ -1,4 +1,3 @@
-import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { ICategory } from "@/interfaces/categories";
 import { IPagination } from "@/interfaces/global";
@@ -46,8 +45,6 @@ function useCategory() {
     searchQuery: string;
     page: number;
   }) => {
-    const token = (await getCookie("accessToken")) as string;
-
     try {
       const response = await api.get("/categories", {
         params: {
@@ -75,7 +72,7 @@ function useCategory() {
 
   const handleSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.post("/categories/register", data, {});
 
@@ -110,15 +107,11 @@ function useCategory() {
 
   const handleUpdate = async (data: FormValues) => {
     if (!selectedItem) return;
-    const token = (await getCookie("accessToken")) as string;
+
     setIsLoading(true);
 
     try {
-      const response = await api.patch(
-        `/categories/${selectedItem._id}`,
-        data,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.patch(`/categories/${selectedItem._id}`, data);
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -150,7 +143,6 @@ function useCategory() {
   };
 
   const handleDelete = async (id: string) => {
-    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.delete(`/categories/${id}`, {});
 
@@ -188,7 +180,6 @@ function useCategory() {
 
     const formData = new FormData();
     formData.append("avatar", file);
-    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.post(
@@ -197,7 +188,6 @@ function useCategory() {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
           },
         }
       );

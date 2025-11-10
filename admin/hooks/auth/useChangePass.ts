@@ -1,4 +1,3 @@
-import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import {
   changePasswordFormSchema,
@@ -27,7 +26,6 @@ const useChangePass = (onClose: () => void) => {
 
   const onSubmit = async (data: z.infer<typeof changePasswordFormSchema>) => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
 
     try {
       const response = await api.patch("/admins/change-password", data, {});

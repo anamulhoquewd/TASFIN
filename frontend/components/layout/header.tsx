@@ -13,7 +13,6 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
-import { useIsMobile } from "@/hooks/use-mobile";
 import Searching from "../search";
 import { MobileMenu } from "./mobile-menu";
 

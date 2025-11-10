@@ -1,4 +1,3 @@
-import { getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { ICustomer } from "@/interfaces/users";
@@ -45,7 +44,6 @@ function useCustomer() {
     page: number;
     search: string;
   }) => {
-    const token = (await getCookie("accessToken")) as string;
     try {
       const response = await api.get("/users", {
         params: {
@@ -74,7 +72,7 @@ function useCustomer() {
 
   const handleUpdate = async (data: FormValues) => {
     if (!selectedItem) return;
-    const token = (await getCookie("accessToken")) as string;
+
     setIsLoading(true);
 
     try {
@@ -114,8 +112,6 @@ function useCustomer() {
   };
 
   const handleDelete = async (data: string) => {
-    const token = (await getCookie("accessToken")) as string;
-
     try {
       const response = await api.delete(`/customers/${data}`, {});
 

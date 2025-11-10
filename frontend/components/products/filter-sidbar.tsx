@@ -17,13 +17,11 @@ interface ProductsFilterSidebarProps {
     categories: string[];
     priceRange: { minPrice: number; maxPrice: number };
   };
-  onClose?: (open: boolean) => void;
 }
 
 export function ProductsFilterSidebar({
   onFilterChange,
   initialFilters,
-  onClose,
 }: ProductsFilterSidebarProps) {
   const { categories } = useCategory();
   const router = useRouter();

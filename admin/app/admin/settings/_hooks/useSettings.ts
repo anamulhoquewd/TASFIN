@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { ISettings } from "@/interfaces/global";
 import { settingCreateZ, SettingFromValue } from "@/lib/schemas";
 import api from "@/axios/interceptor";
-import { getCookie } from "@/app/actions";
 
 export default function useSettings() {
   const [settings, setSettings] = useState<ISettings | null>(null);
@@ -41,7 +40,7 @@ export default function useSettings() {
   // 🧠 Fetch settings
   const getSettings = async () => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.get("/settings", {});
       if (!response.data.success) {
@@ -58,7 +57,7 @@ export default function useSettings() {
   // 💾 Update handler
   const handleUpdate = async (data: SettingFromValue) => {
     setIsLoading(true);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.patch("/settings", data, {});
 
@@ -94,12 +93,11 @@ export default function useSettings() {
 
     const formData = new FormData();
     formData.append("avatar", file);
-    const token = (await getCookie("accessToken")) as string;
+
     try {
       const response = await api.post(`/settings/upload-logo`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
         },
       });
 

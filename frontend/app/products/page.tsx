@@ -72,7 +72,6 @@ export default function ProductsPage() {
           <DialogContent className="p-0 border-0 m-0">
             <ProductsFilterSidebar
               onFilterChange={handleFilterChange_}
-              onClose={setIsFilterOpen}
               initialFilters={filters}
             />
           </DialogContent>

@@ -9,8 +9,8 @@ import { adminService } from "./../services/index.js";
 import { generateAccessToken } from "./../utils/index.js";
 import axios from "axios";
 import type { Context } from "hono";
-import { deleteCookie, getCookie, getSignedCookie } from "hono/cookie";
-import { decode, verify } from "hono/jwt";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
