@@ -51,13 +51,14 @@ export default function AboutPage() {
           <div className="space-y-4 text-muted-foreground leading-relaxed">
             <p>
               TASFIN was born from a simple vision: to create beautiful,
-              high-quality women's fashion that resonates with the modern
+              high-quality women&apos;s fashion that resonates with the modern
               Bangladeshi woman. We understand that fashion is more than just
-              clothing—it's a form of self-expression, confidence, and identity.
+              clothing—it&apos;s a form of self-expression, confidence, and
+              identity.
             </p>
             <p>
-              Since our inception, we've been committed to offering a curated
-              collection of 2-piece sets, 3-piece suits, elegant tops,
+              Since our inception, we&apos;ve been committed to offering a
+              curated collection of 2-piece sets, 3-piece suits, elegant tops,
               traditional salwar kameez, comfortable night dresses, and casual
               t-shirts. Each piece is thoughtfully designed to blend traditional
               aesthetics with contemporary style.
@@ -113,9 +114,9 @@ export default function AboutPage() {
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             To empower every Bangladeshi woman with fashion that makes her feel
-            confident, beautiful, and comfortable. We're not just selling
-            clothes—we're creating experiences and building a community of women
-            who celebrate their individuality through style.
+            confident, beautiful, and comfortable. We&apos;re not just selling
+            clothes—we&apos;re creating experiences and building a community of
+            women who celebrate their individuality through style.
           </p>
         </CardContent>
       </Card>

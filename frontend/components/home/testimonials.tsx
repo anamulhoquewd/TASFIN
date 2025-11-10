@@ -176,7 +176,7 @@ export function TestimonialsSection({
 
                     {/* Message */}
                     <p className="text-foreground text-sm md:text-base leading-relaxed mb-6 flex-grow">
-                      "{testimonial.message}"
+                      &apos;{testimonial.message}&apos;
                     </p>
 
                     {/* User Info */}

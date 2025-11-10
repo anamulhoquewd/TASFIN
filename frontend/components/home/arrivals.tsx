@@ -32,8 +32,8 @@ export function ArrivalsSection() {
             New Arrivals
           </h2>
           <p className="text-lg mb-6 opacity-90 w-3/4 md:w-1/2 m-auto">
-            New Arrivals! Shop the season's latest styles and freshest fashion
-            drops now.
+            New Arrivals! Shop the season&apos;s latest styles and freshest
+            fashion drops now.
           </p>
         </div>
 
