@@ -1,4 +1,4 @@
-import { getCookie } from "@/app/actions";
+import { deleteCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
 import { userFormSchemaZ } from "@/lib/schemas";
@@ -91,12 +91,16 @@ function useMe() {
       });
 
       if (!response.data.success) {
+        toast("Logout faild!");
         throw new Error(response.data.error.message);
       }
+      deleteCookie({ name: "accessToken" });
+      deleteCookie({ name: "refreshToken" });
+
+      // rediract to login page
+      router.push("/auth/sign-in");
 
       toast(response.data.message);
-
-      router.push("/auth/sign-in");
     } catch (error: any) {
       console.log("Error: ", error);
 

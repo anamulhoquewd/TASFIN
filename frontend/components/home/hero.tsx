@@ -90,25 +90,25 @@ export function Hero() {
           </SwiperSlide>
         ))}
 
-        <div className="absolute left-20 bottom-10 z-10 hidden lg:block">
+        <div className="absolute bottom-1/6 left-1/2 -translate-x-1/2 -translate-y-1/2 lg:left-20 lg:bottom-10 z-10">
           {/* Content Layout */}
           <div className="flex flex-col gap-6">
             {/* Text Content */}
             <Link href={"/products"} className="flex justify-end">
               <Button
                 size="lg"
-                className="rounded-full cursor-pointer transition-colors duration-500 bg-primary/10 border border-primary/60"
+                className="rounded-full cursor-pointer transition-colors duration-500 border border-primary/60"
               >
                 Shop Now →
               </Button>
             </Link>
 
             {/* Additional Features - Optional */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid-cols-2 gap-4 hidden lg:grid">
               {featureBoxes.map((box) => (
                 <div
                   key={box.id}
-                  className="px-6 py-3 rounded-lg bg-black/25 border border-primary/60"
+                  className="px-6 py-3 rounded-lg bg-primary/15 border border-primary/60"
                 >
                   <p className="text-xs font-semibold text-muted mb-2">
                     {box.name}

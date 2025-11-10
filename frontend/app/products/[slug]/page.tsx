@@ -85,16 +85,17 @@ export default function ProductPage() {
 
         {/* Right Column - Details and Variants */}
         <div className="space-y-6">
-          <ProductDetailsDisplay product={product} />
-
           {/* Variant Selector */}
-          {product.variants.length > 0 && (
-            <ProductVariantSelector
-              variants={product.variants}
-              product={product}
-              onVariantSelect={setSelectedVariant}
-            />
-          )}
+
+          <ProductDetailsDisplay product={product}>
+            {product.variants.length > 0 && (
+              <ProductVariantSelector
+                variants={product.variants}
+                product={product}
+                onVariantSelect={setSelectedVariant}
+              />
+            )}
+          </ProductDetailsDisplay>
         </div>
       </div>
 

@@ -7,7 +7,7 @@ import { Hono } from "hono";
 
 const adminRoutes = new Hono();
 
-adminRoutes.get("/", authenticatedAdmin, authenticatedAdmin, (c) =>
+adminRoutes.get("/", authenticatedAdmin, (c) =>
   adminController.getAdmins(c)
 );
 

@@ -133,6 +133,8 @@ export function ProductCard({ product }: { product: any }) {
     (v: IProductVariant) => v.stock > 0
   );
 
+  const inStock = product.isActive && variantsHasStock.length > 0;
+
   const handleAddToCart = () => {
     toast.success("Event has been created", {
       action: {
@@ -170,58 +172,58 @@ export function ProductCard({ product }: { product: any }) {
 
   return (
     <div
-      className="group h-full flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+      className="group h-full flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <Link href={`/products/${product.slug}`}>
-        <div className="relative aspect-square overflow-hidden bg-muted">
-          {product.images && product.images.length > 0 ? (
-            <>
-              {product.images.map((img: IImage, index: number) => (
-                <Fragment key={index}>
-                  {img.url ? (
-                    <Image
-                      src={img.url || "/placeholder.svg"}
-                      alt={product.title}
-                      fill
-                      className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
-                        index === currentIndex ? "opacity-100" : "opacity-0"
-                      }`}
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-muted-foreground">No image</span>
-                    </div>
-                  )}
-                </Fragment>
-              ))}
-            </>
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <span className="text-muted-foreground">No image</span>
-            </div>
-          )}
-
-          {product.isFeatured && (
-            <div className="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-              Featured
-            </div>
-          )}
-        </div>
-      </Link>
-
-      <div className="p-4 flex flex-col">
+      <div>
         <Link href={`/products/${product.slug}`}>
-          <h3 className="line-clamp-2 font-semibold text-foreground">
-            {product.title}
-          </h3>
-        </Link>
-        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-          {product.description}
-        </p>
+          <div className="relative aspect-square overflow-hidden bg-muted">
+            {product.images && product.images.length > 0 ? (
+              <>
+                {product.images.map((img: IImage, index: number) => (
+                  <Fragment key={index}>
+                    {img.url ? (
+                      <Image
+                        src={img.url || "/placeholder.svg"}
+                        alt={product.title}
+                        fill
+                        className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
+                          index === currentIndex ? "opacity-100" : "opacity-0"
+                        }`}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <span className="text-muted-foreground">No image</span>
+                      </div>
+                    )}
+                  </Fragment>
+                ))}
+              </>
+            ) : (
+              <div className="flex h-full items-center justify-center">
+                <span className="text-muted-foreground">No image</span>
+              </div>
+            )}
 
-        <div className="mt-4 flex items-center justify-between">
+            {product.isFeatured && (
+              <div className="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                Featured
+              </div>
+            )}
+          </div>
+        </Link>
+
+        <div className="p-4 flex flex-col">
+          <Link href={`/products/${product.slug}`}>
+            <h3 className="line-clamp-2 font-semibold text-foreground">
+              {product.title}
+            </h3>
+          </Link>
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+            {product.description}
+          </p>
+
           <div>
             {product.variants && product.variants.length > 0 && (
               <p className="text-lg font-bold text-foreground">
@@ -233,16 +235,25 @@ export function ProductCard({ product }: { product: any }) {
             </p>
           </div>
           {/* Add to Cart Button */}
-          <Button
-            size="icon"
-            className="cursor-pointer"
-            onClick={handleAddToCart}
-            disabled={!product.isActive || variantsHasStock.length <= 0}
-          >
-            {product.isActive ? <CirclePlus /> : <Ban />}
-          </Button>
         </div>
       </div>
+      {inStock ? (
+        <Button
+          size="sm"
+          className="cursor-pointer w-[90%] mx-auto mb-4"
+          onClick={handleAddToCart}
+        >
+          Limited stock
+        </Button>
+      ) : (
+        <Button
+          disabled
+          size="sm"
+          className="cursor-pointer w-[90%] mx-auto mb-4"
+        >
+          Out of stock
+        </Button>
+      )}
     </div>
   );
 }

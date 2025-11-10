@@ -234,24 +234,9 @@ export const refreshToken = async (c: Context) => {
 // Logout admin
 export const logout = async (c: Context) => {
   try {
-    const refreshToken = deleteCookie(c, "refreshToken", {
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
-    });
-
-    if (!refreshToken) {
-      return authenticationError(c);
-    }
-
-    const { payload } = decode(refreshToken as string) as any;
-
-    if (!payload) {
-      return authenticationError(c, "Invalid refresh token on the cookie");
-    }
-
+    const user = c.get("admin");
     // Remove refresh token from database
-    const admin = await Admin.updateOne({ _id: payload._id }, { refresh: "" });
+    const admin = await Admin.updateOne({ _id: user._id }, { refresh: "" });
 
     if (!admin) {
       return authenticationError(c);

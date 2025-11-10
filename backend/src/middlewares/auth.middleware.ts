@@ -68,13 +68,6 @@ export const authenticatedAdmin = async (c: Context, next: Next) => {
   const token = c.req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
-    // Clear cookie using Hono's deleteCookie
-    // deleteCookie(c, "accessToken", {
-    //   path: "/",
-    //   secure: process.env.NODE_ENV === "production",
-    //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-    // });
-
     return authenticationError(c);
   }
 
@@ -87,18 +80,6 @@ export const authenticatedAdmin = async (c: Context, next: Next) => {
     const admin = await Admin.findById(decoded._id);
 
     if (!admin) {
-      // // Clear cookie using Hono's deleteCookie
-      // deleteCookie(c, "accessToken", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-      // deleteCookie(c, "refreshToken", {
-      //   path: "/",
-      //   secure: process.env.NODE_ENV === "production",
-      //   domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      // });
-
       return authenticationError(c);
     }
 

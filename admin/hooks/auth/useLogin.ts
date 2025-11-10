@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 const loginFormSchema = z.object({
@@ -58,6 +59,7 @@ const useLogin = () => {
 
       // Redirect to home page
       router.push("/admin");
+      toast(response.data?.success?.message || "Login successfullY!");
 
       // get tokens
       const tokens = response.data.tokens;
