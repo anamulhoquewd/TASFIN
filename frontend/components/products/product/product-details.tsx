@@ -52,7 +52,7 @@ export function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
           <ul className="space-y-2">
             {product.keyFeatures.map((feature, index) => (
               <li key={index} className="flex items-start gap-2">
-                <Star className="w-4 h-4 mt-1 text-primary flex-shrink-0" />
+                <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <span className="text-sm">{feature}</span>
               </li>
             ))}

@@ -16,7 +16,7 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
         {/* Header Section */}
         <div className="mb-8 md:mb-12 text-center">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            Shop by Category
+            Explore our categories
           </h2>
           <p className="text-lg mb-6 opacity-90">
             Explore our curated collection of elegant women&apos;s fashion
@@ -58,10 +58,10 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
               <Squirrel className="w-28 h-28" />
 
               <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
-                No Categories Found
+                There are no categories right now.
               </h3>
               <p className="text-sm md:text-base text-muted-foreground text-center max-w-sm">
-                Sorry, we couldn’t find any categories here. Try coming back
+                Sorry, we couldn&apos;d any categories here. Try coming back
                 later or explore our products.
               </p>
             </div>
