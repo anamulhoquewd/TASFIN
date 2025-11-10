@@ -13,19 +13,19 @@ import "./hero.css";
 export function Hero() {
   const featureBoxes = [
     {
-      id: 0,
+      id: "101",
       name: "CURATED COLLECTION",
       value: "100+",
       description: "Designer pieces",
     },
     {
-      id: 1,
+      id: "102",
       name: "QUALITY ASSURED",
       value: "Premium",
       description: "Traditional crafted",
     },
     {
-      id: 2,
+      id: "103",
       name: "FAST DELIVERY",
       value: "3-5 Days",
       description: "Across the country",
@@ -85,7 +85,7 @@ export function Hero() {
                   <span className="text-muted-foreground">No image</span>
                 </div>
               )}
-              <div className="absolute inset-0 bg-black/40"></div>
+              <div className="absolute inset-0 bg-black/20"></div>
             </div>
           </SwiperSlide>
         ))}
@@ -108,7 +108,7 @@ export function Hero() {
               {featureBoxes.map((box) => (
                 <div
                   key={box.id}
-                  className="px-6 py-3 rounded-lg bg-black/10 border border-primary/60"
+                  className="px-6 py-3 rounded-lg bg-black/25 border border-primary/60"
                 >
                   <p className="text-xs font-semibold text-muted mb-2">
                     {box.name}
@@ -120,13 +120,6 @@ export function Hero() {
             </div>
           </div>
         </div>
-
-        {/* <Button asChild size="lg" className="absolute left-20 bottom-20 z-10">
-          <Link href="/products">
-            Shop Now
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-        </Button> */}
 
         {/* Custom Navigation */}
         <Button

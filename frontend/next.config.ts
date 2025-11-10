@@ -8,14 +8,6 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "tasfin-shop.s3.eu-north-1.amazonaws.com",
       },
-      {
-        protocol: "https",
-        hostname: "twelvebd.com",
-      },
-      {
-        protocol: "https",
-        hostname: "www.aarong.com",
-      },
     ],
   },
 };

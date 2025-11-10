@@ -2,17 +2,9 @@
 
 import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
 import { ProductsGrid } from "@/components/products/products-grid";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { useProducts } from "@/hooks/products/use-products";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function ProductsPage() {
   const [filters, setFilters] = useState<{
@@ -32,9 +24,6 @@ export default function ProductsPage() {
     handleSort,
     handleFilterChange,
   } = useProducts({
-    initialLimit: 12,
-    sortBy: "createdAt",
-    sortType: "desc",
     categories: filters.categories,
     priceRange: filters.priceRange,
   });

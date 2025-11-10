@@ -2,7 +2,7 @@ import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { handleAxiosError } from "@/utils/error";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -25,8 +25,6 @@ const loginFormSchema = z.object({
 
 const useLogin = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("from") || "/admin";
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -59,7 +57,7 @@ const useLogin = () => {
       }
 
       // Redirect to home page
-      router.push(redirectTo);
+      router.push("/admin");
 
       // get tokens
       const tokens = response.data.tokens;
@@ -73,7 +71,7 @@ const useLogin = () => {
       createCookie({
         name: "refreshToken",
         value: tokens.refreshToken,
-        maxAgeAsSeconds: 60 * 60 * 24 * 7, // 7d
+        maxAgeAsSeconds: 60 * 60 * 24 * 30, // 30d
       });
 
       // Clear form

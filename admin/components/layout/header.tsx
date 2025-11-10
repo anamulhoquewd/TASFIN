@@ -21,12 +21,8 @@ export default function Header() {
   // tasfin-logo-text-black-bg-white-2.png
 
   const logo =
-    isMobile && theme === "dark"
-      ? "/tasfin-logo-text-white-bg-transparent.png"
-      : !isMobile && theme === "dark"
+    theme === "dark"
       ? "/tasfin-logo-text-white-bg-transparent-2.png"
-      : isMobile && theme === "light"
-      ? "/tasfin-logo-text-black-bg-transparent.png"
       : "/tasfin-logo-text-black-bg-transparent-2.png";
 
   return (
@@ -53,8 +49,8 @@ export default function Header() {
           {logo ? (
             <Image
               src={logo}
-              width={40}
-              height={40}
+              width={100}
+              height={100}
               alt={settings?.siteName || "TASFIN Admin"}
               className="rounded"
             />
@@ -63,9 +59,6 @@ export default function Header() {
               <span className="text-muted-foreground">No image</span>
             </div>
           )}
-          <span className="hidden md:inline-block">
-            {settings?.siteName || "TASFIN Admin"}
-          </span>
         </a>
       </div>
 

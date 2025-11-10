@@ -9,6 +9,7 @@ export async function createCookie(data: {
 }) {
   const cookieStore = await cookies();
 
+  cookieStore.delete(data.name);
   cookieStore.set({
     name: data.name,
     value: data.value,

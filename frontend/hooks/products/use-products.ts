@@ -6,27 +6,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface UseProductsOptions {
-  initialLimit?: number;
-  sortBy?: "title" | "createdAt";
-  sortType?: "asc" | "desc";
   categories?: string[];
   priceRange?: { minPrice: number; maxPrice: number };
 }
 
 export function useProducts(options: UseProductsOptions = {}) {
-  const {
-    initialLimit = 12,
-    sortBy = "createdAt",
-    sortType = "desc",
-    categories = [],
-    priceRange,
-  } = options;
+  const { categories = [], priceRange } = options;
+
+  const initialLimit = 12;
 
   const [infinityProducts, setInfinityProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ sortBy, sortType });
+  const [sortConfig, setSortConfig] = useState({
+    sortBy: "createdAt",
+    sortType: "desc",
+  });
   const [filters, setFilters] = useState({ categories, priceRange });
   const [totalPages, setTotalPages] = useState<number | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
@@ -39,6 +35,7 @@ export function useProducts(options: UseProductsOptions = {}) {
       // Prevent duplicate requests
       if (isFetchingRef.current) {
         console.log("Already fetching, skipping...");
+        setHasMore(false);
         return;
       }
 
@@ -71,7 +68,7 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         if (response.data.success && Array.isArray(response.data.data)) {
           const newProducts = response.data.data;
-          const totalPagesFromAPI = response.data.pagination.totalPages;
+          const totalPagesFromAPI = response.data.pagination.totalPages || 0;
           console.log("totalPagesFromAPI: ", totalPagesFromAPI);
 
           // Store total pages
@@ -98,6 +95,8 @@ export function useProducts(options: UseProductsOptions = {}) {
               setHasMore(false);
             }
           }
+        } else {
+          setHasMore(false);
         }
       } catch (error) {
         toast.error("Failed to fetch products");
@@ -159,7 +158,6 @@ export function useProducts(options: UseProductsOptions = {}) {
 
   const handleSort = useCallback(
     (newSortBy: "title" | "createdAt", newsortType: "asc" | "desc") => {
-      if (sortBy === newSortBy && sortType === newsortType) return; // No change
       console.log("Sort changed:", newSortBy, newsortType);
       setSortConfig({ sortBy: newSortBy, sortType: newsortType });
       setPage(1);

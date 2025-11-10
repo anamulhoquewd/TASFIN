@@ -9,6 +9,7 @@ import { Hero } from "@/components/home/hero";
 import { ArrivalsSection } from "@/components/home/arrivals";
 import { CategoriesSection } from "@/components/home/categories";
 import { TestimonialsSection } from "@/components/home/testimonials";
+import { ProductShowcase } from "@/components/home/showcase";
 
 export default function HomePage() {
   const { categories } = useCategory();
@@ -17,6 +18,8 @@ export default function HomePage() {
     <div className="flex flex-col">
       {/* Hero Section */}
       <Hero />
+
+      <ProductShowcase />
 
       {/* New Arrivals Section */}
       <ArrivalsSection />

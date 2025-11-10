@@ -41,7 +41,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  // onClick={() => onClose(false)}
+                  onClick={() => onClose(false)}
                   className="flex items-center gap-2 p-2 rounded-lg border border-primary/20"
                 >
                   <span>

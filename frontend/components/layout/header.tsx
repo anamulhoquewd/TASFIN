@@ -20,13 +20,10 @@ import { MobileMenu } from "./mobile-menu";
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
-  const isMobile = useIsMobile();
 
   const [open, setOpen] = useState(false);
 
-  const logo = isMobile
-    ? "/tasfin-logo-text-black-bg-transparent.png"
-    : "/tasfin-logo-text-black-bg-transparent-2.png";
+  const logo = "/tasfin-logo-text-black-bg-transparent-2.png";
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

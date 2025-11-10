@@ -85,7 +85,7 @@ const useOrders = () => {
         createCookie({
           name: "X-User-ID",
           value: response.data?.data?.user,
-          maxAgeAsSeconds: 60 * 60 * 24 * 365,
+          maxAgeAsSeconds: 60 * 60 * 24 * 365, // 1y
         });
 
         // Clear cart and redirect to confirmation
