@@ -216,13 +216,17 @@ function MyOrders() {
           orders.map((order) => <MyOrderCard key={order._id} order={order} />)
         ) : (
           <Card>
-            <CardContent className="py-8 flex flex-col items-center justify-center">
+            <CardContent className="py-8 flex flex-col gap-2 items-center justify-center">
               <p className="text-muted-foreground">
                 Looks like your order list is empty. Time to treat yourself!
               </p>
 
               <Link href="/products">
-                <Button className="cursor-pointer" variant={"link"} size={"sm"}>
+                <Button
+                  className="cursor-pointer"
+                  variant={"outline"}
+                  size={"sm"}
+                >
                   Go Shopping
                 </Button>
               </Link>

@@ -12,14 +12,15 @@ import {
 interface OrderConfirmedProps {
   orderId: string;
   email?: string;
-  estimatedDelivery?: string;
   totalAmount: number;
 }
+
+const ESTIMATED_DELIVERY_TIME = process.env
+  .NEXT_PUBLIC_ESTIMATED_DELIVERY_TIME as string;
 
 export default function OrderConfirmed({
   orderId,
   email,
-  estimatedDelivery = "5-7 business days",
   totalAmount,
 }: OrderConfirmedProps) {
   return (
@@ -94,7 +95,7 @@ export default function OrderConfirmed({
                   Estimated Delivery
                 </span>
                 <span className="text-sm font-medium text-foreground">
-                  {estimatedDelivery}
+                  {ESTIMATED_DELIVERY_TIME || "3-5 business days"}
                 </span>
               </div>
             </div>

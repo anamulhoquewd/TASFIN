@@ -49,7 +49,7 @@ export const register = async (body: OrderInput) => {
       validData.data;
 
     // 🔹 Step 1: Find or Create User
-    let user = await User.findOne({ phone, email });
+    let user = await User.findOne({ phone });
 
     if (!user) {
       const newUser = new User({
@@ -69,6 +69,9 @@ export const register = async (body: OrderInput) => {
       const product = await Product.findById(item.productId);
       if (!product) {
         return { error: { message: "Product not found!" } };
+      }
+      if (!product.isActive) {
+        return { error: { message: "Product not Orderable!" } };
       }
 
       const variant = product.variants.find(
@@ -94,7 +97,7 @@ export const register = async (body: OrderInput) => {
         variantId: variant._id.toString(),
         productId: product._id.toString(),
         title: `${product.title} - ${variant.size}`,
-        image: variant.images?.[0] || product.images?.[0],
+        image: product.images?.[0],
         price,
         quantity: item.quantity,
       });
@@ -109,10 +112,8 @@ export const register = async (body: OrderInput) => {
       orderDate: new Date(),
       products: orderProducts,
       address,
-      paymentStatus: "unpaid",
       shippingCost,
       totalAmount: totalAmount + shippingCost,
-      status: "pending",
     });
 
     return {

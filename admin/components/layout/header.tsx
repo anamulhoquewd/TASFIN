@@ -15,7 +15,7 @@ export default function Header() {
   const { theme } = useTheme();
 
   const logo =
-    theme !== "dark"
+    theme === "light"
       ? "/tasfin-logo-text-black-bg-transparent.png"
       : "/tasfin-logo-text-white-bg-transparent.png";
 
@@ -36,24 +36,16 @@ export default function Header() {
 
       {/* Logo */}
       <div className="flex items-center gap-2 order-2 md:order-1">
-        <a
-          href="/admin"
-          className="flex items-center gap-2 font-semibold md:flex"
-        >
-          {logo ? (
-            <Image
-              src={logo}
-              width={100}
-              height={100}
-              alt={settings?.siteName || "TASFIN Admin"}
-              className="rounded"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <span className="text-muted-foreground">No image</span>
-            </div>
-          )}
-        </a>
+        {logo && (
+          <Image
+            src={logo}
+            width={100}
+            height={100}
+            alt={settings?.siteName || "TASFIN Admin"}
+            className="w-14"
+          />
+        )}{" "}
+        <h3 className="font-playfair font-semibold text-foreground">TASFIN</h3>
       </div>
 
       {/* Right Section */}

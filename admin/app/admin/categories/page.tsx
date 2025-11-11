@@ -5,9 +5,9 @@ import {
   Plus,
   MoreHorizontal,
   Trash2,
-  Eye,
   ListIcon as Category,
   ImageIcon,
+  Copy,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,13 @@ import useCategory from "./_hook/useCategory";
 import { UploadAvatar } from "@/components/upload-avatar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { copyToClipboard } from "@/lib/utils";
 
 export default function Categories() {
   const {
@@ -70,6 +77,10 @@ export default function Categories() {
     setIsAvatarOpen,
     handleNameChange,
   } = useCategory();
+
+  const onDelete = (id: string) => {
+    handleDelete(id);
+  };
 
   return (
     <div className="space-y-6">
@@ -147,10 +158,34 @@ export default function Categories() {
                           </Avatar>
                         </div>
                       </TableCell>
-                      <TableCell>{category?._id}</TableCell>
-                      <TableCell>{category?.name}</TableCell>
-                      <TableCell>{category?.slug}</TableCell>
                       <TableCell>
+                        <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
+                          {category._id}
+                        </code>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 cursor-pointer"
+                                onClick={() => copyToClipboard(category._id)}
+                              >
+                                <Copy className="h-3 w-3" />
+                                <span className="sr-only">Category ID</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Category ID</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </TableCell>
+                      <TableCell className="max-w-[200px] whitespace-normal break-words">
+                        {category?.name}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] whitespace-normal break-words">
+                        {category?.slug}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] whitespace-normal break-words">
                         {category?.description || "No description available"}
                       </TableCell>
 
@@ -192,10 +227,6 @@ export default function Categories() {
 
                               <DropdownMenuSeparator />
 
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Category
-                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
                                   setSelectedItem(category);
@@ -262,7 +293,7 @@ export default function Categories() {
           />
 
           <DeleteConfirmation
-            onConfirm={() => handleDelete(selectedItem._id)}
+            onConfirm={() => onDelete(selectedItem._id)}
             open={deleteDialogOpen}
             changeOpen={setDeleteDialogOpen}
           />

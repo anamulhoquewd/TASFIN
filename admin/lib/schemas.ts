@@ -226,3 +226,21 @@ export const changePasswordFormSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;
+
+export const loginFormSchema = z.object({
+  email: z
+    .string()
+    .refine(
+      (value) =>
+        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+      {
+        message: "Must be a valid email or 11-digit phone number",
+      }
+    ),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password cannot exceed 20 characters"),
+});
+
+export type LoginFormValuse = z.infer<typeof loginFormSchema>;

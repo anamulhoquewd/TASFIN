@@ -6,20 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Share2 } from "lucide-react";
+import useShare from "./use-share";
 
 interface ProductDetailsDisplayProps {
   product: IProduct;
   children: React.ReactNode;
 }
 
-const NEXT_PUBLIC_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN as string;
-const NEXT_PUBLIC_WHATS_APP = process.env.NEXT_PUBLIC_WHATS_APP as string;
-
 export function ProductDetailsDisplay({
   product,
   children,
 }: ProductDetailsDisplayProps) {
-  const [copied, setCopied] = useState(false);
+  const { copied, handleShare, handleProductShareInWA } = useShare();
   const details = [
     { label: "Fabric", value: product.fabric },
     { label: "Sleeve", value: product.sleeve },
@@ -29,25 +27,6 @@ export function ProductDetailsDisplay({
     { label: "Length", value: product.length },
     { label: "Wash Care", value: product.washCare },
   ].filter((detail) => detail.value);
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        `${NEXT_PUBLIC_DOMAIN}/products/${product.slug}`
-      );
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  const handleWhatsAppShare = () => {
-    const message = `Hi, I'm interested in this product: ${NEXT_PUBLIC_DOMAIN}/products/${product.slug}`;
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappLink = `https://wa.me/${NEXT_PUBLIC_WHATS_APP}?text=${encodedMessage}`;
-    window.open(whatsappLink, "_blank");
-  };
 
   return (
     <div className="space-y-6">
@@ -70,7 +49,7 @@ export function ProductDetailsDisplay({
         <Button
           variant="outline"
           className="flex-1 gap-2 bg-transparent cursor-pointer transition-all duration-500"
-          onClick={handleShare}
+          onClick={() => handleShare({ url: `/products/${product.slug}` })}
         >
           <Share2 className="size-4" />
           {copied ? "Copied!" : "Share"}
@@ -78,7 +57,9 @@ export function ProductDetailsDisplay({
         <Button
           variant="outline"
           className="flex-1 gap-2 border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
-          onClick={handleWhatsAppShare}
+          onClick={() =>
+            handleProductShareInWA({ url: `/products/${product.slug}` })
+          }
         >
           <MessageCircle className="size-4" />
           WhatsApp

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { schemaValidationError } from "./../error/index.js";
 import type { IUser } from "./../interfaces/index.js";
 import User from "./../models/users.model.js";
@@ -102,7 +103,13 @@ export const getUsers = async (queryParams: {
         { email: { $regex: queryParams.search, $options: "i" } },
         { phone: { $regex: queryParams.search, $options: "i" } },
       ];
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
+
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "email"].includes(
       queryParams.sortBy

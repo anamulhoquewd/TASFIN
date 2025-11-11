@@ -12,9 +12,7 @@ const allowedOrigins =
   ) || [];
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
-
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
-
 const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 // Validate query parameters

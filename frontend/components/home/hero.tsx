@@ -59,10 +59,10 @@ export function Hero() {
           clickable: true,
           bulletActiveClass: "bg-primary w-4 md:w-8",
           bulletClass:
-            "inline-block h-1.5 md:h-2 rounded-full bg-secondary w-1.5 md:w-2 mx-0.5 md:mx-1 transition-all duration-300",
+            "inline-block h-1.5 md:h-2 rounded-full bg-secondary w-1.5 md:w-2 mx-0.5 md:mx-1 transition-all duration-700",
         }}
         autoplay={{
-          delay: 2500,
+          delay: 1000,
           disableOnInteraction: false,
         }}
         loop={true}

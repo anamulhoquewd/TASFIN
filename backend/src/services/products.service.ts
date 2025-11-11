@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import s3 from "./../config/s3.js";
 import { schemaValidationError } from "./../error/index.js";
 import Product from "./../models/products.model.js";
@@ -772,6 +773,12 @@ export const getProducts = async (queryParams: {
         { slug: { $regex: search, $options: "i" } },
         { tags: { $regex: search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     if (typeof isFeatured === "boolean") query.isFeatured = isFeatured;
     if (typeof isActive === "boolean") query.isActive = isActive;

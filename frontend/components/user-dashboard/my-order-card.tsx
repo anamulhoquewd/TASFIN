@@ -1,11 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Download, RotateCcw, Truck } from "lucide-react";
+import { Download, MessageCircle, RotateCcw, Truck } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
-import { copyToClipboard, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
+import useShare from "../products/product/use-share";
 
 export default function MyOrderCard({ order }: { order: IOrder }) {
+  const { handleOrderIssueShareInWA } = useShare();
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
@@ -38,34 +41,22 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle className="text-lg">
-              <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                {order._id.substring(0, 16)}...
-              </code>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 cursor-pointer"
-                onClick={() => copyToClipboard(order._id)}
-              >
-                <Copy className="h-3 w-3" />
-                <span className="sr-only">Copy User ID</span>
-              </Button>
+            <CardTitle className="text-lg max-w-[150px] lg:max-w-[250px] whitespace-normal break-words">
+              {order.user.name}
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {new Date(order.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-col lg:flex-row">
             <Badge
               className={
-                getPaymentStatusColor(order.paymentStatus) + " capitalize"
+                getPaymentStatusColor(order.paymentStatus) + " uppercase"
               }
             >
               {order.paymentStatus}
             </Badge>
-            <Badge className={getStatusColor(order.status) + " capitalize"}>
+            <Badge className={getStatusColor(order.status) + " uppercase"}>
               {order.status}
             </Badge>
           </div>
@@ -79,25 +70,33 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
               <p className="font-semibold">{order.products.length} item(s)</p>
             </div>
             <div>
+              <p className="text-sm text-muted-foreground">Shipping Cost</p>
+              <p className="font-semibold">
+                {order.shippingCost === 0
+                  ? "FREE"
+                  : formatPrice(order.shippingCost)}
+              </p>
+            </div>
+            <div>
               <p className="text-sm text-muted-foreground">Total Amount</p>
               <p className="font-semibold">{formatPrice(order.totalAmount)}</p>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Shipping Address</p>
-              <p className="font-semibold text-sm text-wrap">
-                {`${order.address.street}, ${
-                  order.address?.state ?? order.address.state + ","
-                } ${order.address.city}`}{" "}
-              </p>
-            </div>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Shipping Address</p>
+            <p className="font-semibold text-sm text-wrap">
+              {`${order.address.street}, ${
+                order.address?.state ?? order.address.state + ","
+              } ${order.address.city}`}
+            </p>
           </div>
 
           <div className="border-t pt-4">
             <h4 className="font-semibold mb-2">Items:</h4>
             <div className="space-y-2">
-              {order.products.map((item, index) => (
+              {order.products.map((item) => (
                 <div
-                  key={index}
+                  key={item.variantId}
                   className="flex justify-between text-sm border-b pb-2"
                 >
                   <span>
@@ -136,6 +135,15 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
             >
               <RotateCcw className="h-4 w-4" />
               Reorder
+            </Button>
+            <Button
+              variant="outline"
+              size={"sm"}
+              className="flex-1 gap-2 border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+              onClick={() => handleOrderIssueShareInWA({ orderId: order._id })}
+            >
+              <MessageCircle className="size-4" />
+              WhatsApp
             </Button>
           </div>
         </div>

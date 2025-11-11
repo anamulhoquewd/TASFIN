@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { schemaValidationError } from "./../error/index.js";
 import Category from "./../models/categorise.model.js";
 import pagination from "./../utils/pagination.js";
@@ -93,6 +94,12 @@ export const getCategories = async (queryParams: {
         { name: { $regex: queryParams.search, $options: "i" } },
         { slug: { $regex: queryParams.search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "slug"].includes(

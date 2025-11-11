@@ -195,7 +195,7 @@ export default function OrderLookup({
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="secondary"
-                        className={`capitalize ${getStatusColor(o.status)}`}
+                        className={`uppercase ${getStatusColor(o.status)}`}
                       >
                         {o.status}
                       </Badge>
@@ -203,7 +203,7 @@ export default function OrderLookup({
                         variant={
                           o.paymentStatus === "paid" ? "default" : "outline"
                         }
-                        className={`capitalize ${getPaymentColor(
+                        className={`uppercase ${getPaymentColor(
                           o.paymentStatus
                         )}`}
                       >

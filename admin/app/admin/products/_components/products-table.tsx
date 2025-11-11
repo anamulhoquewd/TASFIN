@@ -352,22 +352,19 @@ export function ProductsTable() {
                           />
                         </TableCell>
 
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{product.title}</div>
-                            <Link
-                              href={`${process.env.NEXT_PUBLIC_DOMAIN}/products/${product.slug}`}
-                              className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
-                            >
-                              /{product.slug}{" "}
-                              <ExternalLink className="h-4 w-4" />
-                            </Link>
-                            {product.fabric && (
-                              <div className="text-xs text-muted-foreground">
-                                Fabric: {product.fabric}
-                              </div>
-                            )}
-                          </div>
+                        <TableCell className="max-w-[150px] whitespace-normal break-words">
+                          <div className="font-medium ">{product.title}</div>
+                          <Link
+                            href={`${process.env.NEXT_PUBLIC_DOMAIN}/products/${product.slug}`}
+                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
+                          >
+                            /{product.slug} <ExternalLink className="h-4 w-4" />
+                          </Link>
+                          {product.fabric && (
+                            <div className="text-xs text-muted-foreground">
+                              Fabric: {product.fabric}
+                            </div>
+                          )}
                         </TableCell>
 
                         <TableCell>

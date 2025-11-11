@@ -24,6 +24,7 @@ export interface IOrder {
   orderDate: string;
   createdAt: string;
   products: IOrderItem[];
+  shippingCost: number;
 }
 
 export interface IOrderItem {

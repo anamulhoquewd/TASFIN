@@ -144,7 +144,7 @@ export default function StatusDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="current-payment">Current Payment Status</Label>
-              <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
+              <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50 uppercase">
                 {getPaymentStatusBadge(order?.paymentStatus)}
               </div>
             </div>

@@ -11,13 +11,18 @@ import Image from "next/image";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
+const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
   // const [promoCode, setPromoCode] = useState("");
 
   const shippingFee =
-    subtotal > 0 ? (subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100) : 0;
+    subtotal > 0
+      ? subtotal >= Number(FREE_SHIPPING_START_FROM)
+        ? 0
+        : Number(SHIPPING_COST)
+      : 0;
   const total = subtotal + shippingFee;
 
   if (items.length === 0) {

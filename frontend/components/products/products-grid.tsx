@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowUpDown } from "lucide-react";
+import { AlarmClockPlus, ArrowUpDown } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
@@ -126,7 +126,6 @@ export function ProductCard({ product }: { product: any }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const router = useRouter();
-
   const { addItem } = useCart();
 
   const variantsHasStock = product.variants.filter(
@@ -136,7 +135,7 @@ export function ProductCard({ product }: { product: any }) {
   const inStock = product.isActive && variantsHasStock.length > 0;
 
   const handleAddToCart = () => {
-    toast.success("Event has been created", {
+    toast.success("Product has been added", {
       action: {
         label: "Go to cart",
         onClick: () => router.push("/cart"),
@@ -243,7 +242,10 @@ export function ProductCard({ product }: { product: any }) {
           className="cursor-pointer w-[90%] mx-auto mb-4"
           onClick={handleAddToCart}
         >
-          Limited stock
+          {product.variants[0].stock <= 10
+            ? `Left ${product.variants[0].stock} stock`
+            : `Only a Few Left`}
+          <AlarmClockPlus />
         </Button>
       ) : (
         <Button

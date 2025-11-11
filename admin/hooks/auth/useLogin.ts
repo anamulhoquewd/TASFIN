@@ -1,5 +1,6 @@
 import { createCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
+import { loginFormSchema, LoginFormValuse } from "@/lib/schemas";
 import { handleAxiosError } from "@/utils/error";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -8,27 +9,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const loginFormSchema = z.object({
-  email: z
-    .string()
-    .refine(
-      (value) =>
-        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      {
-        message: "Must be a valid email or 11-digit phone number",
-      }
-    ),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters"),
-});
-
 const useLogin = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof loginFormSchema>>({
+  const form = useForm<LoginFormValuse>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
@@ -53,10 +38,6 @@ const useLogin = () => {
         throw new Error(response.data?.error?.message || "Login failed");
       }
 
-      // Redirect to home page
-      router.push("/admin");
-      toast(response.data?.success?.message || "Login successfullY!");
-
       // get tokens
       const tokens = response.data.tokens;
 
@@ -77,6 +58,10 @@ const useLogin = () => {
         email: "",
         password: "",
       });
+
+      // Redirect to home page
+      toast(response.data?.success?.message || "Login successful!");
+      router.push("/admin");
     } catch (error: any) {
       // Handle error
       handleAxiosError(error);

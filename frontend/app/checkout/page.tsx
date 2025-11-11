@@ -12,13 +12,19 @@ import OrderFailed from "@/components/order/order-faild";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
+const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
 
 export default function CheckoutPage() {
   const { items, subtotal, totalItems } = useCart();
   const { form, handleSubmit, isProcessing, status, order, setStatus } =
     useOrder();
 
-  const shippingFee = subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100;
+  const shippingFee =
+    subtotal > 0
+      ? subtotal >= Number(FREE_SHIPPING_START_FROM)
+        ? 0
+        : Number(SHIPPING_COST)
+      : 0;
   const total = subtotal + shippingFee;
 
   form.setValue("shippingCost", shippingFee);

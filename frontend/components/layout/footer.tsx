@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-muted/30 z-10000">
+    <footer className="border-t border-border bg-muted/30 z-30 sticky">
       <div className="container mx-auto px-4 pt-8 pb-4">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Brand */}

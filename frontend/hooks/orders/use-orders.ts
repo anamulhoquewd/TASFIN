@@ -65,6 +65,7 @@ const useOrders = () => {
         name: values.name,
         address: values.address,
         phone: values.phone,
+        email: values.email,
         products: items.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,

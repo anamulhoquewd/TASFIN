@@ -24,6 +24,7 @@ import {
   uploadAvatar,
 } from "./../utils/index.js";
 import User from "./../models/users.model.js";
+import mongoose from "mongoose";
 dotenv.config();
 
 // Get environment variables
@@ -206,6 +207,12 @@ export const getAdmins = async (queryParams: {
         { phone: { $regex: queryParams.search, $options: "i" } },
         { NID: { $regex: queryParams.search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "email"].includes(

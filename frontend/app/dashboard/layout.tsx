@@ -27,6 +27,7 @@ export default function RootLayout({
         } as React.CSSProperties
       }
       className="container m-auto p-4"
+      defaultOpen={true}
     >
       <AppSidebar />
       <SidebarInset>

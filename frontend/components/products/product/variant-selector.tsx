@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { AlarmClockPlus } from "lucide-react";
 
 interface ProductVariantSelectorProps {
   variants: IProductVariant[];
@@ -66,6 +67,12 @@ export function ProductVariantSelector({
     handleVariantChange(size);
   };
 
+  const variantsHasStock = product.variants.filter(
+    (v: IProductVariant) => v.stock > 0
+  );
+
+  const inStock = product.isActive && variantsHasStock.length > 0;
+
   return (
     <div className="space-y-6">
       {/* Size Selection */}
@@ -103,26 +110,34 @@ export function ProductVariantSelector({
                 {formatPrice(selectedVariant.price)}
               </p>
             </div>
-            <Badge
-              variant={selectedVariant.stock > 0 ? "default" : "destructive"}
-            >
-              {selectedVariant.stock > 0
-                ? `${selectedVariant.stock} in stock`
-                : "Out of stock"}
-            </Badge>
+            {inStock ? (
+              <Badge variant={"default"}>
+                {`${selectedVariant.stock} in stock`}
+              </Badge>
+            ) : (
+              <Badge variant={"destructive"}>Out of stock</Badge>
+            )}
           </div>
         </div>
       )}
 
       {/* Add to Cart Button */}
-      <Button
-        size="lg"
-        className="w-full cursor-pointer"
-        onClick={handleAddToCart}
-        disabled={!selectedVariant || selectedVariant.stock === 0}
-      >
-        {selectedVariant?.stock === 0 ? "Out of Stock" : "Add to Cart"}
-      </Button>
+      {inStock ? (
+        <Button
+          size="lg"
+          className="cursor-pointer w-full"
+          onClick={handleAddToCart}
+        >
+          {product.variants[0].stock <= 10
+            ? `Left ${product.variants[0].stock} stock`
+            : `Only a Few Left`}
+          <AlarmClockPlus />
+        </Button>
+      ) : (
+        <Button disabled size="lg" className="w-full cursor-not-allowed">
+          Out of stock
+        </Button>
+      )}
     </div>
   );
 }

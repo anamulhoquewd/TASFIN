@@ -1,15 +1,18 @@
 import Header from "@/components/layout/header";
 import { AppSidebar } from "@/components/side-bar";
 import { SidebarProvider } from "@/components/ui/sidebar";
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={defaultOpen}>
       <AppSidebar />
       <div className="flex-1 min-h-screen flex-col">
         <Header />

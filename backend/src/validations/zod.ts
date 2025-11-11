@@ -158,12 +158,10 @@ export const userCreateZ = z.object({
     .trim()
     .optional(),
   occupation: z.string().optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .trim()
-    .toLowerCase()
-    .optional(),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional()
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -199,7 +197,11 @@ export const querySchemaZ = z.object({
 
 export const loginSchemeZ = z
   .object({
-    email: z.string().email().optional(),
+    email: z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.string().email("Invalid email address").trim().toLowerCase().optional()
+    ),
+
     phone: z
       .string()
       .length(11, "Phone number must be 11 characters long")
@@ -264,7 +266,11 @@ export const settingCreateZ = z.object({
   siteDescription: z.string().optional(),
   logo: imageZ.optional(),
   favicon: imageZ.optional(),
-  contactEmail: z.string().email("Invalid email address").trim().optional(),
+  contactEmail: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional()
+  ),
+
   contactPhone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -320,12 +326,10 @@ export const orderSchemaZ = z.object({
   address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .trim()
-    .toLowerCase()
-    .optional(),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional()
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -387,12 +391,10 @@ export const orderFetchQuerySchema = z.object({
       message: "Invalid MongoDB User ID format",
     })
     .optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .trim()
-    .toLowerCase()
-    .optional(),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional()
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")

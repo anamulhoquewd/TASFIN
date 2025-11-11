@@ -1,5 +1,6 @@
 "use client";
 
+import useShare from "@/components/products/product/use-share";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IOrder } from "@/interfaces/orders";
@@ -16,7 +17,9 @@ import {
   Mail,
   Home,
   Calendar,
+  MessageCircle,
 } from "lucide-react";
+import Link from "next/link";
 
 interface OrderStatusProps {
   order: IOrder;
@@ -24,6 +27,7 @@ interface OrderStatusProps {
 }
 
 export default function OrderStatus({ order, onBack }: OrderStatusProps) {
+  const { handleOrderIssueShareInWA } = useShare();
   const statusSteps = [
     {
       label: "pending",
@@ -233,7 +237,7 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
           </h2>
           <div className="flex items-center gap-3">
             <div
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
+              className={`px-4 py-2 rounded-full text-sm font-medium uppercase ${
                 order.paymentStatus === "paid"
                   ? "bg-green-100 text-green-800"
                   : "bg-red-100 text-red-800"
@@ -248,21 +252,28 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
         <Card className="bg-blue-50 border border-blue-200 p-6 mb-6">
           <p className="text-sm text-blue-900">
             Thank you for your order! We appreciate your business. If you have
-            any questions about your order, please don&apos;t hesitate to contact our
-            support team.
+            any questions about your order, please don&apos;t hesitate to
+            contact our support team.
           </p>
         </Card>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
+          <Link className="flex-1" href={"/products"}>
+            <Button
+              onClick={onBack}
+              className="no-hover cursor-pointer w-full"
+              variant={"outline"}
+            >
+              Continue Shopping
+            </Button>
+          </Link>
           <Button
-            onClick={onBack}
-            className="flex-1 bg-white border border-border text-foreground hover:bg-gray-50"
+            className="flex-1 gap-2 cursor-pointer"
+            onClick={() => handleOrderIssueShareInWA({ orderId: order._id })}
           >
-            Continue Shopping
-          </Button>
-          <Button className="flex-1 bg-orange-600 hover:bg-orange-700 text-white">
-            Contact Support
+            <MessageCircle className="size-4" />
+            Support
           </Button>
         </div>
       </div>
