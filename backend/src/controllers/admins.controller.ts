@@ -71,7 +71,7 @@ export const getAdmin = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Get Me
@@ -317,7 +317,7 @@ export const forgotPassword = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Reset Password

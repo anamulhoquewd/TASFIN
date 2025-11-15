@@ -11,13 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlarmClockPlus, ArrowUpDown } from "lucide-react";
+import { AlarmClockPlus, ArrowUpDown, MessageCircle } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { useCart } from "@/lib/cart-context";
 import { useRouter } from "next/navigation";
+import useShare from "./product/use-share";
 
 interface ProductsGridProps {
   products: IProduct[];
@@ -127,6 +128,8 @@ export function ProductCard({ product }: { product: any }) {
   const [hovered, setHovered] = useState(false);
   const router = useRouter();
   const { addItem } = useCart();
+
+  const { handleProductShareInWA } = useShare();
 
   const variantsHasStock = product.variants.filter(
     (v: IProductVariant) => v.stock > 0
@@ -250,13 +253,20 @@ export function ProductCard({ product }: { product: any }) {
           <AlarmClockPlus />
         </Button>
       ) : (
-        <Button
-          disabled
-          size="sm"
-          className="cursor-pointer w-[90%] mx-auto mb-4"
-        >
-          Out of stock
-        </Button>
+        <div className="flex gap-1.5 w-[90%] mx-auto mb-4">
+          <Button disabled size="sm" className="cursor-pointer flex-1">
+            Out of stock
+          </Button>
+          <Button
+            onClick={() =>
+              handleProductShareInWA({ url: `/products/${product.slug}` })
+            }
+            variant="outline"
+            className="border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+          >
+            <MessageCircle className="size-4" />
+          </Button>
+        </div>
       )}
     </div>
   );

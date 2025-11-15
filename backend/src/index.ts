@@ -13,6 +13,8 @@ import productRoutes from "./routes/products.route.js";
 import orderRoutes from "./routes/orders.route.js";
 import settingsRoutes from "./routes/settings.route.js";
 import dotenv from "dotenv";
+import subscriberRoutes from "./routes/subscribers.controller.js";
+import { getConnInfo } from "hono/cloudflare-workers";
 
 dotenv.config();
 
@@ -61,6 +63,11 @@ app.use(
 // Health check
 app.get("/health", (c) => c.text("API is healthy!"));
 
+app.get("/", (c) => {
+  const userAgent = c.req.header("User-Agent");
+  return c.text(`Your user agent is ${userAgent}`);
+});
+
 // Admin routes
 app.route("/admins", adminRoutes);
 
@@ -75,6 +82,9 @@ app.route("/products", productRoutes);
 
 // Order routes
 app.route("/orders", orderRoutes);
+
+// Order routes
+app.route("/subscribers", subscriberRoutes);
 
 // Settings routes
 app.route("/settings", settingsRoutes);

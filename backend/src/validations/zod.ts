@@ -1,7 +1,7 @@
 // validation/admin.validation.ts
 import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { z } from "zod";
+import { string, z } from "zod";
 
 // Image validation (matches your ImageSchema)
 export const imageZ = z.object({
@@ -416,3 +416,50 @@ export const orderFetchQuerySchema = z.object({
 
   paymentStatus: z.enum(["paid", "unpaid"]).optional(),
 });
+
+export const subscriberSchemaZ = z.object({
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase()
+  ),
+  status: z.enum(["subscribed", "unsubscribed"]).default("subscribed"),
+
+  verified: z.boolean().default(false),
+  isBlocked: z.boolean().default(false),
+  blockedAt: z.date().optional(),
+
+  source: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const subscriberUpdateZ = subscriberSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+export const subscriberQueryZ = z.object({
+  sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
+  sortType: z.enum(["asc", "desc"]).default("asc"),
+  verified: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined
+    ),
+  isBlocked: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined
+    ),
+  search: z.string().optional(),
+});
+
+/** TypeScript types inferred from schemas */
+export type SubscribeInput = z.infer<typeof subscriberSchemaZ>;
+export type SubscribeUpdateInput = z.infer<typeof subscriberUpdateZ>;

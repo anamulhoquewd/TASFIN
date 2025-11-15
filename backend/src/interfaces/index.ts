@@ -103,6 +103,17 @@ export interface IUser extends mongoose.Document {
   updatedAt: Date;
 }
 
+export interface ISubscriber {
+  email: string;
+  status: "subscribed" | "unsubscribed";
+  source: string;
+  verified: boolean;
+  ipAddress: string | null;
+  userAgent: string | null;
+  isBlocked?: boolean;
+  blockedAt: Date;
+}
+
 export interface ICoupon extends mongoose.Document {
   code: string;
   discountType: "percent" | "fixed";

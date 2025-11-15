@@ -1,6 +1,7 @@
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { ICustomer } from "@/interfaces/users";
+import { addressZ } from "@/lib/schemas";
 import { defaultPagination } from "@/utils/details";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
@@ -17,7 +18,11 @@ const customerFormSchema = z.object({
       "Phone number must start with 01 and be exactly 11 digits"
     )
     .optional(),
-  address: z.string().max(100).optional(),
+  address: addressZ,
+  email: z
+    .string()
+    .email({ message: "Please enter a valid email address." })
+    .optional(),
 });
 
 export type FormValues = z.infer<typeof customerFormSchema>;
@@ -32,9 +37,22 @@ function useCustomer() {
   const [customers, setCustomers] = useState<ICustomer[]>([]);
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
 
+  const defaultValues = {
+    name: "",
+    phone: "",
+    email: "",
+    address: {
+      city: "",
+      country: "Bangladesh",
+      state: "",
+      street: "",
+      zipCode: "1000",
+    },
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: { name: "", phone: "", address: "" },
+    defaultValues,
   });
 
   const loadCustomers = async ({
@@ -76,8 +94,8 @@ function useCustomer() {
     setIsLoading(true);
 
     try {
-      const response = await api.put(
-        `/customers/${selectedItem._id}`,
+      const response = await api.patch(
+        `/users/by-admin/${selectedItem._id}`,
         data,
         {}
       );
@@ -86,16 +104,12 @@ function useCustomer() {
         throw new Error(response.data.error.message);
       }
 
-      form.reset({
-        name: "",
-        phone: "",
-        address: "",
-      });
+      form.reset(defaultValues);
 
       setSelectedItem(null);
       loadCustomers({ page: pagination.page, search: searchQuery });
 
-      toast(response.data.message || "Customer updated successfully!");
+      toast.success(response.data.message || "Customer updated successfully!");
     } catch (error: any) {
       console.error("Error updating customer:", error);
 
@@ -121,12 +135,12 @@ function useCustomer() {
 
       loadCustomers({ page: pagination.page, search: searchQuery });
 
-      toast(response.data.message || "Customer deleted successfully!");
+      toast.success(response.data.message || "Customer deleted successfully!");
     } catch (error: any) {
       console.log("Error: ", error);
 
       if (error.response.data.error.message)
-        toast(error.response.data.error.message);
+        toast.error(error.response.data.error.message);
     } finally {
       setSelectedItem(null);
     }
@@ -149,29 +163,13 @@ function useCustomer() {
 
   useEffect(() => {
     if (selectedItem) {
-      const addr = selectedItem.address
-        ? [
-            selectedItem.address.street,
-            selectedItem.address.city,
-            selectedItem.address.state,
-            selectedItem.address.zipCode,
-            selectedItem.address.country,
-          ]
-            .filter(Boolean)
-            .join(", ")
-        : "";
-
       form.reset({
         name: selectedItem.name ?? "",
         phone: selectedItem.phone ?? "",
-        address: addr,
+        address: selectedItem.address,
       });
     } else {
-      form.reset({
-        name: "",
-        phone: "",
-        address: "",
-      });
+      form.reset(defaultValues);
     }
   }, [selectedItem]);
 

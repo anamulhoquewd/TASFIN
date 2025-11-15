@@ -80,8 +80,6 @@ const useOrders = () => {
         toast.success(response.data.message || "Order created successfully!");
         console.log(response.data.message || "Order created successfully!");
 
-        console.log("User: ", response.data);
-
         // set cookie - user phone number
         createCookie({
           name: "X-User-ID",

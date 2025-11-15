@@ -44,3 +44,9 @@ export const orderFormSchema = z.object({
 });
 
 export type OrderFormValues = z.infer<typeof orderFormSchema>;
+
+export const subscribeFormZ = z.object({
+  email: z.string().nonempty("Email is required").email("Invalid email"),
+});
+
+export type SubscribeFormValues = z.infer<typeof subscribeFormZ>;

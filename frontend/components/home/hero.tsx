@@ -123,7 +123,7 @@ export function Hero() {
         </div>
 
         {/* Custom Navigation */}
-        <Button
+        {/* <Button
           size="icon"
           className="custom-prev hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full cursor-pointer transition-colors duration-300 text-white hover:bg-white/20 bg-white/10"
           aria-label="Previous slide"
@@ -136,7 +136,7 @@ export function Hero() {
           aria-label="Next slide"
         >
           <ArrowRight className="h-6 w-6" />
-        </Button>
+        </Button> */}
       </Swiper>
     </div>
   );

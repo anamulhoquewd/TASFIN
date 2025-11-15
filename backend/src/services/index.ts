@@ -4,6 +4,7 @@ import * as categoryService from "./categorise.service.js";
 import * as productService from "./products.service.js";
 import * as orderService from "./orders.service.js";
 import * as settingsService from "./settings.service.js";
+import * as subscribersService from "./subscriber.service.js";
 
 export {
   adminService,
@@ -12,4 +13,5 @@ export {
   settingsService,
   productService,
   orderService,
+  subscribersService,
 };

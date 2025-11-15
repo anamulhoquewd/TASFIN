@@ -10,6 +10,7 @@ function useShare() {
     const message = `Hi, I'm interested in this product: ${NEXT_PUBLIC_DOMAIN}${url}`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappLink = `https://wa.me/${NEXT_PUBLIC_WHATS_APP}?text=${encodedMessage}`;
+    console.log("Clicked: ", url);
     window.open(whatsappLink, "_blank");
   };
 

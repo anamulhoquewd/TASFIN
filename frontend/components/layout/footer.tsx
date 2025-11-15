@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
-import { Facebook, Instagram, Mail, Share2 } from "lucide-react";
+import { Facebook, Instagram, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import SubscribeForm from "../subscribe-fomr";
+import useSubscribe from "@/hooks/use-subscribe";
 
 export function Footer() {
+  const { form, isLoading, handleSubscribe } = useSubscribe();
+
   return (
     <footer className="border-t border-border bg-muted/30 z-30 sticky">
       <div className="container mx-auto px-4 pt-8 pb-4">
@@ -77,18 +82,17 @@ export function Footer() {
 
           {/* Newsletter */}
           <div className="space-y-4 col-span-2 md:col-span-1">
-            <h4 className="font-semibold text-foreground">Stay Updated</h4>
+            <h4 className="font-semibold text-foreground">Subscribe</h4>
             <p className="text-sm text-muted-foreground">
               Subscribe to get special offers and updates.
             </p>
             <div className="flex gap-2">
-              <Input type="email" placeholder="Your email" className="flex-1" />
-              <Button
-                size="icon"
-                className="shrink-0 cursor-pointer bg-primary/80 hover:bg-primary/90"
-              >
-                <Mail className="h-4 w-4" />
-              </Button>
+              <SubscribeForm
+                form={form}
+                handleSubscribe={handleSubscribe}
+                isLoading={isLoading}
+                className="flex-row"
+              />
             </div>
             <div className="flex gap-3 pt-2">
               <Link
