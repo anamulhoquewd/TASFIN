@@ -254,10 +254,10 @@ function Checkout({
                         key={`${item.productId}-${item.variantId}`}
                         className="flex gap-3"
                       >
-                        <div className="w-16 h-20 rounded-md overflow-hidden border">
+                        <div className="max-w-16 aspect-[3/4] rounded-md overflow-hidden border">
                           <Image
-                            width={1000}
-                            height={1000}
+                            width={1200}
+                            height={1600}
                             src={item.image.url}
                             alt={item.image.alt || item.title}
                             className="w-full h-full object-cover"

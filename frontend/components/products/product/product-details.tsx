@@ -35,7 +35,6 @@ export function ProductDetailsDisplay({
         <div className="flex items-start justify-between gap-4 mb-3">
           <div>
             <h1 className="text-3xl font-bold">{product.title}</h1>
-            <p className="text-muted-foreground text-sm mt-1">{product.slug}</p>
           </div>
           <div className="flex gap-2">
             {product.isFeatured && <Badge>Featured</Badge>}

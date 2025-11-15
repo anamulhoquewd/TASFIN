@@ -1,14 +1,16 @@
 "use client";
 
 import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
-import { ProductsGrid } from "@/components/products/products-grid";
+import { ProductsGrids } from "@/components/products/products-grid";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import useCategory from "@/hooks/categories/useCategory";
 import { useProducts } from "@/hooks/products/use-products";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export default function ProductsPage() {
   const searchParams = useSearchParams();
+  const { categories } = useCategory();
 
   // Initialize filters from URL query params
   const initialCategories = searchParams.get("categories")?.split(",") || [];
@@ -51,12 +53,13 @@ export default function ProductsPage() {
           <ProductsFilterSidebar
             onFilterChange={handleFilterChange_}
             initialFilters={filters}
+            categories={categories}
           />
         </div>
 
         {/* Products Grid */}
         <div className="flex-1">
-          <ProductsGrid
+          <ProductsGrids
             products={products}
             isLoading={isLoading}
             hasMore={hasMore}
@@ -73,6 +76,7 @@ export default function ProductsPage() {
             <ProductsFilterSidebar
               onFilterChange={handleFilterChange_}
               initialFilters={filters}
+              categories={categories}
             />
           </DialogContent>
         </Dialog>

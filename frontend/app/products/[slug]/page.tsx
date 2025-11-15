@@ -69,10 +69,10 @@ export default function ProductPage() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="container mx-auto px-4 pt-4 pb-8">
       <Link
         href="/products"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
       >
         <ArrowLeft className="mr-2 h-4 w-4" />
         Continue Shopping

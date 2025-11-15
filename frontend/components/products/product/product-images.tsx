@@ -10,6 +10,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/thumbs";
 import "./product-images.css";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductImageGalleryProps {
   images: IImage[];
@@ -21,11 +22,12 @@ export function ProductImageGallery({
   title,
 }: ProductImageGalleryProps) {
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
+  const isMobile = useIsMobile();
 
   if (!images || images.length === 0) {
     return (
-      <div className="w-full bg-muted rounded-lg flex items-center justify-center aspect-square">
-        <p className="text-muted-foreground">No images available</p>
+      <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
+        Oops! Product image missing right now
       </div>
     );
   }
@@ -38,21 +40,21 @@ export function ProductImageGallery({
         pagination={{ clickable: true }}
         thumbs={{ swiper: thumbsSwiper }}
         loop={true}
-        className="w-full bg-muted rounded-lg overflow-hidden aspect-square"
+        className="w-full bg-muted rounded-lg overflow-hidden aspect-[3/4]"
       >
         {images.map((image) => (
           <SwiperSlide key={image.url}>
             <div className="relative w-full h-full cursor-pointer">
               {image.url ? (
                 <Image
-                  src={image.url || "/placeholder.svg"}
+                  src={image.url}
                   alt={image.alt || title}
                   fill
                   className="object-cover"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center">
-                  <span className="text-muted-foreground">No image</span>
+                <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
+                  Oops! Product image missing right now
                 </div>
               )}
             </div>
@@ -66,7 +68,7 @@ export function ProductImageGallery({
           modules={[Thumbs]}
           watchSlidesProgress
           onSwiper={setThumbsSwiper}
-          slidesPerView={3}
+          slidesPerView={isMobile ? 3 : 5}
           spaceBetween={4}
           loop={true}
           className="thumbs-swiper"
@@ -82,8 +84,8 @@ export function ProductImageGallery({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-muted-foreground">No image</span>
+                  <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
+                    Oops!
                   </div>
                 )}
               </div>

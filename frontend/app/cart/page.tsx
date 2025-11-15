@@ -66,12 +66,12 @@ export default function CartPage() {
               <CardContent className="p-4">
                 <div className="flex gap-4">
                   {/* Product Image */}
-                  <div className="w-24 h-32 shrink-0 rounded-md overflow-hidden border border-border">
+                  <div className="max-w-24 aspect-[3/4]  shrink-0 rounded-md overflow-hidden border border-border">
                     <Link href={`/products/${item.slug}`}>
                       <Image
-                        width={1000}
-                        height={1000}
-                        src={item.image.url || "/placeholder.svg"}
+                        width={1200}
+                        height={1600}
+                        src={item.image.url}
                         alt={item.image.alt || item.title}
                         className="w-full h-full object-cover"
                       />
@@ -103,7 +103,7 @@ export default function CartPage() {
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center items-start justify-between">
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-2">
                         <Button

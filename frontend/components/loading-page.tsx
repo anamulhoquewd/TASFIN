@@ -7,7 +7,7 @@ export default function LoadingPage() {
       <div className="flex flex-col items-center gap-2">
         {/* Logo/Brand */}
         <div className="flex items-center justify-center w-30 h-30">
-          <Image src={img} alt="LOGO" width={500} height={500} />
+          <Image src={img} alt="LOGO" width={600} height={600} />
         </div>
 
         {/* Loading Spinner */}

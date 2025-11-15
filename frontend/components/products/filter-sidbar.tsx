@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Slider } from "../ui/slider";
+import { ICategory } from "@/interfaces/categories";
 
 interface ProductsFilterSidebarProps {
   onFilterChange: (filters: {
@@ -17,13 +18,14 @@ interface ProductsFilterSidebarProps {
     categories: string[];
     priceRange: { minPrice: number; maxPrice: number };
   };
+  categories: ICategory[];
 }
 
 export function ProductsFilterSidebar({
   onFilterChange,
   initialFilters,
+  categories,
 }: ProductsFilterSidebarProps) {
-  const { categories } = useCategory();
   const router = useRouter();
   const searchParams = useSearchParams();
 

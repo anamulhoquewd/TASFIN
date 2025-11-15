@@ -34,8 +34,8 @@ export function Header() {
               <Image
                 src={logo}
                 alt="Logo"
-                width={100}
-                height={100}
+                width={600}
+                height={600}
                 className="h-12 w-auto md:h-16 lg:h-24 object-contain"
               />
             ) : (

@@ -31,13 +31,13 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
                 key={category._id}
                 href={`/products?categories=${category._id}`}
               >
-                <div className="group relative overflow-hidden rounded-lg bg-card cursor-pointer h-64 md:h-72 lg:h-80">
+                <div className="group relative overflow-hidden rounded-lg bg-card cursor-pointer aspect-[3/4]">
                   {category.image ? (
                     <Image
-                      src={category.image?.url || "/placeholder.svg"}
+                      src={category.image?.url}
                       alt={category.image?.alt || category.name}
                       fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      className="object-cover w-full h-auto group-hover:scale-110 transition-transform duration-500"
                     />
                   ) : (
                     <div className="flex h-full items-center justify-center">
@@ -45,7 +45,7 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-300 flex items-end justify-start p-4 md:p-6">
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300 flex items-end justify-start p-4 md:p-6">
                     <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white text-balance">
                       {category.name}
                     </h3>

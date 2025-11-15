@@ -13,19 +13,19 @@ import "./hero.css";
 export function Hero() {
   const featureBoxes = [
     {
-      id: "101",
+      id: 101,
       name: "CURATED COLLECTION",
       value: "100+",
       description: "Designer pieces",
     },
     {
-      id: "102",
+      id: 102,
       name: "QUALITY ASSURED",
       value: "Premium",
       description: "Traditional crafted",
     },
     {
-      id: "103",
+      id: 103,
       name: "FAST DELIVERY",
       value: "3-5 Days",
       description: "Across the country",
@@ -34,20 +34,19 @@ export function Hero() {
       name: " CUSTOMER LOVED",
       value: "4.9★",
       description: "5000+ reviews",
+      id: 104,
     },
   ];
 
   // Sample images for the slideshow
   const slides = [
-    { url: "/slides/Gemini_Generated_Image_654nsh654nsh654n.png", alt: "One" },
-    { url: "/slides/Gemini_Generated_Image_corahzcorahzcora.png", alt: "Tow" },
-    { url: "/slides/Gemini_Generated_Image_lm93lrlm93.png", alt: "Three" },
-    { url: "/slides/Gemini_Generated_Image_lm93lrlm93lrlm93.png", alt: "Four" },
-    { url: "/slides/Gemini_Generated_Image_o73kulo73kulo73k.png", alt: "Five" },
+    { id: 0, url: "/slides/slide (1).webp", alt: "Three" },
+    { id: 1, url: "/slides/slide (2).webp", alt: "Four" },
+    { id: 2, url: "/slides/slide (3).webp", alt: "Five" },
   ];
 
   return (
-    <div className="h-[300px] md:h-[500px] lg:h-[650px]">
+    <div className="max-h-screen">
       <Swiper
         modules={[Navigation, Pagination, Autoplay]}
         navigation={{
@@ -62,23 +61,25 @@ export function Hero() {
             "inline-block h-1.5 md:h-2 rounded-full bg-secondary w-1.5 md:w-2 mx-0.5 md:mx-1 transition-all duration-700",
         }}
         autoplay={{
-          delay: 1000,
+          delay: 2000,
           disableOnInteraction: false,
         }}
         loop={true}
         className="h-full relative"
       >
         {slides.map((slide, index) => (
-          <SwiperSlide key={index}>
+          <SwiperSlide key={slide.id}>
             {/* Image with overlay */}
-            <div className="relative w-full h-full">
+            <div className="relative w-full aspect-[2/1] hoverflow-hidden bg-muted">
               {slide.url ? (
                 <Image
                   src={slide.url}
                   alt={slide.alt}
+                  // width={1200}
+                  // height={600}
                   fill
                   priority={index === 0}
-                  className="object-cover"
+                  className="w-full h-auto object-cover" // Changed from object-cover to object-contain
                 />
               ) : (
                 <div className="flex h-full items-center justify-center">

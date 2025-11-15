@@ -28,13 +28,12 @@ function ProductGrid() {
     <div className="grid gap-8 md:grid-cols-2 lg:gap-12">
       {/* Left - Fashion Look */}
       <div
-        className={`relative h-96 w-full overflow-hidden rounded-lg bg-gradient-to-b from-amber-50 to-amber-100 md:h-[500px] lg:h-[600px]`}
+        className={`relative aspect-[1/1] overflow-hidden rounded-lg bg-gradient-to-b md:h-[500px] lg:h-[600px]`}
       >
         <Image
-          src="/showcase/one.jpg"
-          alt="Fashion look featuring cream outfit with brown leather accessories"
-          width={1000}
-          height={1000}
+          src="/tasfin-logo-text-black-bg-transparent.png"
+          alt="showcase"
+          fill
           className="object-cover"
         />
       </div>

@@ -29,7 +29,7 @@ interface ProductsGridProps {
   setIsFilterOpen: (isFilterOpen: boolean) => void;
 }
 
-export function ProductsGrid({
+export function ProductsGrids({
   products,
   isLoading,
   hasMore,
@@ -177,23 +177,26 @@ export function ProductCard({ product }: { product: any }) {
     >
       <div>
         <Link href={`/products/${product.slug}`}>
-          <div className="relative aspect-square overflow-hidden bg-muted">
+          <div className="relative aspect-[3/4] overflow-hidden bg-muted">
             {product.images && product.images.length > 0 ? (
               <>
                 {product.images.map((img: IImage, index: number) => (
-                  <Fragment key={index}>
+                  <Fragment key={img.url}>
                     {img.url ? (
                       <Image
-                        src={img.url || "/placeholder.svg"}
+                        src={img.url}
                         alt={product.title}
+                        // width={1200}
+                        // height={1600}
                         fill
+                        objectFit="cover"
                         className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
                           index === currentIndex ? "opacity-100" : "opacity-0"
                         }`}
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <span className="text-muted-foreground">No image</span>
+                      <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
+                        Oops! Product image missing right now
                       </div>
                     )}
                   </Fragment>
@@ -214,14 +217,14 @@ export function ProductCard({ product }: { product: any }) {
         </Link>
 
         <div className="p-4 flex flex-col">
-          <Link href={`/products/${product.slug}`}>
+          {/* <Link href={`/products/${product.slug}`}>
             <h3 className="line-clamp-2 font-semibold text-foreground">
               {product.title}
             </h3>
           </Link>
           <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
             {product.description}
-          </p>
+          </p> */}
 
           <div>
             {product.variants && product.variants.length > 0 && (
@@ -233,7 +236,6 @@ export function ProductCard({ product }: { product: any }) {
               {product.variants?.length || 0} variants
             </p>
           </div>
-          {/* Add to Cart Button */}
         </div>
       </div>
       {inStock ? (
