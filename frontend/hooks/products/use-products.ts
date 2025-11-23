@@ -132,7 +132,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         }
         return null;
       } catch (error) {
-        toast.error("Failed to fetch product by slug");
+        // toast.error("Failed to fetch product by slug");
         console.error("Failed to fetch product by slug:", error);
         return null;
       }

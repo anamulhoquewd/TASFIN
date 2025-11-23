@@ -11,6 +11,7 @@ import { useProducts } from "@/hooks/products/use-products";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import ProductNotFound from "@/components/products/product/product-not-found";
 
 export default function ProductPage() {
   const params = useParams();
@@ -56,16 +57,7 @@ export default function ProductPage() {
   }
 
   if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Product not found</h1>
-          <p className="text-muted-foreground">
-            The product you&apos;re looking for doesn&apos;t exist.
-          </p>
-        </div>
-      </div>
-    );
+    return <ProductNotFound />;
   }
 
   return (
