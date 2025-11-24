@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   title: "TASFIN - Fashion for Her",
   description:
     "Discover elegant women's fashion for the modern Bangladeshi woman. Shop 2-piece, 3-piece, tops, salwar, and more.",
-  generator: "v0.app",
 };
 
 export default function RootLayout({

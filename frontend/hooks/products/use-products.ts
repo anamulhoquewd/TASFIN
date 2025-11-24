@@ -98,7 +98,6 @@ export function useProducts(options: UseProductsOptions = {}) {
   const fetchProducts = useCallback(
     async ({
       limit = 8,
-      isFeatured = true,
       isActive = true,
       sortType = "desc",
       sortBy = "updatedAt",
@@ -107,7 +106,7 @@ export function useProducts(options: UseProductsOptions = {}) {
 
       try {
         const response = await api.get("/products", {
-          params: { limit, isFeatured, isActive, sortType, sortBy },
+          params: { limit, isActive, sortType, sortBy },
         });
 
         if (response.data.success && Array.isArray(response.data.data)) {

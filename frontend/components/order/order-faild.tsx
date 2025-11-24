@@ -90,7 +90,7 @@ export default function OrderFailed({
                 "Try using a different payment method",
               ].map((item, idx) => (
                 <li
-                  key={idx}
+                  key={item}
                   className="flex gap-3 text-sm text-muted-foreground"
                 >
                   <span className="text-primary font-bold">{idx + 1}</span>

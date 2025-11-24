@@ -8,7 +8,6 @@ import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/lib/cart-context";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { AlarmClockPlus } from "lucide-react";
 
 interface ProductVariantSelectorProps {
   variants: IProductVariant[];
@@ -128,10 +127,7 @@ export function ProductVariantSelector({
           className="cursor-pointer w-full"
           onClick={handleAddToCart}
         >
-          {product.variants[0].stock <= 10
-            ? `Left ${product.variants[0].stock} stock`
-            : `Only a Few Left`}
-          <AlarmClockPlus />
+          {product.variants[0].stock <= 10 ? `Add to cart` : `Only a Few Left`}
         </Button>
       ) : (
         <Button disabled size="lg" className="w-full cursor-not-allowed">

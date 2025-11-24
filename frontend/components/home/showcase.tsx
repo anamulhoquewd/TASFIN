@@ -25,13 +25,13 @@ export function ProductShowcase() {
 
 function ProductGrid() {
   return (
-    <div className="grid gap-8 md:grid-cols-2 lg:gap-12">
+    <div className="grid md:grid-cols-2">
       {/* Left - Fashion Look */}
       <div
-        className={`relative aspect-[1/1] overflow-hidden rounded-lg bg-gradient-to-b md:h-[500px] lg:h-[600px]`}
+        className={`relative aspect-[3/4] overflow-hidden rounded-lg bg-gradient-to-b md:h-[500px] lg:h-[600px] flex items-center justify-center`}
       >
         <Image
-          src="/tasfin-logo-text-black-bg-transparent.png"
+          src="/showcase/showcase.png"
           alt="showcase"
           fill
           className="object-cover"
@@ -39,42 +39,54 @@ function ProductGrid() {
       </div>
 
       {/* Right - Product Details */}
-      <div className={`flex flex-col justify-center space-y-6`}>
+      <div className={`flex flex-col justify-start space-y-6`}>
         <div className="space-y-4">
           <div className="inline-block bg-accent px-3 py-1 rounded-full text-sm font-medium text-accent-foreground">
-            New Arrival
+            Best Seller
           </div>
-          <h2 className="text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">
-            Ethnic Elegance Meets Modern Edge: The New Leather Collection is
-            Here!
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl leading-10 md:leading-14 font-playfair">
+            Monochrome Muse: <span className="text-primary">White Cotton</span>{" "}
+            Set with Intricate{" "}
+            <span className="text-primary">Black Embroidery</span>
           </h2>
-          <p className="text-base text-muted-foreground md:text-lg leading-relaxed">
-            Defy the ordinary this festive season. Pair the timeless grace of
-            our traditional wear with the bold, sophisticated feel of our New
-            Arrival Leather Collection accessories. From chic clutches to
-            statement belts, give your ethnic look an unexpected twist. Shop the
-            fusion now!
+          <p className="text-lg text-muted-foreground">
+            Discover the perfect blend of comfort and style with our White
+            Cotton Set, featuring exquisite black embroidery that adds a touch
+            of elegance to your everyday look.
           </p>
         </div>
 
         {/* Product Features */}
         <div className="space-y-3">
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
             <span className="text-sm md:text-base text-foreground">
-              Premium suede and leather construction
+              Premium breathable cotton blend for all-day comfort.
             </span>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
             <span className="text-sm md:text-base text-foreground">
-              Gold-plated hardware details
+              Minimalist white base with high-contrast black thread embroidery.
             </span>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-3">
             <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
             <span className="text-sm md:text-base text-foreground">
-              Versatile design for any occasion
+              Relaxed silhouette with a classic round neckline.
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+            <span className="text-sm md:text-base text-foreground">
+              Includes 1 Embroidered Kameez and 1 Matching Trouser.{" "}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+            <span className="text-sm md:text-base text-foreground">
+              Pairs perfectly with silver oxidized jewelry or simple black
+              sandals.
             </span>
           </div>
         </div>

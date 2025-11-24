@@ -2,7 +2,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -12,12 +11,12 @@ import "./hero.css";
 
 export function Hero() {
   const featureBoxes = [
-    {
-      id: 101,
-      name: "CURATED COLLECTION",
-      value: "100+",
-      description: "Designer pieces",
-    },
+    // {
+    //   id: 101,
+    //   name: "CURATED COLLECTION",
+    //   value: "100+",
+    //   description: "Designer pieces",
+    // },
     {
       id: 102,
       name: "QUALITY ASSURED",
@@ -30,19 +29,21 @@ export function Hero() {
       value: "3-5 Days",
       description: "Across the country",
     },
-    {
-      name: " CUSTOMER LOVED",
-      value: "4.9★",
-      description: "5000+ reviews",
-      id: 104,
-    },
+    // {
+    //   name: " CUSTOMER LOVED",
+    //   value: "4.9★",
+    //   description: "5000+ reviews",
+    //   id: 104,
+    // },
   ];
 
   // Sample images for the slideshow
   const slides = [
-    { id: 0, url: "/slides/slide (1).webp", alt: "Three" },
-    { id: 1, url: "/slides/slide (2).webp", alt: "Four" },
-    { id: 2, url: "/slides/slide (3).webp", alt: "Five" },
+    { id: 5, url: "/slides/banner-1.jpg", alt: "banner" },
+    { id: 3, url: "/slides/banner.jpg", alt: "banner" },
+    { id: 4, url: "/slides/banner-2.jpg", alt: "banner" },
+    { id: 5, url: "/slides/banner-3.jpg", alt: "banner" },
+    { id: 6, url: "/slides/banner-4.jpg", alt: "banner" },
   ];
 
   return (
@@ -61,7 +62,7 @@ export function Hero() {
             "inline-block h-1.5 md:h-2 rounded-full bg-secondary w-1.5 md:w-2 mx-0.5 md:mx-1 transition-all duration-700",
         }}
         autoplay={{
-          delay: 2000,
+          delay: 2500,
           disableOnInteraction: false,
         }}
         loop={true}
@@ -91,25 +92,29 @@ export function Hero() {
           </SwiperSlide>
         ))}
 
-        <div className="absolute bottom-[12%] left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:translate-y-0 lg:left-20 lg:bottom-10 z-10">
+        <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 -translate-y-1/2 lg:translate-x-0 lg:translate-y-0 lg:left-20 lg:bottom-10 z-10">
           {/* Content Layout */}
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-10">
             {/* Text Content */}
             <Link href={"/products"} className="flex justify-end">
               <Button
                 size="lg"
-                className="rounded-full cursor-pointer transition-colors duration-500 border border-primary/60"
+                className="rounded-full lg:text-lg lg:px-8 lg:py-6 text-center group cursor-pointer transition-colors duration-500 border border-primary/60"
               >
-                Shop Now →
+                Shop Now{" "}
+                <span className="group-hover:translate-x-1 transition-transform duration-300">
+                  →
+                </span>
               </Button>
             </Link>
 
             {/* Additional Features - Optional */}
+
             <div className="grid-cols-2 gap-4 hidden lg:grid">
               {featureBoxes.map((box) => (
                 <div
                   key={box.id}
-                  className="px-6 py-3 rounded-lg bg-primary/15 border border-primary/60"
+                  className="px-6 py-3 rounded-lg bg-primary/30 border border-primary/60"
                 >
                   <p className="text-xs font-semibold text-muted mb-2">
                     {box.name}

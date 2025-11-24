@@ -98,7 +98,7 @@ export default function ProductPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {selectedVariant.images.map((image, index) => (
               <div
-                key={index}
+                key={image?.alt || index}
                 className="relative aspect-square rounded-lg overflow-hidden bg-muted"
               >
                 {image.url ? (

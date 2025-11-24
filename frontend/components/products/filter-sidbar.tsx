@@ -1,4 +1,3 @@
-import useCategory from "@/hooks/categories/useCategory";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "../ui/button";

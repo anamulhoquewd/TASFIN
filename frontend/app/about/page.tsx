@@ -5,24 +5,28 @@ import Image from "next/image";
 export default function AboutPage() {
   const values = [
     {
+      id: 1,
       icon: Heart,
       title: "Quality First",
       description:
         "We source only the finest fabrics and materials to ensure every piece meets our high standards.",
     },
     {
+      id: 2,
       icon: Users,
       title: "Customer Focused",
       description:
         "Your satisfaction is our priority. We're here to make your shopping experience delightful.",
     },
     {
+      id: 3,
       icon: Award,
       title: "Authentic Designs",
       description:
         "Each piece is carefully designed to blend traditional elegance with modern style.",
     },
     {
+      id: 4,
       icon: Sparkles,
       title: "Affordable Luxury",
       description:
@@ -90,8 +94,8 @@ export default function AboutPage() {
           Our Values
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {values.map((value, index) => (
-            <Card key={index} className="border-border">
+          {values.map((value) => (
+            <Card key={value.id} className="border-border">
               <CardContent className="p-6 text-center space-y-4">
                 <div className="w-14 h-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
                   <value.icon className="h-7 w-7 text-primary" />

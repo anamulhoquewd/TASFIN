@@ -3,7 +3,6 @@
 import type { IProduct } from "@/interfaces/products";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, Share2 } from "lucide-react";
 import useShare from "./use-share";
@@ -80,8 +79,8 @@ export function ProductDetailsDisplay({
         <div>
           <h2 className="text-lg font-semibold mb-3">Key Benefits</h2>
           <ul className="space-y-2">
-            {product.keyFeatures.map((feature, index) => (
-              <li key={index} className="flex items-start gap-2">
+            {product.keyFeatures.map((feature) => (
+              <li key={feature} className="flex items-start gap-2">
                 <div className="mt-1 h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                 <span className="text-sm">{feature}</span>
               </li>

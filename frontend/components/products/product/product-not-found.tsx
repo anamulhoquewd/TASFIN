@@ -20,8 +20,8 @@ export default function ProductNotFound() {
         Product not found
       </h1>
       <p className="mb-8 max-w-[500px] text-muted-foreground md:text-lg">
-        The product you're looking for doesn't exist or has been removed. Try
-        searching for something else or explore our new collection.
+        The product you&apos;re looking for doesn&apos;t exist or has been
+        removed. Try searching for something else or explore our new collection.
       </p>
 
       {/* Search Bar */}

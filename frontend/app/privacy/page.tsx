@@ -3,12 +3,14 @@ import Link from "next/link";
 
 const policySections = [
   {
+    id: 1,
     title: "1. Customer Account Creation Process",
     description: `At Tasfin, you don’t need to create or log in to an account separately. 
     When you place your first order, we automatically create a customer profile in our system 
     using your name, phone number, and email address.`,
   },
   {
+    id: 2,
     title: "2. Use of Cookies",
     description: `After your order, we securely store your phone number in a cookie 
     that remains valid for one year. 
@@ -16,6 +18,7 @@ const policySections = [
     If the cookie expires or is deleted, you will need to place a new order to generate a new one.`,
   },
   {
+    id: 3,
     title: "3. Dashboard Access Conditions",
     description: `If your cookie contains a valid 11-digit phone number, 
     you can directly access your dashboard. 
@@ -24,21 +27,25 @@ const policySections = [
     how our customer account system works.`,
   },
   {
+    id: 4,
     title: "4. Data Security",
     description: `We securely store your personal information and never share it with third parties. 
     Your information is used solely to process your orders and improve our services.`,
   },
   {
+    id: 5,
     title: "5. Your Rights",
     description: `You may contact us anytime to update or request deletion of your personal information. 
     Contact email: tasfinshop@gmail.com`,
   },
   {
+    id: 6,
     title: "6. Updates and Changes",
     description: `We may update this Privacy Policy from time to time. 
     Any changes will be posted on this page.`,
   },
   {
+    id: 7,
     title: "7. Contact Us",
     description: (
       <>
@@ -75,8 +82,8 @@ export default function PrivacyPage() {
 
         <Card className="border-border">
           <CardContent className="p-8 space-y-8">
-            {policySections.map((section, index) => (
-              <section key={index} className="space-y-4">
+            {policySections.map((section) => (
+              <section key={section.id} className="space-y-4">
                 <h2 className="text-2xl font-bold text-foreground">
                   {section.title}
                 </h2>
