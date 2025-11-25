@@ -216,24 +216,11 @@ export default function OrderLookup({
                   </div>
                 </CardHeader>
                 <CardContent className="pt-2 space-y-3">
-                  <div className="flex flex-col md:flex-row justify-between gap-2">
-                    <div className="overflow-hidden">
-                      <p className="text-sm text-muted-foreground mb-1">
-                        Order ID
-                      </p>
-                      <p className="font-mono font-semibold text-foreground flex items-center gap-2">
-                        <span className="truncate max-w-[200px] md:max-w-full">
-                          {o._id.substring(0, 12)}...
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="cursor-pointer text-wrap text-xs"
-                          onClick={() => copyToClipboard(o._id)}
-                        >
-                          <Copy className="h-3 w-3" />
-                          <span className="sr-only">Copy order ID</span>
-                        </Button>
+                  <div className="flex flex-col sm:flex-row justify-between gap-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Name</p>
+                      <p className="font-semibold text-foreground">
+                        {o.user.name}
                       </p>
                     </div>
                     <div className="text-right">

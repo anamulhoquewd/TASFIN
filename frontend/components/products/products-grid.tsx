@@ -91,7 +91,7 @@ export function ProductsGrids({
 
       {/* Product Grid */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
@@ -253,8 +253,8 @@ export function ProductCard({ product }: { product: any }) {
           <AlarmClockPlus />
         </Button>
       ) : (
-        <div className="flex gap-1.5 w-[90%] mx-auto mb-4">
-          <Button disabled size="sm" className="cursor-pointer flex-1">
+        <div className="flex flex-col gap-1.5 w-[90%] mx-auto mb-4">
+          <Button size="sm" disabled className="cursor-not-allowed w-full">
             Out of stock
           </Button>
           <Button
@@ -264,7 +264,7 @@ export function ProductCard({ product }: { product: any }) {
             variant="outline"
             className="border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
           >
-            <MessageCircle className="size-4" />
+            Notify Me <MessageCircle className="size-4" />
           </Button>
         </div>
       )}

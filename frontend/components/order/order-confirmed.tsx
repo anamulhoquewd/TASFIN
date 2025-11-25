@@ -163,6 +163,11 @@ export default function OrderConfirmed({
                   Continue Shopping
                 </Button>
               </Link>
+              <Link href="/dashboard" className="block">
+                <Button variant={"outline"} className="w-full cursor-pointer">
+                  Go to Dashboard
+                </Button>
+              </Link>
             </div>
 
             {/* Support Info */}

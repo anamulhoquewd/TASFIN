@@ -39,14 +39,15 @@ export function ArrivalsSection() {
 
         {/* Product Grid */}
         {products.length > 0 ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {/* <p className="text-muted-foreground">No products found</p> */}
+            <Skeleton className="w-70 h-90 bg-white" />
             <Skeleton className="w-70 h-90 bg-white" />
             <Skeleton className="w-70 h-90 bg-white" />
             <Skeleton className="w-70 h-90 bg-white" />

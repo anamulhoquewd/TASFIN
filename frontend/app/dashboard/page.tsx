@@ -48,7 +48,7 @@ export default function Page() {
         </p>
       </div>
 
-      <DashboardOverview />
+      {/* <DashboardOverview /> */}
 
       <h2 className="text-lg font-medium">Your Recent Orders</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

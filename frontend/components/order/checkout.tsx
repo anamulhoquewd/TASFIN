@@ -84,12 +84,12 @@ function Checkout({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <FormField
                       control={form.control}
-                      name="email"
+                      name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Email (optioanl)</FormLabel>
+                          <FormLabel>Phone Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter your email" {...field} />
+                            <Input placeholder="01XXXXXXXXX" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -98,12 +98,12 @@ function Checkout({
 
                     <FormField
                       control={form.control}
-                      name="phone"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone Number *</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
-                            <Input placeholder="01XXXXXXXXX" {...field} />
+                            <Input placeholder="Enter your email" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -150,22 +150,6 @@ function Checkout({
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="address.zipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="1200" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="address.state"
@@ -174,20 +158,6 @@ function Checkout({
                           <FormLabel>State</FormLabel>
                           <FormControl>
                             <Input placeholder="Gulshan" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="address.country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Bangladesh" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -315,7 +285,7 @@ function Checkout({
                     className="w-full"
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Processing..." : "Place Order"}
+                    {isProcessing ? "Processing..." : "Place an order"}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">

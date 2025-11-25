@@ -14,6 +14,8 @@ import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { ScrollArea } from "./ui/scroll-area";
+import Image from "next/image";
+import { formatPrice } from "@/lib/utils";
 
 interface SearchProps {
   open: boolean;
@@ -50,11 +52,14 @@ export default function Searching({ open, setOpen }: SearchProps) {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
+  console.log("Search results:", results);
+
   return (
     <Dialog
       open={open}
       onOpenChange={(open) => {
         setOpen(open);
+        setResults([]);
         setSearchTerm("");
       }}
     >
@@ -77,24 +82,30 @@ export default function Searching({ open, setOpen }: SearchProps) {
           >
             <ScrollArea className="h-full">
               <CardContent className="space-y-2">
-                {loading ? (
-                  <>
-                    <Skeleton className="h-6 w-full bg-accent" />
-                    <Skeleton className="h-6 w-full bg-accent" />
-                    <Skeleton className="h-6 w-full bg-accent" />
-                  </>
-                ) : results.length > 0 ? (
-                  results.map((product) => (
+                {results.length > 0 ? (
+                  results.map((product: IProduct) => (
                     <div
                       key={product._id}
-                      className="cursor-pointer transition-colors duration-300 bg-primary/5 hover:bg-primary/10 p-2 rounded"
+                      className="cursor-pointer transition-colors duration-300 bg-primary/5 hover:bg-primary/10 p-2 rounded flex gap-4 justify-between items-center"
                       onClick={() => {
                         setOpen(false);
                         router.push(`/products/${product.slug}`);
                         setSearchTerm("");
                       }}
                     >
-                      {product.title}
+                      <div className="flex items-center gap-4">
+                        <Image
+                          src={product.images[0].url}
+                          alt={product.images[0].alt || product.title}
+                          width={30}
+                          height={30}
+                          className="rounded"
+                        />
+                        <h2>{product.title}</h2>
+                      </div>
+                      <p className="font-semibold">
+                        {formatPrice(product.variants[0].price)}
+                      </p>
                     </div>
                   ))
                 ) : (

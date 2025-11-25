@@ -196,10 +196,13 @@ export default function CartPage() {
               </div>
 
               {subtotal < Number(FREE_SHIPPING_START_FROM) && (
-                <p className="text-xs text-muted-foreground">
-                  Add {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
-                  more for free shipping!
-                </p>
+                <div className="p-3 bg-green-500/10 rounded-md">
+                  <p className="text-xs text-green-700">
+                    Add{" "}
+                    {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
+                    more for free shipping!
+                  </p>
+                </div>
               )}
 
               <Separator />
