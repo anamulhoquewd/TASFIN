@@ -27,43 +27,37 @@ export function ArrivalsSection() {
     <section className="w-full bg-background py-12 md:py-16 lg:py-20">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
         {/* Header Section */}
-        <div className="mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            New Arrivals
-          </h2>
-          <p className="text-lg mb-6 opacity-90 w-3/4 md:w-1/2 m-auto">
-            New Arrivals! Shop the season&apos;s latest styles and freshest
-            fashion drops now.
-          </p>
-        </div>
+        <section className="px-8 py-16">
+          <div className="font-cormorant max-w-7xl mx-auto">
+            <h2 className="text-center text-3xl md:text-4xl font-light tracking-wide text-foreground mb-4">
+              New Arrivals
+            </h2>
+            <p className="text-center text-sm tracking-wide text-muted-foreground mb-12">
+              Timeless elegance in every stitch
+            </p>
 
-        {/* Product Grid */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {products.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {/* <p className="text-muted-foreground">No products found</p> */}
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-          </div>
-        )}
 
-        {/* View All Button */}
-        <div className="mt-10 md:mt-14 flex justify-center">
-          <Button asChild size="lg">
+          {/* View All Button */}
+          <div className="mt-10 md:mt-14 flex justify-center">
             <Link href="/products">
-              Shop New Arrivals
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <Button
+                size="sm"
+                className="group cursor-pointer transition-colors duration-300"
+              >
+                Shop New Arrivals{" "}
+                <span className="group-hover:translate-x-1 transition-transform duration-300">
+                  →
+                </span>
+              </Button>
             </Link>
-          </Button>
-        </div>
+          </div>
+        </section>
       </div>
     </section>
   );

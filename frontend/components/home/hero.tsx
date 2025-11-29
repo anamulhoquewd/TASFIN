@@ -39,7 +39,7 @@ export function Hero() {
 
   // Sample images for the slideshow
   const slides = [
-    { id: 5, url: "/slides/banner-1.jpg", alt: "banner" },
+    { id: 2, url: "/slides/banner-1.jpg", alt: "banner" },
     { id: 3, url: "/slides/banner.jpg", alt: "banner" },
     { id: 4, url: "/slides/banner-2.jpg", alt: "banner" },
     { id: 5, url: "/slides/banner-3.jpg", alt: "banner" },

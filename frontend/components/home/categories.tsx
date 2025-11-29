@@ -1,15 +1,15 @@
 "use client";
 
+import useCategory from "@/hooks/categories/useCategory";
 import { ICategory } from "@/interfaces/categories";
 import { Squirrel } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
-interface CategoriesSectionProps {
-  categories: ICategory[];
-}
+export function CategoriesSection() {
+  const { categories } = useCategory();
 
-export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
   return (
     <section className="w-full bg-background py-12 md:py-16 lg:py-20">
       <div className="container mx-auto px-4 md:px-6 lg:px-8">
@@ -69,5 +69,39 @@ export function CategoriesSection({ categories = [] }: CategoriesSectionProps) {
         </div>
       </div>
     </section>
+  );
+}
+
+function CategoryCard({ category }: { category: ICategory }) {
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <Link
+      href={`/shop?category=${category._id}`}
+      className="group relative aspect-[3/4] overflow-hidden bg-muted"
+    >
+      {category.image ? (
+        <Image
+          src={
+            imgError ? "/images/image-placeholder.png" : category?.image?.url
+          }
+          alt={category?.image?.alt || category.name}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <span className="text-muted-foreground">No image</span>
+        </div>
+      )}
+
+      <div className="absolute inset-0 bg-foreground/20 group-hover:bg-foreground/30 transition-colors" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <h3 className="text-lg sm:text-xl tracking-[0.2em] uppercase text-background font-light">
+          {category.name}
+        </h3>
+      </div>
+    </Link>
   );
 }

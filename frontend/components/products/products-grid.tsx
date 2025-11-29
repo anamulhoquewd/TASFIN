@@ -11,8 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AlarmClockPlus, ArrowUpDown, MessageCircle } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
+import {
+  AlarmClockPlus,
+  ArrowUpDown,
+  Heart,
+  MessageCircle,
+} from "lucide-react";
+import { cn, formatPrice } from "@/lib/utils";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
@@ -91,7 +96,7 @@ export function ProductsGrids({
 
       {/* Product Grid */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
@@ -174,100 +179,158 @@ export function ProductCard({ product }: { product: any }) {
 
   return (
     <div
-      className="group h-full flex flex-col justify-between overflow-hidden rounded-lg border border-border bg-card transition-all hover:shadow-lg"
+      className="group h-full flex flex-col transition-all duration-300 hover:shadow-lg"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div>
-        <Link href={`/products/${product.slug}`}>
-          <div className="relative aspect-[3/4] overflow-hidden bg-muted">
-            {product.images && product.images.length > 0 ? (
-              <>
-                {product.images.map((img: IImage, index: number) => (
-                  <Fragment key={img.url}>
-                    {img.url ? (
-                      <Image
-                        src={img.url}
-                        alt={product.title}
-                        // width={1200}
-                        // height={1600}
-                        fill
-                        objectFit="cover"
-                        className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
-                          index === currentIndex ? "opacity-100" : "opacity-0"
-                        }`}
-                      />
-                    ) : (
-                      <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
-                        Oops! Product image missing right now
-                      </div>
-                    )}
-                  </Fragment>
-                ))}
-              </>
-            ) : (
-              <div className="flex h-full items-center justify-center">
-                <span className="text-muted-foreground">No image</span>
-              </div>
-            )}
+        <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+          {/* Product images */}
+          <Link href={`/products/${product.slug}`}>
+            {product?.images?.map((img: IImage, index: number) => (
+              <Fragment key={img.url}>
+                {img.url ? (
+                  <Image
+                    src={img.url}
+                    alt={product.title}
+                    // width={1200}
+                    // height={1600}
+                    fill
+                    objectFit="cover"
+                    className={`absolute inset-0 object-cover transition-all duration-700 group-hover:scale-105 ${
+                      index === currentIndex ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                ) : (
+                  <div className="flex p-4 text-center h-full items-center text-muted-foreground justify-center">
+                    Oops! Product image missing right now
+                  </div>
+                )}
+              </Fragment>
+            ))}
+          </Link>
 
-            {product.isFeatured && (
-              <div className="absolute right-2 top-2 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                Featured
-              </div>
-            )}
-          </div>
-        </Link>
+          {/* New Badge */}
+          {product.isFeatured && (
+            <span className="absolute font-playfair top-4 left-4 text-[10px] tracking-[0.25em] uppercase p-1 text-foreground font-medium">
+              {product.isFeatured.toString()}
+            </span>
+          )}
 
+          {/* Wishlist Button */}
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className={cn(
+              "cursor-pointer absolute top-4 right-4 p-2 transition-all duration-300",
+              "opacity-0 group-hover:opacity-100",
+              // isLiked ? "opacity-100" :
+              "opacity-100"
+            )}
+            aria-label={`isLiked ? "Remove from wishlist" : "Add to wishlist"`}
+          >
+            <Heart
+              className={cn(
+                "w-5 h-5 transition-all duration-300",
+                // isLiked
+                // ? "fill-accent stroke-accent"
+                "fill-transparent stroke-foreground hover:stroke-accent"
+              )}
+            />
+          </Button>
+
+          {/* Quick Add Button */}
+
+          {product.variants.length > 0 && (
+            <div
+              className={cn(
+                "absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm transition-all duration-500",
+                "translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+              )}
+            >
+              <div className="p-4">
+                <p className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-3">
+                  Select Size
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {product.variants.map((variant, index) => (
+                    <Button
+                      key={variant._id}
+                      // onClick={() => setSelectedSize(index)}
+                      variant={"outline"}
+                      size={"icon-sm"}
+                      className={cn(
+                        "tracking-wide transition-all duration-200 cursor-pointer"
+                        // selectedSize === index
+                        // ? "border-foreground bg-foreground text-background"
+                        // : "border-muted hover:border-foreground"
+                      )}
+                    >
+                      {variant.size}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              {inStock ? (
+                <Button
+                  className="w-full py-3 bg-primary text-primary-foreground text-xs tracking-[0.2em] uppercase transition-colors hover:bg-foreground cursor-pointer"
+                  onClick={handleAddToCart}
+                >
+                  Quick Add
+                </Button>
+              ) : (
+                <div className="flex flex-col gap-1.5 w-full mx-auto mb-4">
+                  <Button size="sm" disabled className="cursor-not-allowed">
+                    Out of stock
+                  </Button>
+                  <Button
+                    onClick={() =>
+                      handleProductShareInWA({
+                        url: `/products/${product.slug}`,
+                      })
+                    }
+                    variant="outline"
+                    className="border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
+                  >
+                    Notify Me <MessageCircle className="size-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Add Button - shown only when no sizes */}
+        </div>
+
+        {/* footer */}
         <div className="p-4 flex flex-col">
-          {/* <Link href={`/products/${product.slug}`}>
-            <h3 className="line-clamp-2 font-semibold text-foreground">
+          <Link href={`/products/${product.slug}`}>
+            {/* Name */}
+            <h3 className="line-clamp-2 text-sm tracking-wide text-foreground leading-relaxed">
               {product.title}
             </h3>
           </Link>
-          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-            {product.description}
-          </p> */}
 
-          <div>
+          {/* Price */}
+          <div className="flex items-center gap-2">
             {product.variants && product.variants.length > 0 && (
-              <p className="text-lg font-bold text-foreground">
-                {formatPrice(product.variants[0].price)}
-              </p>
+              <>
+                <span className="text-sm tracking-wide text-foreground">
+                  {formatPrice(product.variants[0].price)}
+                </span>
+                {/* {originalPrice && (
+                  <span className="text-sm tracking-wide text-muted-foreground line-through">
+                    ${originalPrice.toFixed(2)}
+                  </span>
+                )} */}
+              </>
             )}
             <p className="text-xs text-muted-foreground">
-              {product.variants?.length || 0} variants
+              {product.variants?.length || 0} variant(s)
             </p>
           </div>
         </div>
       </div>
-      {inStock ? (
-        <Button
-          size="sm"
-          className="cursor-pointer w-[90%] mx-auto mb-4"
-          onClick={handleAddToCart}
-        >
-          {product.variants[0].stock <= 10
-            ? `Left ${product.variants[0].stock} stock`
-            : `Only a Few Left`}
-          <AlarmClockPlus />
-        </Button>
-      ) : (
-        <div className="flex flex-col gap-1.5 w-[90%] mx-auto mb-4">
-          <Button size="sm" disabled className="cursor-not-allowed w-full">
-            Out of stock
-          </Button>
-          <Button
-            onClick={() =>
-              handleProductShareInWA({ url: `/products/${product.slug}` })
-            }
-            variant="outline"
-            className="border-green-200 text-green-700 hover:text-green-700 hover:bg-green-50 cursor-pointer"
-          >
-            Notify Me <MessageCircle className="size-4" />
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

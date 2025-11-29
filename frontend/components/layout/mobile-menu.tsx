@@ -8,6 +8,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Handbag, Headset, Home, MessageSquareWarning } from "lucide-react";
+import { navLinks } from "@/lib/utils";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -26,30 +27,25 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent>
         <DrawerHeader className="px-4 py-6">
-          <DrawerTitle className="text-xl font-bold text-neutral-900">
+          <DrawerTitle className="text-xl font-light tracking-[0.2em] uppercase font-cormorant">
             Menu
           </DrawerTitle>
         </DrawerHeader>
 
         <div className="px-4 pb-8">
           {/* Menu items */}
-          <nav className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={() => onClose(false)}
-                  className="flex items-center gap-2 p-2 rounded-lg border border-primary/20"
-                >
-                  <span>
-                    <Icon className="text-primary w-4 h-4" />
-                  </span>
-                  <span className="text-primary text-sm">{item.name}</span>
-                </Link>
-              );
-            })}
+
+          <nav className="flex flex-col gap-4">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={() => onClose(false)}
+                className="text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </DrawerContent>
