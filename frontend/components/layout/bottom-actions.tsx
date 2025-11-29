@@ -25,7 +25,7 @@ function BottomActions() {
                   </span>
                 )}
               </div>
-              <span className="text-sm font-cormorant font-medium capitalize">
+              <span className="text-sm font-cormorant font-light capitalize">
                 {action.label}
               </span>
             </button>

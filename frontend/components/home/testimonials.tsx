@@ -62,10 +62,10 @@ export function TestimonialsSection() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (testimonials.length !== 0) {
+  if (testimonials.length === 0) {
     return (
-      <section className="font-cormorant container mx-auto px-4 md:px-6 lg:px-8 sm:px-6 py-16 sm:py-24 bg-secondary/30">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="bg-secondary/30">
+        <div className="font-cormorant text-center container mx-auto px-4 md:px-6 lg:px-8 sm:px-6 py-16 sm:py-24">
           <h2 className="text-3xl sm:text-4xl font-light tracking-wide text-foreground mb-8">
             What Our Customers Say
           </h2>

@@ -11,62 +11,20 @@ export function CategoriesSection() {
   const { categories } = useCategory();
 
   return (
-    <section className="w-full bg-background py-12 md:py-16 lg:py-20">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            Explore our categories
-          </h2>
-          <p className="text-lg mb-6 opacity-90">
-            Explore our curated collection of elegant women&apos;s fashion
-          </p>
-        </div>
+    <section className="py-12 md:py-16 lg:py-20 container mx-auto px-4">
+      <div className="text-center mb-12 font-cormorant">
+        <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-3">
+          Browse
+        </p>
+        <h2 className="text-3xl sm:text-4xl font-light tracking-wide text-foreground">
+          Shop by Category
+        </h2>
+      </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {categories?.length > 0 ? (
-            categories.map((category) => (
-              <Link
-                key={category._id}
-                href={`/products?categories=${category._id}`}
-              >
-                <div className="group relative overflow-hidden rounded-lg bg-card cursor-pointer aspect-[3/4]">
-                  {category.image ? (
-                    <Image
-                      src={category.image?.url}
-                      alt={category.image?.alt || category.name}
-                      fill
-                      className="object-cover w-full h-auto group-hover:scale-110 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <span className="text-muted-foreground">No image</span>
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors duration-300 flex items-end justify-start p-4 md:p-6">
-                    <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white text-balance">
-                      {category.name}
-                    </h3>
-                  </div>
-                </div>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-full flex flex-col items-center justify-center py-20">
-              <Squirrel className="w-28 h-28" />
-
-              <h3 className="text-xl md:text-2xl font-semibold text-foreground mb-2">
-                There are no categories right now.
-              </h3>
-              <p className="text-sm md:text-base text-muted-foreground text-center max-w-sm">
-                Sorry, we couldn&apos;d any categories here. Try coming back
-                later or explore our products.
-              </p>
-            </div>
-          )}
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {categories.map((category) => (
+          <CategoryCard key={category._id} category={category} />
+        ))}
       </div>
     </section>
   );
@@ -80,25 +38,22 @@ function CategoryCard({ category }: { category: ICategory }) {
       href={`/shop?category=${category._id}`}
       className="group relative aspect-[3/4] overflow-hidden bg-muted"
     >
-      {category.image ? (
-        <Image
-          src={
-            imgError ? "/images/image-placeholder.png" : category?.image?.url
-          }
-          alt={category?.image?.alt || category.name}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          onError={() => setImgError(true)}
-        />
-      ) : (
-        <div className="flex h-full items-center justify-center">
-          <span className="text-muted-foreground">No image</span>
-        </div>
-      )}
-
+      (
+      <Image
+        src={
+          imgError || !category?.image?.url
+            ? "/product-placeholder.png"
+            : category?.image?.url
+        }
+        alt={category?.image?.alt || category.name}
+        fill
+        className="object-cover transition-transform duration-700 group-hover:scale-105"
+        onError={() => setImgError(true)}
+      />
+      )
       <div className="absolute inset-0 bg-foreground/20 group-hover:bg-foreground/30 transition-colors" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <h3 className="text-lg sm:text-xl tracking-[0.2em] uppercase text-background font-light">
+        <h3 className="text-lg sm:text-xl tracking-[0.2em] uppercase text-background font-light text-center px-2">
           {category.name}
         </h3>
       </div>

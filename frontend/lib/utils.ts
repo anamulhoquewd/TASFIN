@@ -1,3 +1,4 @@
+import { IProduct } from "@/interfaces/products";
 import { clsx, type ClassValue } from "clsx";
 import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
@@ -75,3 +76,40 @@ export const testimonials = [
     },
   },
 ];
+
+// Centralized product data for the entire app
+export const product: IProduct = {
+  _id: "1",
+  title: "Silk Midi Dress in Ivory",
+  images: [
+    { url: "/product-placeholder.png", alt: "Silk Midi Dress in Ivory" },
+  ],
+  categories: ["2-piece"],
+  description:
+    "A luxurious silk midi dress with a flattering silhouette. Perfect for special occasions or elevated everyday wear.",
+  variants: [
+    {
+      size: "S",
+      price: 295,
+      _id: "variant1",
+      stock: 5,
+    },
+    {
+      size: "M",
+      price: 295,
+      _id: "variant2",
+      stock: 7,
+    },
+    {
+      size: "L",
+      _id: "variant3",
+      price: 295,
+      stock: 3,
+    },
+  ],
+  isFeatured: true,
+  isActive: true,
+  slug: "silk-midi-dress-in-ivory",
+  updatedAt: new Date(),
+  createdAt: new Date(),
+};

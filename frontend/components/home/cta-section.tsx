@@ -1,6 +1,5 @@
 import Link from "next/link";
 import React from "react";
-import { Button } from "@/components/ui/button";
 
 function CTASection() {
   return (
@@ -15,13 +14,11 @@ function CTASection() {
             elegant, and uniquely you.
           </p>
         </div>
-        <Link href="/products">
-          <Button
-            variant={"link"}
-            className="cursor-pointer text-sm tracking-[0.15em] uppercase font-medium border"
-          >
-            Start Shopping
-          </Button>
+        <Link
+          href="/shop"
+          className="text-xs tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors underline underline-offset-4"
+        >
+          Start Shopping{" "}
         </Link>
       </div>
     </section>

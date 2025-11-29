@@ -21,7 +21,7 @@ export default function HomePage() {
       {/* <ProductShowcase /> */}
 
       {/* New Arrivals Section */}
-      {/* <ArrivalsSection /> */}
+      <ArrivalsSection />
 
       {/* Featured Categories */}
       <CategoriesSection />
