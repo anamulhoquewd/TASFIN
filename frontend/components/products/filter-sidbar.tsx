@@ -104,13 +104,20 @@ export function ProductsFilterSidebar({
   };
 
   return (
-    <div className="sticky top-14 h-fit w-full rounded-lg border border-border bg-card p-6 lg:w-64">
+    <div className="font-cormorant sticky top-14 h-fit w-full border border-border bg-card p-6 lg:w-64">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Filters</h2>
+        <h2 className="text-lg font-semibold text-foreground uppercase">
+          Filters
+        </h2>
         {(selectedCategories.length > 0 ||
           priceRange[0] !== 0 ||
           priceRange[1] !== 10000) && (
-          <Button variant="ghost" size="sm" onClick={handleResetFilters}>
+          <Button
+            variant="ghost"
+            className="rounded-none cursor-pointer uppercase"
+            size="sm"
+            onClick={handleResetFilters}
+          >
             Clear <X className="h-4 w-4" />
           </Button>
         )}
@@ -118,13 +125,16 @@ export function ProductsFilterSidebar({
 
       {/* Categories */}
       <div className="mb-8">
-        <h3 className="mb-4 font-medium text-foreground">Categories</h3>
+        <h3 className="mb-4 font-medium text-sm text-foreground uppercase">
+          Categories
+        </h3>
         <div className="space-y-3">
           <ScrollArea className="h-40">
             {categories && categories.length > 0 ? (
               categories.map((category) => (
                 <div key={category._id} className="flex items-center space-x-2">
                   <Checkbox
+                    className="rounded-none"
                     id={category._id}
                     checked={selectedCategories.includes(category._id)}
                     onCheckedChange={(checked) =>
@@ -133,14 +143,14 @@ export function ProductsFilterSidebar({
                   />
                   <Label
                     htmlFor={category._id}
-                    className="cursor-pointer text-sm font-normal text-muted-foreground"
+                    className="cursor-pointer text-base font-normal text-muted-foreground"
                   >
                     {category.name}
                   </Label>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 No categories available
               </p>
             )}
@@ -150,7 +160,9 @@ export function ProductsFilterSidebar({
 
       {/* Price Range */}
       <div className="mb-8">
-        <h3 className="mb-4 font-medium text-foreground">Price Range</h3>
+        <h3 className="mb-4 font-medium text-foreground uppercase text-sm">
+          Price Range
+        </h3>
         <div className="space-y-4">
           <Slider
             value={priceRange}
@@ -161,8 +173,12 @@ export function ProductsFilterSidebar({
             className="w-full cursor-pointer"
           />
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{priceRange[0]}</span>
-            <span className="text-muted-foreground">{priceRange[1]}</span>
+            <span className="text-muted-foreground text-xl font-semibold">
+              {priceRange[0]}
+            </span>
+            <span className="text-muted-foreground text-xl font-semibold">
+              {priceRange[1]}
+            </span>
           </div>
         </div>
       </div>

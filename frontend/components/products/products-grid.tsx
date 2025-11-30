@@ -60,28 +60,43 @@ export function ProductsGrids({
   return (
     <div className="w-full space-y-6">
       {/* Sort & Filter Header */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-2 items-stretch">
+      <div className="font-cormorant grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-2 items-stretch">
         {/* Mobile Filter Button */}
         <div className="lg:hidden block col-span-1 md:col-span2">
-          <Button variant="outline" onClick={() => setIsFilterOpen(true)}>
+          <Button
+            variant="outline"
+            className="rounded-none cursor-pointer uppercase"
+            onClick={() => setIsFilterOpen(true)}
+          >
             Filter
           </Button>
         </div>
 
         <div className="flex items-center gap-2 w-full col-span-1 lg:col-span-1">
           <Select value={sortBy} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-40 rounded-none cursor-pointer">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="createdAt">Newest</SelectItem>
-              <SelectItem value="title">Name</SelectItem>
+            <SelectContent className="rounded-none">
+              <SelectItem
+                className="rounded-none font-cormorant cursor-pointer"
+                value="createdAt"
+              >
+                Newest
+              </SelectItem>
+              <SelectItem
+                className="font-cormorant rounded-none cursor-pointer"
+                value="title"
+              >
+                Name
+              </SelectItem>
             </SelectContent>
           </Select>
           <Button
             variant="outline"
             size="icon"
             onClick={handleOrderChange}
+            className="rounded-none cursor-pointer"
             title={`Sort ${sortType === "asc" ? "descending" : "ascending"}`}
           >
             <ArrowUpDown className="h-4 w-4" />
@@ -95,7 +110,7 @@ export function ProductsGrids({
 
       {/* Product Grid */}
       {products.length > 0 ? (
-        <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
             <ProductCard key={product._id} product={product} />
           ))}
@@ -107,7 +122,10 @@ export function ProductsGrids({
       )}
 
       {/* Infinite scroll status */}
-      <div ref={observerTarget} className="mt-12 flex justify-center">
+      <div
+        ref={observerTarget}
+        className="font-cormorant mt-12 flex justify-center"
+      >
         {isLoading && (
           <div className="flex items-center gap-2">
             <Spinner className="text-primary" />{" "}
@@ -316,17 +334,16 @@ export function ProductCard({
             <div className="flex gap-2 flex-wrap">
               {product.variants.map((variant) => (
                 <Button
-                  variant={
-                    selectedVariant === variant && variant.stock !== 0
-                      ? "default"
-                      : "secondary"
-                  }
                   size={"icon-lg"}
+                  variant={"outline"}
                   key={variant._id}
                   onClick={() => setSelectedVariant(variant)}
-                  className={
-                    "text-xs relative overflow-hidden tracking-wide cursor-pointer rounded-none border"
-                  }
+                  className={cn(
+                    "text-xs relative overflow-hidden tracking-wide cursor-pointer rounded-none border transition-colors duration-300",
+                    selectedVariant === variant && variant.stock !== 0
+                      ? "bg-primary hover:bg-primary/95 text-accent hover:text-accent"
+                      : "bg-transparent hover:border-foreground border text-foreground"
+                  )}
                   disabled={variant.stock === 0}
                 >
                   {variant.size}
