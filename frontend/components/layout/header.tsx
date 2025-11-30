@@ -37,7 +37,7 @@ export function Header() {
           </Link>
 
           {/* Right Actions */}
-          <div className="items-center gap-2 hidden md:flex">
+          <div className="gap-2 hidden md:flex">
             <Link href="/cart">
               <Button className="relative transition-colors duration-300 bg-transparent hover:bg-transparent text-muted-foreground hover:text-foreground cursor-pointer">
                 <ShoppingCart className="h-5 w-5" />
