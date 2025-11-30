@@ -23,3 +23,11 @@ export interface ICartItem {
   // Include variant details for display
   size: string;
 }
+
+export interface IWishlistItem {
+  productId: string;
+  title: string;
+  image: IImage;
+  price: number;
+  slug?: string;
+}

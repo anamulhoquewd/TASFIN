@@ -1,6 +1,6 @@
 "use client";
 
-import useShare from "@/components/products/product/use-share";
+import useShare from "@/lib/use-share";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IOrder } from "@/interfaces/orders";

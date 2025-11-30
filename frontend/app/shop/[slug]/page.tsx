@@ -25,10 +25,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import useShare from "@/components/products/product/use-share";
 import { toast } from "sonner";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { ProductSkeleton } from "@/components/products/product/product-skeleton";
+import useShare from "@/lib/use-share-in-wa";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
@@ -47,7 +47,13 @@ export default function ProductPage() {
 
   const { copied, handleShare } = useShare();
 
-  const { addItem } = useCart();
+  const {
+    addCartItem,
+    addToWishlist,
+    isInWishlist,
+    removeFromWishlist,
+    wishlist,
+  } = useCartAndWishlist();
   const router = useRouter();
 
   const details = [
@@ -71,7 +77,7 @@ export default function ProductPage() {
       });
 
       // When adding a product variant to cart
-      addItem({
+      addCartItem({
         productId: product?._id,
         variantId: selectedVariant._id,
         title: product?.title,
@@ -89,6 +95,38 @@ export default function ProductPage() {
     () => debounce(handleAddToCart, 1000),
     [product, selectedVariant, quantity]
   );
+
+  const debouncedWishlist = useMemo(() => {
+    return debounce(() => {
+      if (!product) return;
+
+      if (isInWishlist(product._id)) {
+        // Remove
+        removeFromWishlist(product._id);
+        toast.success("Removed ✕", {
+          action: {
+            label: "View wishlist",
+            onClick: () => router.push("/wishlist"),
+          },
+        });
+      } else {
+        // Add
+        addToWishlist({
+          productId: product._id,
+          title: product.title,
+          image: product.images[0],
+          price: product.variants[0].price,
+          slug: product.slug,
+        });
+        toast.success("Added ✓", {
+          action: {
+            label: "View wishlist",
+            onClick: () => router.push("/wishlist"),
+          },
+        });
+      }
+    }, 1000);
+  }, [product, wishlist]); // <-- add wishlist dependency so it always sees latest
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -314,8 +352,16 @@ export default function ProductPage() {
                 <Button
                   variant={"outline"}
                   className="cursor-pointer rounded-none"
+                  onClick={debouncedWishlist}
                 >
-                  <Heart className={cn("w-5 h-5")} />
+                  <Heart
+                    className={cn(
+                      "w-5 h-5 transition-all duration-300",
+                      isInWishlist(product._id)
+                        ? "fill-foreground stroke-foreground"
+                        : "fill-transparent stroke-foreground hover:stroke-foreground"
+                    )}
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -393,7 +439,9 @@ export default function ProductPage() {
               {product.variants.map((variant) => (
                 <Button
                   variant={
-                    selectedVariant === variant ? "default" : "secondary"
+                    selectedVariant === variant && variant.stock !== 0
+                      ? "default"
+                      : "secondary"
                   }
                   size={"icon-lg"}
                   key={variant._id}

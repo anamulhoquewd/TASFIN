@@ -8,11 +8,11 @@ export function ProductSkeleton() {
         <div className="h-4 w-16 bg-muted rounded animate-pulse" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Left: Image gallery skeleton */}
-        <div className="flex gap-4">
+        <div className="flex flex-col lg:flex-row gap-4">
           {/* Thumbnail images */}
-          <div className="flex gap-3 flex-col">
+          <div className="flex gap-3 lg:flex-col order-2 lg:order-1">
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
@@ -22,7 +22,7 @@ export function ProductSkeleton() {
           </div>
 
           {/* Main image */}
-          <div className="aspect-[3/4] bg-muted rounded-sm animate-pulse" />
+          <div className="aspect-[3/4] bg-muted rounded-sm animate-pulse order-1 lg:order-2" />
         </div>
 
         {/* Right: Product details skeleton */}

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { formatPrice } from "@/lib/utils";
 import Image from "next/image";
 
@@ -14,7 +14,13 @@ const FREE_SHIPPING_START_FROM = process.env
 const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
+  const {
+    cartItems,
+    removeCartItem,
+    updateCartQuantity,
+    subtotal,
+    totalCartItems,
+  } = useCartAndWishlist();
   // const [promoCode, setPromoCode] = useState("");
 
   const shippingFee =
@@ -25,7 +31,7 @@ export default function CartPage() {
       : 0;
   const total = subtotal + shippingFee;
 
-  if (items.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <div className="container mx-auto px-4 py-32">
         <div className="max-w-md mx-auto text-center space-y-6">
@@ -58,7 +64,7 @@ export default function CartPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
+          {cartItems.map((item) => (
             <Card
               key={`v_${item.variantId}-p_${item.productId}-${item.size}`}
               className="border-border"
@@ -96,7 +102,7 @@ export default function CartPage() {
                         size="icon"
                         className="shrink-0 text-destructive hover:text-destructive"
                         onClick={() =>
-                          removeItem(item.productId, item.variantId)
+                          removeCartItem(item.productId, item.variantId)
                         }
                       >
                         <Trash2 className="h-4 w-4" />
@@ -111,7 +117,7 @@ export default function CartPage() {
                           size="icon"
                           className="h-8 w-8 bg-transparent"
                           onClick={() =>
-                            updateQuantity(
+                            updateCartQuantity(
                               item.productId,
                               item.variantId,
                               item.quantity - 1
@@ -129,7 +135,7 @@ export default function CartPage() {
                           size="icon"
                           className="h-8 w-8 bg-transparent"
                           onClick={() =>
-                            updateQuantity(
+                            updateCartQuantity(
                               item.productId,
                               item.variantId,
                               item.quantity + 1
@@ -172,7 +178,7 @@ export default function CartPage() {
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Subtotal ({totalItems} items)
+                    Subtotal ({totalCartItems} items)
                   </span>
                   <span className="font-medium text-foreground">
                     {formatPrice(subtotal)}

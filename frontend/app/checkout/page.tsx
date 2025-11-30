@@ -3,7 +3,7 @@
 import type React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { ArrowRight, BrushCleaning } from "lucide-react";
 import useOrder from "@/hooks/orders/use-orders";
 import Checkout from "@/components/order/checkout";
@@ -15,7 +15,7 @@ const FREE_SHIPPING_START_FROM = process.env
 const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
 
 export default function CheckoutPage() {
-  const { items, subtotal, totalItems } = useCart();
+  const { items, subtotal, totalItems } = useCartAndWishlist();
   const { form, handleSubmit, isProcessing, status, order, setStatus } =
     useOrder();
 

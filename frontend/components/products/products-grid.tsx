@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,13 +17,12 @@ import {
   Heart,
   MessageCircle,
 } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, debounce, formatPrice } from "@/lib/utils";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { useRouter } from "next/navigation";
-import useShare from "./product/use-share";
 
 interface ProductsGridProps {
   products: IProduct[];
@@ -140,11 +139,48 @@ export function ProductCard({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<IProductVariant | null>(
-    null
-  );
+  const [selectedVariant, setSelectedVariant] =
+    useState<IProductVariant | null>(null);
   const router = useRouter();
-  const { addItem } = useCart();
+  const {
+    addCartItem,
+    addToWishlist,
+    isInWishlist,
+    removeFromWishlist,
+    wishlist,
+  } = useCartAndWishlist();
+
+  const debouncedWishlist = useMemo(() => {
+    return debounce(() => {
+      if (!product) return;
+
+      if (isInWishlist(product._id)) {
+        // Remove
+        removeFromWishlist(product._id);
+        toast.success("Removed ✕", {
+          action: {
+            label: "View wishlist",
+            onClick: () => router.push("/wishlist"),
+          },
+        });
+      } else {
+        // Add
+        addToWishlist({
+          productId: product._id,
+          title: product.title,
+          image: product.images[0],
+          price: product.variants[0].price,
+          slug: product.slug,
+        });
+        toast.success("Added ✓", {
+          action: {
+            label: "View wishlist",
+            onClick: () => router.push("/wishlist"),
+          },
+        });
+      }
+    }, 1000);
+  }, [product, wishlist]); // <-- add wishlist dependency so it always sees latest
 
   const variantsHasStock = product.variants.filter(
     (v: IProductVariant) => v.stock > 0
@@ -153,7 +189,7 @@ export function ProductCard({
   const inStock = product.isActive && variantsHasStock.length > 0;
 
   const handleAddToCart = () => {
-    if (!selectedSize) return;
+    if (!selectedVariant) return;
 
     toast.success("Product has been added", {
       action: {
@@ -162,20 +198,25 @@ export function ProductCard({
       },
     });
     // When adding a product variant to cart
-    addItem({
+    addCartItem({
       productId: product._id,
-      variantId: selectedSize._id,
+      variantId: selectedVariant._id,
       title: product.title,
-      image: selectedSize.images?.[0] || product.images[0],
-      price: selectedSize.price,
-      maxStock: selectedSize.stock,
-      size: selectedSize.size,
+      image: selectedVariant.images?.[0] || product.images[0],
+      price: selectedVariant.price,
+      maxStock: selectedVariant.stock,
+      size: selectedVariant.size,
       quantity: 1, // optional, defaults to 1
       slug: product.slug,
     });
 
-    setSelectedSize(null);
+    setSelectedVariant(null);
   };
+
+  const debouncedAddToCart = useMemo(
+    () => debounce(handleAddToCart, 1000),
+    [product, selectedVariant]
+  );
 
   useEffect(() => {
     if (!hovered || !product.images || product.images.length <= 1) return;
@@ -248,11 +289,14 @@ export function ProductCard({
           "opacity-0 group-hover:opacity-100",
           "opacity-100"
         )}
-        aria-label={`isLiked ? "Remove from wishlist" : "Add to wishlist"`}
+        onClick={debouncedWishlist}
       >
         <Heart
           className={cn(
-            "w-5 h-5 transition-all duration-300 stroke-foreground"
+            "w-5 h-5 transition-all duration-300",
+            isInWishlist(product._id)
+              ? "fill-foreground stroke-foreground"
+              : "fill-transparent stroke-foreground hover:stroke-foreground"
           )}
         />
       </Button>
@@ -272,29 +316,40 @@ export function ProductCard({
             <div className="flex gap-2 flex-wrap">
               {product.variants.map((variant) => (
                 <Button
-                  key={variant._id}
-                  size={"icon"}
-                  variant={selectedSize === variant ? "default" : "outline"}
-                  onClick={() => setSelectedSize(variant)}
-                  className={
-                    "text-xs tracking-wide cursor-pointer rounded-none"
+                  variant={
+                    selectedVariant === variant && variant.stock !== 0
+                      ? "default"
+                      : "secondary"
                   }
+                  size={"icon-lg"}
+                  key={variant._id}
+                  onClick={() => setSelectedVariant(variant)}
+                  className={
+                    "text-xs relative overflow-hidden tracking-wide cursor-pointer rounded-none border"
+                  }
+                  disabled={variant.stock === 0}
                 >
                   {variant.size}
+                  <div
+                    className={cn(
+                      "absolute rotate-45 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-0.5 h-16 bg-foreground/20",
+                      variant.stock === 0 ? "block" : "hidden"
+                    )}
+                  ></div>
                 </Button>
               ))}
             </div>
           </div>
           <Button
-            onClick={handleAddToCart}
-            disabled={!selectedSize}
+            onClick={debouncedAddToCart}
+            disabled={!selectedVariant}
             size={"lg"}
-            variant={selectedSize ? "default" : "outline"}
+            variant={selectedVariant ? "default" : "outline"}
             className={cn(
-              "w-full py-3 text-xs tracking-[0.2em] uppercase transition-colors rounded-none"
+              "w-full py-3 text-xs tracking-[0.2em] uppercase transition-colors rounded-none cursor-pointer"
             )}
           >
-            {selectedSize ? "Add to Bag" : "Select a Size"}
+            {selectedVariant ? "Add to Bag" : "Select a Size"}
           </Button>
         </div>
       )}

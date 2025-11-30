@@ -2,7 +2,7 @@ import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IFetchOrder, IFilter, IOrder } from "@/interfaces/orders";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { defaultPagination } from "@/lib/utils";
 import { CheckoutFormValues, CheckoutSchemaZ } from "@/lib/zod-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,7 +16,7 @@ const useOrders = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [statusOpen, setStatusOpen] = useState<boolean>(false);
   const [status, setStatus] = useState<"success" | "faild" | null>("success");
-  const { items, clearCart } = useCart();
+  const { items, clearCart } = useCartAndWishlist();
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [order, setOrder] = useState<{ message: string; data: IOrder } | null>(
     null
