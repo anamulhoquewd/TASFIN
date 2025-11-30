@@ -12,6 +12,7 @@ export function Footer() {
   const quickLinks = [
     { href: "/shop", label: "Shop All" },
     { href: "/shop?category=new-arrivals", label: "New Arrivals" },
+    { href: "/make-custom", label: "Make Custom" },
     { href: "/about", label: "About Us" },
     { href: "/support", label: "Support" },
     { href: "/order-tracking", label: "Order Tracking" },

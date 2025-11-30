@@ -20,8 +20,6 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
 
-  const [open, setOpen] = useState(false);
-
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">

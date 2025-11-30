@@ -3,21 +3,6 @@
   height: 100%;
 }
 
-.swiper-slide {
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Hide default navigation arrows on mobile */
-@media (max-width: 768px) {
-  .custom-prev,
-  .custom-next {
-    display: none !important;
-  }
-}
-
 /* Custom pagination styles */
 .swiper-pagination {
   bottom: 1rem !important;

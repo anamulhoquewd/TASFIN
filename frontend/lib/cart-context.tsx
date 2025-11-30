@@ -3,6 +3,10 @@
 import { ICartItem } from "@/interfaces/global";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+const CART_KEY = "tasfin-cart";
+const CART_TIME_KEY = "tasfin-cart-time";
+const EXPIRY_HOURS = 24;
+
 interface CartContextType {
   items: ICartItem[];
   addItem: (
@@ -24,44 +28,59 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<ICartItem[]>([]);
 
-  // Load cart from in-memory storage on mount
+  // ✅ Load cart + auto-clear after 24 hours
   useEffect(() => {
-    // Cart will be empty on initial load
-    // You can implement server-side cart sync here if needed
+    const savedCart = localStorage.getItem(CART_KEY);
+    const savedTime = localStorage.getItem(CART_TIME_KEY);
+
+    if (savedCart && savedTime) {
+      const savedTimestamp = Number(savedTime);
+      const now = Date.now();
+
+      // 24 hours in milliseconds
+      const expiryMs = EXPIRY_HOURS * 60 * 60 * 1000;
+
+      if (now - savedTimestamp > expiryMs) {
+        // Cart expired → clear
+        localStorage.removeItem(CART_KEY);
+        localStorage.removeItem(CART_TIME_KEY);
+      } else {
+        setItems(JSON.parse(savedCart));
+      }
+    }
   }, []);
+
+  // ✅ Save cart + save timestamp every time cart changes
+  useEffect(() => {
+    localStorage.setItem(CART_KEY, JSON.stringify(items));
+    localStorage.setItem(CART_TIME_KEY, Date.now().toString());
+  }, [items]);
 
   const addItem = (
     newItem: Omit<ICartItem, "quantity"> & { quantity?: number }
   ) => {
     setItems((currentItems) => {
-      const existingItemIndex = currentItems.findIndex(
+      const index = currentItems.findIndex(
         (item) =>
           item.productId === newItem.productId &&
           item.variantId === newItem.variantId
       );
 
-      if (existingItemIndex > -1) {
-        // Item exists, update quantity
-        const updatedItems = [...currentItems];
-        const existingItem = updatedItems[existingItemIndex];
-        updatedItems[existingItemIndex] = {
-          ...existingItem,
+      if (index > -1) {
+        const updated = [...currentItems];
+        const existing = updated[index];
+
+        updated[index] = {
+          ...existing,
           quantity: Math.min(
-            existingItem.quantity + (newItem.quantity || 1),
-            existingItem.maxStock
+            existing.quantity + (newItem.quantity || 1),
+            existing.maxStock
           ),
         };
-        return updatedItems;
-      } else {
-        // New item, add to cart
-        return [
-          ...currentItems,
-          {
-            ...newItem,
-            quantity: newItem.quantity || 1,
-          },
-        ];
+        return updated;
       }
+
+      return [...currentItems, { ...newItem, quantity: newItem.quantity || 1 }];
     });
   };
 
@@ -93,6 +112,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(CART_TIME_KEY);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -119,9 +140,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within a CartProvider");
+  return ctx;
 }

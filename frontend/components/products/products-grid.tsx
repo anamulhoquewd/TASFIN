@@ -140,7 +140,9 @@ export function ProductCard({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [hovered, setHovered] = useState(false);
   const [imgError, setImgError] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<IProductVariant | null>(
+    null
+  );
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -151,6 +153,8 @@ export function ProductCard({
   const inStock = product.isActive && variantsHasStock.length > 0;
 
   const handleAddToCart = () => {
+    if (!selectedSize) return;
+
     toast.success("Product has been added", {
       action: {
         label: "Go to cart",
@@ -160,12 +164,12 @@ export function ProductCard({
     // When adding a product variant to cart
     addItem({
       productId: product._id,
-      variantId: variantsHasStock[0]._id,
+      variantId: selectedSize._id,
       title: product.title,
-      image: variantsHasStock[0].images?.[0] || product.images[0],
-      price: variantsHasStock[0].price,
-      maxStock: variantsHasStock[0].stock,
-      size: variantsHasStock[0].size,
+      image: selectedSize.images?.[0] || product.images[0],
+      price: selectedSize.price,
+      maxStock: selectedSize.stock,
+      size: selectedSize.size,
       quantity: 1, // optional, defaults to 1
       slug: product.slug,
     });
@@ -222,19 +226,10 @@ export function ProductCard({
         ))}
       </Link>
 
-      {/* New Badge */}
-      {product.isFeatured && (
-        <span className="absolute font-cormorant top-4 left-4 text-[10px] tracking-[0.25em] uppercase p-1 text-foreground font-medium">
-          New
-        </span>
-      )}
-
-      {/* Sale Badge */}
-      {product.isFeatured || (
-        <span className="absolute font-cormorant top-4 left-4 text-[10px] tracking-[0.25em] uppercase p-1 text-foreground font-medium">
-          Sale
-        </span>
-      )}
+      {/* Badge */}
+      <span className="absolute font-cormorant top-4 left-4 text-[10px] tracking-[0.25em] uppercase p-1 text-foreground font-medium">
+        {product.isFeatured ? "New" : "Sale"}
+      </span>
 
       {/* Out of Stock Overlay */}
       {inStock || (
@@ -279,10 +274,8 @@ export function ProductCard({
                 <Button
                   key={variant._id}
                   size={"icon"}
-                  variant={
-                    selectedSize === variant.size ? "default" : "outline"
-                  }
-                  onClick={() => setSelectedSize(variant.size)}
+                  variant={selectedSize === variant ? "default" : "outline"}
+                  onClick={() => setSelectedSize(variant)}
                   className={
                     "text-xs tracking-wide cursor-pointer rounded-none"
                   }
@@ -316,7 +309,7 @@ export function ProductCard({
 
         <div className="flex items-center gap-2">
           <span className="text-sm tracking-wide text-foreground">
-            ${product.variants[0].price.toFixed(2)}
+            {formatPrice(product.variants[0].price)}
           </span>
           {/* {product.originalPrice && (
             <span className="text-sm tracking-wide text-muted-foreground line-through">
