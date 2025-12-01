@@ -12,6 +12,8 @@ import "./hero.css";
 export function Hero() {
   // Sample images for the slideshow
   const slides = [
+    { id: 7, url: "/slides/banner-6.jpg", alt: "banner" },
+    { id: 1, url: "/slides/banner-5.jpg", alt: "banner" },
     { id: 2, url: "/slides/banner-1.jpg", alt: "banner" },
     { id: 3, url: "/slides/banner.jpg", alt: "banner" },
     { id: 4, url: "/slides/banner-2.jpg", alt: "banner" },
@@ -43,7 +45,7 @@ export function Hero() {
               />
 
               {/* Gradient / Overlay */}
-              <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px]" />
+              <div className="absolute inset-0 backdrop-blur-[1px]" />
             </div>
           </SwiperSlide>
         ))}
