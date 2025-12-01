@@ -16,8 +16,8 @@ export default function Header() {
 
   const logo =
     theme === "light"
-      ? "/tasfin-logo-text-black-bg-transparent.png"
-      : "/tasfin-logo-text-white-bg-transparent.png";
+      ? "/tasfin-logo-text-black-bg-transparent-new.png"
+      : "/tasfin-logo-text-white-bg-transparent-new.png";
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">

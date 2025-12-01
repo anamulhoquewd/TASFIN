@@ -416,7 +416,8 @@ export function ProductAnalyticsModal({
                         : "Out of stock"}
                     </Badge>
                     <Link
-                      href={`${process.env.NEXT_PUBLIC_DOMAIN}/products/${product.slug}`}
+                      target="_blank"
+                      href={`${process.env.NEXT_PUBLIC_DOMAIN}/shop/${product.slug}`}
                       className="text-blue-600 hover:text-blue-800 flex items-center gap-1 mt-1"
                     >
                       /{product.slug} <ExternalLink className="h-4 w-4" />

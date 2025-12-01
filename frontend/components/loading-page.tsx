@@ -1,5 +1,5 @@
 import Image from "next/image";
-const img = "/tasfin-logo-text-black-bg-white.png";
+const logo = "/tasfin-logo-text-black-bg-white-new.png";
 
 export default function LoadingPage() {
   return (
@@ -7,7 +7,7 @@ export default function LoadingPage() {
       <div className="flex flex-col items-center gap-2">
         {/* Logo/Brand */}
         <div className="flex items-center justify-center w-30 h-30">
-          <Image src={img} alt="LOGO" width={600} height={600} />
+          <Image src={logo} alt="LOGO" width={600} height={600} />
         </div>
 
         {/* Loading Spinner */}
