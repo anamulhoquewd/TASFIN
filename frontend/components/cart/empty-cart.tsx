@@ -1,30 +1,14 @@
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
 import { Button } from "../ui/button";
+import React, { ReactNode } from "react";
 
-export function EmptyCart() {
+export function EmptyCart({ children }: { children: ReactNode }) {
   return (
-    <div className="font-cormorant max-w-md mx-auto text-center space-y-8 py-12">
-      {/* Icon */}
-      <div className="flex justify-center">
-        <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
-          <ShoppingBag className="w-10 h-10 text-gray-400" />
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="space-y-4">
-        <h2 className="text-2xl sm:text-3xl font-light tracking-tight">
-          Your bag is empty
-        </h2>
-        <p className="text-base text-foreground/70 font-light leading-relaxed">
-          Continue exploring and find something special to add to your
-          collection.
-        </p>
-      </div>
+    <div className="max-w-md mx-auto text-center space-y-8 py-12">
+      {children}
 
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="font-cormorant flex flex-col sm:flex-row gap-4 justify-center">
         <Link href="/shop">
           <Button
             size={"lg"}

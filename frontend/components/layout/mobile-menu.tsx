@@ -7,7 +7,6 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Handbag, Headset, Home, MessageSquareWarning } from "lucide-react";
 import { navLinks } from "@/lib/utils";
 
 interface MobileMenuProps {
@@ -16,13 +15,6 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
-  const menuItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Shop", href: "/products", icon: Handbag },
-    { name: "About", href: "/about", icon: MessageSquareWarning },
-    { name: "Support", href: "/support", icon: Headset },
-  ];
-
   return (
     <Drawer open={isOpen} onOpenChange={onClose}>
       <DrawerContent>

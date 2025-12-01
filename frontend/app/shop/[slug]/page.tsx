@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { IProduct, IProductVariant } from "@/interfaces/products";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useProducts } from "@/hooks/products/use-products";
 import Link from "next/link";
 import { ChevronLeft, Heart, Minus, Plus, Share2, X } from "lucide-react";
@@ -92,7 +91,7 @@ export default function ProductPage() {
   };
 
   const debouncedAddToCart = useMemo(
-    () => debounce(handleAddToCart, 1000),
+    () => debounce(handleAddToCart, 500),
     [product, selectedVariant, quantity]
   );
 
@@ -115,8 +114,8 @@ export default function ProductPage() {
           productId: product._id,
           title: product.title,
           image: product.images[0],
-          price: product.variants[0].price,
           slug: product.slug,
+          variants: [...product.variants],
         });
         toast.success("Added ✓", {
           action: {
@@ -366,9 +365,7 @@ export default function ProductPage() {
                 <Button
                   variant={"outline"}
                   className="flex-1 gap-2 cursor-pointer rounded-none"
-                  onClick={() =>
-                    handleShare({ url: `/products/${product.slug}` })
-                  }
+                  onClick={() => handleShare({ url: `/shop/${product.slug}` })}
                 >
                   <Share2 className="size-4" />
                   {copied && "Copied!"}

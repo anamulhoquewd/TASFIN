@@ -16,11 +16,12 @@ const useOrders = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [statusOpen, setStatusOpen] = useState<boolean>(false);
   const [status, setStatus] = useState<"success" | "faild" | null>("success");
-  const { items, clearCart } = useCartAndWishlist();
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [order, setOrder] = useState<{ message: string; data: IOrder } | null>(
     null
   );
+
+  const { cartItems, clearCart } = useCartAndWishlist();
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -66,7 +67,7 @@ const useOrders = () => {
         address: values.address,
         phone: values.phone,
         email: values.email,
-        products: items.map((item) => ({
+        products: cartItems.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
           quantity: item.quantity,

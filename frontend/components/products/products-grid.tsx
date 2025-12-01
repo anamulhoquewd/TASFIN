@@ -11,14 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlarmClockPlus,
-  ArrowUpDown,
-  Heart,
-  MessageCircle,
-} from "lucide-react";
+import { ArrowUpDown, Heart } from "lucide-react";
 import { cn, debounce, formatPrice } from "@/lib/utils";
-import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
+import { IProduct, IProductVariant } from "@/interfaces/products";
+import { IImage } from "@/interfaces/global";
 import { Spinner } from "../ui/spinner";
 import { toast } from "sonner";
 import { useCartAndWishlist } from "@/lib/cart-context";
@@ -187,8 +183,8 @@ export function ProductCard({
           productId: product._id,
           title: product.title,
           image: product.images[0],
-          price: product.variants[0].price,
           slug: product.slug,
+          variants: [...product.variants],
         });
         toast.success("Added ✓", {
           action: {
@@ -232,7 +228,7 @@ export function ProductCard({
   };
 
   const debouncedAddToCart = useMemo(
-    () => debounce(handleAddToCart, 1000),
+    () => debounce(handleAddToCart, 500),
     [product, selectedVariant]
   );
 

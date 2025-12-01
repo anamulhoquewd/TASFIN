@@ -9,9 +9,6 @@ import { CartProvider } from "@/lib/cart-context";
 import { Suspense } from "react";
 import LoadingPage from "@/components/loading-page";
 import { Toaster } from "@/components/ui/sonner";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { SearchIcon, Store } from "lucide-react";
 import BottomActions from "@/components/layout/bottom-actions";
 
 const playfair = Playfair_Display({

@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SubscribeFormValues } from "@/lib/zod-validation";
-import { cn } from "@/lib/utils";
 
 const SubscribeForm = ({
   form,

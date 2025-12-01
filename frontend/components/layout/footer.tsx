@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Share2, Twitter } from "lucide-react";
+import { Facebook, Instagram, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SubscribeForm from "../subscribe-fomr";
 import useSubscribe from "@/hooks/use-subscribe";
@@ -43,7 +43,7 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           {/* Logo & Description */}
           <div className="col-span-2 lg:col-span-1">
-            <h2 className="text-2xl tracking-[0.3em] uppercase font-light mb-4">
+            <h2 className="font-playfair text-2xl tracking-[0.3em] uppercase font-light mb-4">
               Tasfin
             </h2>
             <p className="text-sm text-muted-foreground leading-relaxed tracking-[0.05em] mb-6">

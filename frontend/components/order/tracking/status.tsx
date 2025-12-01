@@ -1,9 +1,9 @@
 "use client";
 
-import useShare from "@/lib/use-share";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IOrder } from "@/interfaces/orders";
+import useShare from "@/lib/use-share-in-wa";
 import { copyToClipboard } from "@/lib/utils";
 import { addDays } from "date-fns";
 import {

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Autoplay } from "swiper/modules";
+import { Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -53,10 +53,10 @@ export function Hero() {
       <div className="absolute inset-0 flex items-center z-20 pointer-events-none justify-center">
         <div className="font-cormorant text-center text-foreground max-w-2xl pointer-events-auto">
           <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-foreground/70 mb-2 md:mb-4">
-            New Collection 2025
+            New Collection {new Date().getFullYear()}
           </p>
 
-          <h1 className="hidden md:block text-4xl sm:text-5xl md:text-6xl font-light leading-tight mb-6">
+          <h1 className="hidden md:block text-4xl sm:text-5xl md:text-6xl font- leading-tight mb-6">
             Timeless Elegance
           </h1>
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useCartAndWishlist } from "@/lib/cart-context";
 import { cn, formatPrice } from "@/lib/utils";
 import Image from "next/image";
@@ -43,7 +43,31 @@ export default function CartPage() {
   if (cartItems.length === 0) {
     return (
       <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
-        <EmptyCart />
+        <EmptyCart>
+          {/* Icon */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+              <ShoppingCart className="w-10 h-10 text-gray-400" />
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="space-y-4">
+            <h2 className="font-cormorant text-2xl sm:text-3xl font-light tracking-tight">
+              Your bag is empty
+            </h2>
+            <p className="text-base text-foreground/70 font- leading-relaxed">
+              Continue exploring and find something special to add to your
+              collection.{" "}
+              <Link
+                href={"/shop"}
+                className="uppercase font-cormorant underline text-foreground"
+              >
+                Shop Now
+              </Link>
+            </p>
+          </div>
+        </EmptyCart>
       </section>
     );
   }
@@ -51,7 +75,7 @@ export default function CartPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header with Breadcrumb */}
-      <header className="pb-4 font-cormorant">
+      <header className="pb-4">
         <Breadcrumb>
           <BreadcrumbList className="font-cormorant">
             <BreadcrumbItem>
@@ -71,10 +95,10 @@ export default function CartPage() {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
-        <h2 className="text-3xl py-4 sm:text-4xl font-light tracking-wide text-foreground">
+        <h2 className="font-cormorant text-3xl py-4 sm:text-4xl font-light tracking-wide text-foreground">
           Shopping Cart
         </h2>
-        <p className="text-sm text-gray-600 font-light mt-2">
+        <p className="text-sm text-gray-600 mt-2">
           {cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your
           cart
         </p>
@@ -94,7 +118,7 @@ export default function CartPage() {
                 <div className="flex gap-6">
                   {/* Product Image */}
                   <div className="max-w-24 aspect-[3/4] shrink-0 overflow-hidden">
-                    <Link href={`/products/${item.slug}`}>
+                    <Link href={`/shop/${item.slug}`}>
                       <Image
                         width={1200}
                         height={1600}
@@ -110,9 +134,7 @@ export default function CartPage() {
                     <div className="flex justify-between gap-4">
                       <div>
                         <h3 className="text-lg">
-                          <Link href={`/products/${item.slug}`}>
-                            {item.title}
-                          </Link>
+                          <Link href={`/shop/${item.slug}`}>{item.title}</Link>
                         </h3>
                         <p className="font-cormorant text-base text-muted-foreground">
                           Size: {item.size}

@@ -34,7 +34,7 @@ export default function OrderConfirmed({
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4 sm:p-8">
-        <Card className="w-full max-w-lg shadow-lg">
+        <Card className="w-full max-w-lg shadow-lg rounded-none">
           {/* Header with checkmark */}
           <div className="flex justify-center pt-8 pb-4">
             <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center animate-in fade-in slide-in-from-top-4 duration-500">
@@ -45,7 +45,7 @@ export default function OrderConfirmed({
           {/* Main content */}
           <div className="p-8 space-y-6">
             {/* Confirmation heading */}
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-2 font-cormorant">
               <h1 className="text-4xl font-bold text-slate-900">
                 Order Confirmed!
               </h1>
@@ -57,7 +57,9 @@ export default function OrderConfirmed({
             {/* Order details */}
             <div className="bg-slate-50 rounded-lg p-6 space-y-4">
               <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                <span className="text-slate-600">Order Number</span>
+                <span className="text-slate-600 font-cormorant text-lg">
+                  Order Number
+                </span>
                 <span className="font-mono text-sm font-semibold text-foreground">
                   <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
                     {orderId.substring(0, 12)}...
@@ -83,14 +85,18 @@ export default function OrderConfirmed({
                 </span>
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-slate-200">
-                <span className="text-slate-600">Total Amount</span>
-                <span className="text-lg font-bold text-foreground">
+                <span className="text-slate-600 font-cormorant text-lg">
+                  Total Amount
+                </span>
+                <span className="text-lg font-medium text-foreground">
                   {formatPrice(totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-slate-600">Estimated Delivery</span>
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-slate-600 font-cormorant text-lg">
+                  Estimated Delivery
+                </span>
+                <span className="font-cormorant font-medium text-foreground">
                   {ESTIMATED_DELIVERY_TIME || "3-5 business days"}
                 </span>
               </div>
@@ -117,12 +123,12 @@ export default function OrderConfirmed({
 
             {/* Subscription section */}
             {!isSubscribed ? (
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg p-6 space-y-4 border border-orange-200">
+              <div className="bg-gradient-to-r font-cormorant from-orange-50 to-amber-50 rounded-lg p-6 space-y-4 border border-orange-200">
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-slate-900 text-lg">
+                  <h3 className="font-semibold text-2xl text-slate-900">
                     Become a Subscriber
                   </h3>
-                  <p className="text-slate-600 text-sm">
+                  <p className="text-slate-600">
                     Join our subscriber program and get{" "}
                     <span className="font-semibold text-orange-600">
                       exclusive early access to sales, special discounts, and
@@ -157,14 +163,20 @@ export default function OrderConfirmed({
               </div>
             )}
 
-            <div className="space-y-3">
-              <Link href="/products" className="block">
-                <Button className="w-full cursor-pointer">
+            <div className="flex font-cormorant flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/shop">
+                <Button
+                  size={"lg"}
+                  className="rounded-none cursor-pointer text-xs tracking-[0.2em] uppercase"
+                >
                   Continue Shopping
                 </Button>
               </Link>
-              <Link href="/dashboard" className="block">
-                <Button variant={"outline"} className="w-full cursor-pointer">
+              <Link href="/dashboard">
+                <Button
+                  size={"lg"}
+                  className="rounded-none h-9 px-4 py-2 md:px-6 md:h-10 bg-transparent border border-foreground text-foreground hover:text-background hover:bg-foreground transition-colors duration-300 cursor-pointer text-xs tracking-[0.2em] uppercase"
+                >
                   Go to Dashboard
                 </Button>
               </Link>

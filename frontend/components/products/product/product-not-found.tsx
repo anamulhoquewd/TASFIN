@@ -17,8 +17,9 @@ export function ProductNotFound() {
             Product Not Found
           </h1>
           <p className="text-muted-foreground leading-relaxed">
-            The dress you're looking for has been removed or the link may be
-            incorrect. Please explore our collection or create a custom order.
+            The dress you&apos;re looking for has been removed or the link may
+            be incorrect. Please explore our collection or create a custom
+            order.
           </p>
         </div>
 

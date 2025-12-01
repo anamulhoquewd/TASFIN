@@ -45,7 +45,7 @@ function BottomActions() {
           </span>
         </button>
       </Link>
-      <Link href={"/account"}>
+      <Link href={"/dashboard"}>
         <button className="relative transition-colors duration-300 bg-transparent hover:bg-transparent cursor-pointer flex flex-col items-center p-1 gap-0.5">
           <div className="relative">
             <User className="w-4 h-4 text-muted-foreground hover:text-foreground" />

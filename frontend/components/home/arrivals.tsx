@@ -1,13 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
 import { ProductCard } from "../products/products-grid";
-import { Skeleton } from "../ui/skeleton";
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);

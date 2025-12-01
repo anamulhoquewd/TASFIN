@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ShoppingCart, Menu, X, SearchIcon, User, Heart } from "lucide-react";
+import { ShoppingCart, Menu, X, User, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useCartAndWishlist } from "@/lib/cart-context";
@@ -31,7 +31,7 @@ export function Header() {
 
           {/* Logo */}
           <Link href="/" className="absolute left-1/2 -translate-x-1/2">
-            <h1 className="text-2xl sm:text-3xl tracking-[0.2em] font-light uppercase text-foreground font-cormorant">
+            <h1 className="text-2xl sm:text-3xl tracking-[0.2em] font-light uppercase text-foreground font-playfair">
               Tasfin
             </h1>
           </Link>

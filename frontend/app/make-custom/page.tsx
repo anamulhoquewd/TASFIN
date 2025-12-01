@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useState, type FormEvent, type ChangeEvent } from "react"
-import Link from "next/link"
+import { useState, type FormEvent, type ChangeEvent } from "react";
+import Link from "next/link";
 
 interface FormData {
-  fullName: string
-  phoneNumber: string
-  email: string
-  preferredDeliveryDate: string
-  dressType: string
-  measurements: string
-  designImage: File | null
-  additionalNotes: string
+  fullName: string;
+  phoneNumber: string;
+  email: string;
+  preferredDeliveryDate: string;
+  dressType: string;
+  measurements: string;
+  designImage: File | null;
+  additionalNotes: string;
 }
 
 export default function CustomOrderPage() {
@@ -24,32 +24,34 @@ export default function CustomOrderPage() {
     measurements: "",
     designImage: null,
     additionalNotes: "",
-  })
+  });
 
-  const [submitted, setSubmitted] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null
+    const file = e.target.files?.[0] || null;
     setFormData((prev) => ({
       ...prev,
       designImage: file,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError("")
-    setLoading(true)
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
     // Validate required fields
     if (
@@ -59,15 +61,15 @@ export default function CustomOrderPage() {
       !formData.dressType ||
       !formData.measurements
     ) {
-      setError("Please fill in all required fields.")
-      setLoading(false)
-      return
+      setError("Please fill in all required fields.");
+      setLoading(false);
+      return;
     }
 
     try {
       // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      setSubmitted(true)
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setSubmitted(true);
       setFormData({
         fullName: "",
         phoneNumber: "",
@@ -77,18 +79,19 @@ export default function CustomOrderPage() {
         measurements: "",
         designImage: null,
         additionalNotes: "",
-      })
+      });
 
       // Reset form after 5 seconds
       setTimeout(() => {
-        setSubmitted(false)
-      }, 5000)
+        setSubmitted(false);
+      }, 5000);
     } catch (err) {
-      setError("An error occurred. Please try again.")
+      setError("An error occurred. Please try again.");
+      console.log("Error: ", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <main className="min-h-screen bg-white">
@@ -105,7 +108,8 @@ export default function CustomOrderPage() {
             Create Your Custom Look
           </h1>
           <p className="text-sm sm:text-base text-gray-600 font-light mt-3">
-            Share your vision, measurements, and preferences for a personalized dress creation experience.
+            Share your vision, measurements, and preferences for a personalized
+            dress creation experience.
           </p>
         </div>
       </header>
@@ -117,7 +121,11 @@ export default function CustomOrderPage() {
             // Success Message
             <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-sm p-8 sm:p-12 text-center space-y-4">
               <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 rounded-full mb-4">
-                <svg className="w-6 h-6 text-gray-900" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-6 h-6 text-gray-900"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -125,12 +133,17 @@ export default function CustomOrderPage() {
                   />
                 </svg>
               </div>
-              <h2 className="font-serif text-2xl text-gray-900">Order Received</h2>
+              <h2 className="font-serif text-2xl text-gray-900">
+                Order Received
+              </h2>
               <p className="text-gray-600 font-light">
-                Thank you for your custom order request. We've received your details and will be in touch shortly to
-                discuss your vision.
+                Thank you for your custom order request. We&apos;ve received
+                your details and will be in touch shortly to discuss your
+                vision.
               </p>
-              <p className="text-sm text-gray-500 font-light">Expected contact within 24-48 hours</p>
+              <p className="text-sm text-gray-500 font-light">
+                Expected contact within 24-48 hours
+              </p>
               <Link
                 href="/"
                 className="inline-block mt-6 px-6 py-3 text-sm font-light tracking-widest text-white bg-gray-900 rounded-sm hover:bg-gray-800 transition-colors"
@@ -142,7 +155,9 @@ export default function CustomOrderPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-sm p-4 text-sm text-red-700">{error}</div>
+                <div className="bg-red-50 border border-red-200 rounded-sm p-4 text-sm text-red-700">
+                  {error}
+                </div>
               )}
 
               {/* Full Name */}
@@ -187,7 +202,10 @@ export default function CustomOrderPage() {
 
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-light text-gray-900 mb-2 uppercase tracking-wide">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-light text-gray-900 mb-2 uppercase tracking-wide"
+                >
                   Email <span className="text-gray-500">(optional)</span>
                 </label>
                 <input
@@ -207,7 +225,8 @@ export default function CustomOrderPage() {
                   htmlFor="preferredDeliveryDate"
                   className="block text-sm font-light text-gray-900 mb-2 uppercase tracking-wide"
                 >
-                  Preferred Delivery Date <span className="text-red-500">*</span>
+                  Preferred Delivery Date{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -272,7 +291,8 @@ export default function CustomOrderPage() {
                   htmlFor="designImage"
                   className="block text-sm font-light text-gray-900 mb-2 uppercase tracking-wide"
                 >
-                  Upload Design/Image <span className="text-gray-500">(optional)</span>
+                  Upload Design/Image{" "}
+                  <span className="text-gray-500">(optional)</span>
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-sm p-6 text-center cursor-pointer hover:border-gray-400 transition-colors">
                   <input
@@ -290,12 +310,21 @@ export default function CustomOrderPage() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M12 4v16m8-8H4"
+                      />
                     </svg>
                     <p className="text-sm font-light text-gray-600">
-                      {formData.designImage ? formData.designImage.name : "Click to upload or drag and drop"}
+                      {formData.designImage
+                        ? formData.designImage.name
+                        : "Click to upload or drag and drop"}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG up to 10MB</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG up to 10MB
+                    </p>
                   </label>
                 </div>
               </div>
@@ -306,7 +335,8 @@ export default function CustomOrderPage() {
                   htmlFor="additionalNotes"
                   className="block text-sm font-light text-gray-900 mb-2 uppercase tracking-wide"
                 >
-                  Additional Notes <span className="text-gray-500">(optional)</span>
+                  Additional Notes{" "}
+                  <span className="text-gray-500">(optional)</span>
                 </label>
                 <textarea
                   id="additionalNotes"
@@ -332,12 +362,13 @@ export default function CustomOrderPage() {
 
               {/* Help Text */}
               <p className="text-xs text-gray-500 text-center font-light">
-                <span className="text-red-500">*</span> Required fields. We'll reach out within 24-48 hours.
+                <span className="text-red-500">*</span> Required fields.
+                We&apos;ll reach out within 24-48 hours.
               </p>
             </form>
           )}
         </div>
       </section>
     </main>
-  )
+  );
 }

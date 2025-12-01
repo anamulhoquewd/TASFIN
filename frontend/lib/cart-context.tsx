@@ -1,6 +1,6 @@
 "use client";
 
-import { ICartItem, IWishlistItem } from "@/interfaces/global";
+import { ICartItem, IWishlistItem } from "@/interfaces/context";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const CART_KEY = "tasfin-cart";
@@ -65,7 +65,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Clear wishlist
   const clearWishlist = () => {
     setWishlist([]);
-    localStorage.removeCartItem(WISHLIST_KEY);
+    localStorage.removeItem(WISHLIST_KEY);
   };
 
   // Load wishlist from localStorage
@@ -93,8 +93,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (now - savedTimestamp > expiryMs) {
         // Cart expired → clear
-        localStorage.removeCartItem(CART_KEY);
-        localStorage.removeCartItem(CART_TIME_KEY);
+        localStorage.removeItem(CART_KEY);
+        localStorage.removeItem(CART_TIME_KEY);
       } else {
         setCartItems(JSON.parse(savedCart));
       }
@@ -168,8 +168,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setCartItems([]);
-    localStorage.removeCartItem(CART_KEY);
-    localStorage.removeCartItem(CART_TIME_KEY);
+    localStorage.removeItem(CART_KEY);
+    localStorage.removeItem(CART_TIME_KEY);
   };
 
   const totalCartItems = cartItems.reduce(

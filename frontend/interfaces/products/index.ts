@@ -1,7 +1,4 @@
-export interface IImage {
-  alt: string;
-  url: string;
-}
+import { IImage } from "../global";
 
 export interface IProductVariant {
   _id: string;
@@ -92,17 +89,4 @@ export interface IUpdateProductResult {
   success: boolean;
   data?: IProduct;
   error?: string;
-}
-
-export interface ICartItem {
-  _id: string;
-  name: string;
-  media: { url: string; alt: string };
-  title: string;
-  unit: {
-    price: number;
-    stockQuantity: number;
-    unitType: "kg" | "piece";
-  };
-  quantity: number;
 }
