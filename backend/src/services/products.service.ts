@@ -177,7 +177,7 @@ export const updateGeneralInfo = async ({
         .optional(),
       description: z.string().optional(),
       fabric: z.string().max(100).optional(),
-      keyFeatures: z.array(z.string().max(500)).optional(),
+      keyFeatures: z.array(z.string()).optional(),
       valueAddition: z.string().max(500).optional(),
       cutFit: z.string().max(100).optional(),
       collarNeck: z.string().max(100).optional(),

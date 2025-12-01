@@ -233,7 +233,7 @@ function Wishlist() {
 
               {/* Product Info */}
               <div className="flex flex-col gap-2 pt-4">
-                <Link href={`/product/${item.productId}`} className="w-fit">
+                <Link href={`/shop/${item.productId}`} className="w-fit">
                   <h3 className="text-sm hover:underline tracking-wide text-foreground font-normal leading-relaxed hover:text-muted-foreground duration-300 transition-colors">
                     {item.title}
                   </h3>

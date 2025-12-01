@@ -11,7 +11,7 @@ import { z } from "zod";
 const categoryFormSchema = z.object({
   slug: z.string().min(3).max(100),
   name: z.string().min(3).max(100),
-  description: z.string().min(10).max(200).optional(),
+  description: z.string().min(10).max(1000).optional(),
 });
 
 export type FormValues = z.infer<typeof categoryFormSchema>;

@@ -80,7 +80,7 @@ export default function AboutPage() {
           <div className="rounded-lg overflow-hidden border border-border">
             <Image
               alt="TASFIN"
-              src={"/tasfin-logo-text-black-bg-white.png"}
+              src={"/tasfin-logo-text-black-bg-white-new.png"}
               width={1000}
               height={1000}
             />

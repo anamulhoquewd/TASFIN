@@ -279,7 +279,7 @@ export default function CartPage() {
                 </div>
               </div> */}
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 font-cormorant">
                 <Link href="/checkout">
                   <Button
                     size={"lg"}

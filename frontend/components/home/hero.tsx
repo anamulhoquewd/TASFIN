@@ -12,13 +12,10 @@ import "./hero.css";
 export function Hero() {
   // Sample images for the slideshow
   const slides = [
+    { id: 2, url: "/slides/banner-1.jpg", alt: "banner" },
+    { id: 3, url: "/slides/banner-2.jpg", alt: "banner" },
     { id: 7, url: "/slides/banner-6.jpg", alt: "banner" },
     { id: 1, url: "/slides/banner-5.jpg", alt: "banner" },
-    { id: 2, url: "/slides/banner-1.jpg", alt: "banner" },
-    { id: 3, url: "/slides/banner.jpg", alt: "banner" },
-    { id: 4, url: "/slides/banner-2.jpg", alt: "banner" },
-    { id: 5, url: "/slides/banner-3.jpg", alt: "banner" },
-    { id: 6, url: "/slides/banner-4.jpg", alt: "banner" },
   ];
 
   return (
