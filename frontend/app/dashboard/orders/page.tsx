@@ -221,7 +221,7 @@ function MyOrders() {
                 Looks like your order list is empty. Time to treat yourself!
               </p>
 
-              <Link href="/products">
+              <Link href="/shop">
                 <Button
                   className="cursor-pointer"
                   variant={"outline"}

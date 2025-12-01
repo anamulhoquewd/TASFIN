@@ -10,10 +10,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { SubscribeFormValues } from "@/lib/zod-validation";
-import { cn } from "@/lib/utils";
 
 const SubscribeForm = ({
-  className,
   form,
   isLoading,
   handleSubscribe,
@@ -27,21 +25,30 @@ const SubscribeForm = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubscribe)}
-        className={cn("flex flex-col sm:flex-row gap-2", className)}
+        className={"flex flex-col gap-2"}
       >
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem className="flex-1">
+            <FormItem className="w-full">
               <FormControl>
-                <Input type="email" placeholder="Enter your email" {...field} />
+                <Input
+                  type="email"
+                  className="rounded-none tracking-[0.05em] placeholder:tracking-[0.05em]"
+                  placeholder="Enter your email"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isLoading} className="cursor-pointer">
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full px-4 py-2.5 text-xs tracking-[0.15em] uppercase transition-colors cursor-pointer rounded-none duration-300 bg-primary text-primary-foreground hover:bg-primary/90"
+        >
           {isLoading ? "Subscribing..." : "Subscribe"}
         </Button>
       </form>

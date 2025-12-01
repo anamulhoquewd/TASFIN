@@ -93,7 +93,7 @@ function ProductGrid() {
 
         {/* CTA Buttons */}
         <div className="flex flex-col gap-3 pt-4 sm:flex-row">
-          <Link href={"/products"}>
+          <Link href={"/shop"}>
             <Button size="lg" className="cursor-pointer">
               Shop Collection
             </Button>

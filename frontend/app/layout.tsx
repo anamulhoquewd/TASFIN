@@ -1,6 +1,6 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Playfair_Display, Inter, Cormorant_Garamond } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
@@ -9,10 +9,18 @@ import { CartProvider } from "@/lib/cart-context";
 import { Suspense } from "react";
 import LoadingPage from "@/components/loading-page";
 import { Toaster } from "@/components/ui/sonner";
+import BottomActions from "@/components/layout/bottom-actions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -36,11 +44,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`font-sans ${inter.variable} ${playfair.variable} antialiased`}
+        className={`font-sans ${inter.variable} ${cormorant.variable}  ${playfair.variable} antialiased`}
       >
         <CartProvider>
           <Suspense fallback={<LoadingPage />}>
             <Header />
+            {/* Bottom actions on mobile */}
+            <BottomActions />
+
             {children}
             <Toaster />
             <Footer />

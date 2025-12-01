@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Download, MessageCircle, RotateCcw, Truck } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
 import { formatPrice } from "@/lib/utils";
-import useShare from "../products/product/use-share";
+import useShare from "@/lib/use-share-in-wa";
 
 export default function MyOrderCard({ order }: { order: IOrder }) {
   const { handleOrderIssueShareInWA } = useShare();

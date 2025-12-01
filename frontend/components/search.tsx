@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
-import { Skeleton } from "./ui/skeleton";
 import { ScrollArea } from "./ui/scroll-area";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
@@ -25,7 +24,6 @@ interface SearchProps {
 export default function Searching({ open, setOpen }: SearchProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<IProduct[]>([]);
 
   useEffect(() => {
@@ -36,16 +34,12 @@ export default function Searching({ open, setOpen }: SearchProps) {
 
     const delayDebounce = setTimeout(async () => {
       try {
-        setLoading(true);
-
         const { data } = await api.get(`/products?search=${searchTerm}`);
 
         setResults(data?.data || []);
       } catch (error) {
         console.error("Search error:", error);
         setResults([]);
-      } finally {
-        setLoading(false);
       }
     }, 500);
 
@@ -89,7 +83,7 @@ export default function Searching({ open, setOpen }: SearchProps) {
                       className="cursor-pointer transition-colors duration-300 bg-primary/5 hover:bg-primary/10 p-2 rounded flex gap-4 justify-between items-center"
                       onClick={() => {
                         setOpen(false);
-                        router.push(`/products/${product.slug}`);
+                        router.push(`/shop/${product.slug}`);
                         setSearchTerm("");
                       }}
                     >

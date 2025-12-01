@@ -1,43 +1,69 @@
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
-      <div className="text-center max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-12">
+      {/* Container with max width for premium spacing */}
+      <div className="font-cormorant w-full max-w-2xl mx-auto text-center">
+        {/* 404 Number - Large elegant display */}
         <div className="mb-8">
-          <h1 className="text-7xl font-bold text-primary mb-4">404</h1>
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Page Not Found
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            Sorry, the page you&apos;re looking for doesn&apos;t exist or has
-            been moved.
+          <p className="text-[120px] md:text-[160px] font-light leading-none text-muted-foreground/30">
+            404
           </p>
         </div>
 
-        {/* Navigation buttons */}
-        <div className="flex gap-4 justify-center">
+        {/* Main heading */}
+        <h1 className="text-3xl md:text-4xl font-light text-foreground mb-4 tracking-wide">
+          Page Not Found
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-lg text-muted-foreground mb-12 font-light leading-relaxed max-w-md mx-auto">
+          The page you are looking for does not exist or has been removed. Let
+          us help you get back on track.
+        </p>
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pb-8">
           <Link href="/">
-            <Button variant="default" className="cursor-pointer">
-              Back to Home
+            <Button
+              size={"lg"}
+              className="rounded-none cursor-pointer text-xs tracking-[0.2em] uppercase"
+            >
+              <span className="flex items-center gap-2">
+                Back to Home
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
             </Button>
           </Link>
-          <Link href="/products">
-            <Button variant="outline" className="cursor-pointer">
-              View Products
+          <Link href="/shop">
+            <Button
+              size={"lg"}
+              className="rounded-none h-9 px-4 py-2 md:px-6 md:h-10 bg-transparent border border-foreground text-foreground hover:text-background hover:bg-foreground transition-colors duration-300 cursor-pointer text-xs tracking-[0.2em] uppercase"
+            >
+              Continue Shopping
             </Button>
           </Link>
         </div>
 
-        {/* Decorative element */}
-        <div className="mt-12">
-          <p className="text-sm text-muted-foreground">
-            Need help?{" "}
-            <Link href="/support" className="text-primary hover:underline">
-              Contact Support
-            </Link>
+        <Separator className="w-0.5 bg-foreground/30" />
+
+        {/* Alternative action */}
+        <div className="pt-8">
+          <p className="text-sm md:text-base text-muted-foreground mb-4">
+            Interested in something custom?
           </p>
+          <Link href="/custom-order">
+            <Button
+              size={"lg"}
+              className="rounded-none cursor-pointer text-xs tracking-[0.2em] uppercase"
+            >
+              Create Custom Order
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

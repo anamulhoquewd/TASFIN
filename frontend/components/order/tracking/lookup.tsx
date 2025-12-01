@@ -8,10 +8,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Clock, Search, Loader2, Copy } from "lucide-react";
+import { Clock, Search, Loader2 } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
 import { format } from "date-fns";
-import { copyToClipboard, formatPrice } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import {
   Select,
   SelectContent,

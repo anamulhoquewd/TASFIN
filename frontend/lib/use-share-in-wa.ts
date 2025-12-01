@@ -30,6 +30,7 @@ function useShare() {
       console.error("Failed to copy:", err);
     }
   };
+
   return {
     handleProductShareInWA,
     handleShare,

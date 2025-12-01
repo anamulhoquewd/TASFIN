@@ -44,7 +44,7 @@ export default function RootLayout({
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="/products">Shopping</BreadcrumbLink>
+                <BreadcrumbLink href="/shop">Shopping</BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>

@@ -1,4 +1,4 @@
-import { ArrowLeft, Wallet } from "lucide-react";
+import { Wallet } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import {
@@ -15,10 +15,19 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { ICartItem } from "@/interfaces/global";
 import { UseFormReturn } from "react-hook-form";
 import { CheckoutFormValues } from "@/lib/zod-validation";
 import Image from "next/image";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../ui/breadcrumb";
+import { Badge } from "../ui/badge";
+import { ICartItem } from "@/interfaces/context";
 
 interface CheckoutProps {
   form: UseFormReturn<CheckoutFormValues>;
@@ -43,26 +52,49 @@ function Checkout({
 }: CheckoutProps) {
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link
-        href="/cart"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Cart
-      </Link>
-      <h1 className="font text-3xl md:text-4xl font-bold text-foreground mb-8">
-        Checkout
-      </h1>
+      <header className="pb-">
+        <Breadcrumb>
+          <BreadcrumbList className="font-cormorant">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/shop">Shop</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/cart">Cart</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Checkout</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <h2 className="font-cormorant text-3xl py-4 sm:text-4xl font-light tracking-wide text-foreground">
+          Checkout
+        </h2>
+      </header>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Checkout Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6">
               {/* Contact Information */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Contact
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -114,9 +146,11 @@ function Checkout({
               </Card>
 
               {/* Shipping Address */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Shipping Address
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -168,9 +202,11 @@ function Checkout({
               </Card>
 
               {/* Payment Method */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Payment Method</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Payment Method
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FormField
@@ -212,19 +248,21 @@ function Checkout({
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <Card className="sticky top-24">
+            <div>
+              <Card className="sticky top-24 rounded-none">
                 <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Order Summary
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {items.map((item: ICartItem) => (
                       <div
                         key={`${item.productId}-${item.variantId}`}
-                        className="flex gap-3"
+                        className="flex gap-4"
                       >
-                        <div className="max-w-16 aspect-[3/4] rounded-md overflow-hidden border">
+                        <div className="max-w-16 relative aspect-[3/4] rounded-md border">
                           <Image
                             width={1200}
                             height={1600}
@@ -232,19 +270,22 @@ function Checkout({
                             alt={item.image.alt || item.title}
                             className="w-full h-full object-cover"
                           />
+                          <Badge className="absolute right-0 top-0 rounded-full">
+                            {item.quantity}
+                          </Badge>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{item.title}</p>
+                          <p className="font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Variant: {item.size}
+                            Size: {item.size}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Qty: {item.quantity}
                           </p>
-                          <p className="text-sm font-semibold">
-                            ৳{(item.price * item.quantity).toLocaleString()}
-                          </p>
                         </div>
+                        <p className="text-sm font-semibold">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -282,11 +323,22 @@ function Checkout({
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full"
+                    className="w-full font-cormorant uppercase rounded-none cursor-pointer"
                     disabled={isProcessing}
                   >
                     {isProcessing ? "Processing..." : "Place an order"}
                   </Button>
+                  <Link href={"/cart"}>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant={"link"}
+                      className="w-full font-cormorant uppercase rounded-none cursor-pointer"
+                      disabled={isProcessing}
+                    >
+                      Edit Cart
+                    </Button>
+                  </Link>
 
                   <p className="text-xs text-center text-muted-foreground">
                     By placing your order, you agree to our{" "}

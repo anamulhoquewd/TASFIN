@@ -1,13 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
 import { ProductCard } from "../products/products-grid";
-import { Skeleton } from "../ui/skeleton";
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -24,46 +21,38 @@ export function ArrivalsSection() {
   }, []);
 
   return (
-    <section className="w-full bg-background py-12 md:py-16 lg:py-20">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            New Arrivals
-          </h2>
-          <p className="text-lg mb-6 opacity-90 w-3/4 md:w-1/2 m-auto">
-            New Arrivals! Shop the season&apos;s latest styles and freshest
-            fashion drops now.
-          </p>
+    <section className="py-12 md:py-16 lg:py-20 bg-secondary/50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-end justify-between mb-12 gap-4 font-cormorant">
+          <div>
+            <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-3">
+              Just In
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-light tracking-wide text-foreground">
+              New Arrivals
+            </h2>
+          </div>
+          <Link
+            href="/shop?category=new-arrivals"
+            className="text-xs tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors underline underline-offset-4"
+          >
+            View All
+          </Link>
         </div>
 
-        {/* Product Grid */}
         {products.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {products.map((product) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            {products.slice(0, 6).map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {/* <p className="text-muted-foreground">No products found</p> */}
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
-            <Skeleton className="w-70 h-90 bg-white" />
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">
+              No new arrivals at the moment. Check back soon!
+            </p>
           </div>
         )}
-
-        {/* View All Button */}
-        <div className="mt-10 md:mt-14 flex justify-center">
-          <Button asChild size="lg">
-            <Link href="/products">
-              Shop New Arrivals
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
       </div>
     </section>
   );
