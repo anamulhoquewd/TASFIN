@@ -5,13 +5,9 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { MenuIcon } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import UserMenu from "./use-menu";
-import useSettings from "@/app/admin/settings/_hooks/useSettings";
-import { useTheme } from "next-themes";
 
 export default function Header() {
   const { isMobile, setOpenMobile } = useSidebar();
-  const { settings } = useSettings();
-  const { theme } = useTheme();
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
