@@ -346,120 +346,114 @@ export default function OrdersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  orders.map((order) => {
-                    console.log("Order: ", order);
-                    return (
-                      <TableRow key={order._id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2 flex-1">
-                            <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                              {order._id.substring(0, 6)}...
-                            </code>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 cursor-pointer"
-                                    onClick={() => copyToClipboard(order._id)}
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                    <span className="sr-only">
-                                      Copy User ID
-                                    </span>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Copy ID</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant={"outline"}
-                            size={"sm"}
-                            onClick={() => {
-                              setShowItemsOpen(true);
-                              setSelectedItem(order);
-                            }}
-                            className="cursor-pointer"
-                          >
-                            Show Products
-                            <span className="sr-only">Show Products</span>
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback>
-                                {order.user?.name?.toUpperCase().charAt(0) ||
-                                  "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-medium">
-                                {order.user?.name || "Unknown User"}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                {order.user?.phone || "N/A"}
-                              </div>
+                  orders.map((order) => (
+                    <TableRow key={order._id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2 flex-1">
+                          <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
+                            {order._id.substring(0, 6)}...
+                          </code>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-6 w-6 cursor-pointer"
+                                  onClick={() => copyToClipboard(order._id)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                  <span className="sr-only">Copy User ID</span>
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Copy ID</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant={"outline"}
+                          size={"sm"}
+                          onClick={() => {
+                            setShowItemsOpen(true);
+                            setSelectedItem(order);
+                          }}
+                          className="cursor-pointer"
+                        >
+                          Show Products
+                          <span className="sr-only">Show Products</span>
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>
+                              {order.user?.name?.toUpperCase().charAt(0) || "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {order.user?.name || "Unknown User"}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {order.user?.phone || "N/A"}
                             </div>
                           </div>
-                        </TableCell>
+                        </div>
+                      </TableCell>
 
-                        <TableCell>
-                          {new Date(order.orderDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {getStatusIcon(order.status)}
-                            {getStatusBadge(order.status)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {getPaymentStatusBadge(order.paymentStatus)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatPrice(order.totalAmount)}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="cursor-pointer"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => openDialog(order, "update")}
-                              >
-                                <Truck className="mr-2 h-4 w-4" />
-                                Update Status
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => openDialog(order, "delete")}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Order
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                      <TableCell>
+                        {new Date(order.orderDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(order.status)}
+                          {getStatusBadge(order.status)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getPaymentStatusBadge(order.paymentStatus)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatPrice(order.totalAmount)}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="cursor-pointer"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => openDialog(order, "update")}
+                            >
+                              <Truck className="mr-2 h-4 w-4" />
+                              Update Status
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => openDialog(order, "delete")}
+                              className="text-destructive"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Order
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
