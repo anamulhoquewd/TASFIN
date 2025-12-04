@@ -127,7 +127,7 @@ function useCustomer() {
 
   const handleDelete = async (data: string) => {
     try {
-      const response = await api.delete(`/customers/${data}`, {});
+      const response = await api.delete(`/users/${data}`, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Somthing went wrong!");

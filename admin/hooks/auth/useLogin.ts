@@ -45,7 +45,7 @@ const useLogin = () => {
       createCookie({
         name: "accessToken",
         value: tokens.accessToken,
-        maxAgeAsSeconds: 60 * 15, // 15m
+        maxAgeAsSeconds: 60 * 60, // 60m
       });
       createCookie({
         name: "refreshToken",

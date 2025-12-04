@@ -1,3 +1,4 @@
+import { transporter } from "../config/email.js";
 import { schemaValidationError } from "./../error/index.js";
 import type { IOrder } from "./../interfaces/index.js";
 import Order from "./../models/orders.model.js";
@@ -115,6 +116,30 @@ export const register = async (body: OrderInput) => {
       shippingCost,
       totalAmount: totalAmount + shippingCost,
     });
+
+    // Step 4: Send Email to admin
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: "New Order Received",
+      text: `Hello Admin,
+
+A new order has been placed on the website. Here are the order details:
+
+Order ID: ${order._id}
+Total Amount: ${order.totalAmount} BDT
+Payment Method: ${order.paymentMethod}
+Order Date: ${order.orderDate}
+
+Please check the admin dashboard for full order details.
+
+Thank you!
+Tasfin Team
+`,
+    };
+
+    // Send Email
+    await transporter.sendMail(mailOptions);
 
     return {
       success: {

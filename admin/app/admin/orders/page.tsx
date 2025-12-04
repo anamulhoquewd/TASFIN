@@ -391,17 +391,20 @@ export default function OrdersPage() {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback>
-                              {order.user.name.toUpperCase().charAt(0)}
+                              {order.user?.name?.toUpperCase().charAt(0) || "?"}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <div className="font-medium">{order.user.name}</div>
+                            <div className="font-medium">
+                              {order.user?.name || "Unknown User"}
+                            </div>
                             <div className="text-xs text-muted-foreground">
-                              {order.user.phone}
+                              {order.user?.phone || "N/A"}
                             </div>
                           </div>
                         </div>
                       </TableCell>
+
                       <TableCell>
                         {new Date(order.orderDate).toLocaleDateString()}
                       </TableCell>
