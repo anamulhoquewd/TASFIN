@@ -14,11 +14,6 @@ export default function Header() {
   const { settings } = useSettings();
   const { theme } = useTheme();
 
-  const logo =
-    theme === "light"
-      ? "/tasfin-logo-text-black-bg-transparent-new.png"
-      : "/tasfin-logo-text-white-bg-transparent-new.png";
-
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 md:px-6">
       {/* Mobile Menu Button */}
@@ -34,17 +29,7 @@ export default function Header() {
         </Button>
       )}
 
-      {/* Logo */}
       <div className="flex items-center gap-2 order-2 md:order-1">
-        {logo && (
-          <Image
-            src={logo}
-            width={100}
-            height={100}
-            alt={settings?.siteName || "TASFIN Admin"}
-            className="w-14"
-          />
-        )}{" "}
         <h3 className="font-playfair font-semibold text-foreground">TASFIN</h3>
       </div>
 
