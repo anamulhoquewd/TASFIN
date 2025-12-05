@@ -12,7 +12,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   const { categories = [], priceRange = { minPrice: 0, maxPrice: 10000 } } =
     options;
 
-  const initialLimit = 1;
+  const initialLimit = 12;
 
   const [infinityProducts, setInfinityProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
