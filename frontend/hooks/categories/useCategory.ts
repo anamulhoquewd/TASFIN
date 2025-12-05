@@ -8,7 +8,6 @@ function useCategory() {
 
   const fetchCategories = useCallback(async () => {
     setLoading(true);
-    console.log("Called the category hook");
     try {
       const response = await api.get("/categories");
       setCategories(response.data.data);
