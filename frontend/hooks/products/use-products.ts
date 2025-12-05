@@ -12,7 +12,7 @@ export function useProducts(options: UseProductsOptions = {}) {
   const { categories = [], priceRange = { minPrice: 0, maxPrice: 10000 } } =
     options;
 
-  const initialLimit = 12;
+  const initialLimit = 1;
 
   const [infinityProducts, setInfinityProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
@@ -30,13 +30,7 @@ export function useProducts(options: UseProductsOptions = {}) {
 
   const fetchInfinityProducts = useCallback(
     async (pageNum: number, reset = false) => {
-      if (isFetchingRef.current) {
-        return;
-      }
-
-      if (!reset && !hasMore) {
-        return;
-      }
+      if (isFetchingRef.current) return;
 
       isFetchingRef.current = true;
       setIsLoading(true);
@@ -60,6 +54,13 @@ export function useProducts(options: UseProductsOptions = {}) {
 
         if (response.data.success && Array.isArray(response.data.data)) {
           const newProducts = response.data.data;
+          console.debug(
+            "fetchInfinityProducts - page:",
+            pageNum,
+            "fetched ids:",
+            newProducts.map((p: IProduct) => p._id)
+          );
+
           const totalPagesFromAPI = response.data.pagination.totalPages || 0;
 
           if (totalPagesFromAPI) {
@@ -69,7 +70,19 @@ export function useProducts(options: UseProductsOptions = {}) {
           if (reset) {
             setInfinityProducts(newProducts);
           } else {
-            setInfinityProducts((prev) => [...prev, ...newProducts]);
+            setInfinityProducts((prev) => {
+              // merge and dedupe by _id to avoid duplicate entries
+              const merged = [...prev, ...newProducts];
+              const seen = new Set<string>();
+              const deduped: IProduct[] = [];
+              for (const item of merged) {
+                if (!seen.has(item._id)) {
+                  seen.add(item._id);
+                  deduped.push(item);
+                }
+              }
+              return deduped;
+            });
           }
 
           if (totalPagesFromAPI) {
@@ -92,7 +105,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         isFetchingRef.current = false;
       }
     },
-    [initialLimit, sortConfig, filters, hasMore]
+    [initialLimit, sortConfig, filters]
   );
 
   const fetchProducts = useCallback(
