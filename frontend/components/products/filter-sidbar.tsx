@@ -5,8 +5,9 @@ import { ScrollArea } from "../ui/scroll-area";
 import { X } from "lucide-react";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
-import { Slider } from "../ui/slider";
 import { ICategory } from "@/interfaces/categories";
+import { Input } from "../ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ProductsFilterSidebarProps {
   onFilterChange: (filters: {
@@ -28,13 +29,29 @@ export function ProductsFilterSidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [selectedPriceRange, setSelectedPriceRange] = useState("");
+
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     initialFilters?.categories || []
   );
   const [priceRange, setPriceRange] = useState<[number, number]>([
-    initialFilters?.priceRange.minPrice || 0,
-    initialFilters?.priceRange.maxPrice || 10000,
+    initialFilters?.priceRange?.minPrice ?? 0,
+    initialFilters?.priceRange?.maxPrice ?? 10000,
   ]);
+
+  // initialize selectedPriceRange from initialFilters if provided
+  useEffect(() => {
+    if (initialFilters && initialFilters.priceRange) {
+      const { minPrice = 0, maxPrice = 10000 } = initialFilters.priceRange;
+      if (minPrice === 0 && maxPrice === 10000) {
+        setSelectedPriceRange("");
+      } else {
+        setSelectedPriceRange(`${minPrice}-${maxPrice}`);
+      }
+    }
+    // only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Sync local state with URL changes and notify parent
   useEffect(() => {
@@ -80,8 +97,26 @@ export function ProductsFilterSidebar({
     setSelectedCategories(newCategories);
   };
 
-  const handlePriceChange = (value: number[]) => {
-    setPriceRange([value[0], value[1]]);
+  // value is a string like "" or "1000-2500"
+  const handlePriceChange = (value: string) => {
+    setSelectedPriceRange(value);
+
+    if (!value) {
+      setPriceRange([0, 10000]);
+      return;
+    }
+
+    const parts = value.split("-").map((p) => Number(p));
+    if (
+      parts.length === 2 &&
+      !Number.isNaN(parts[0]) &&
+      !Number.isNaN(parts[1])
+    ) {
+      setPriceRange([parts[0], parts[1]] as [number, number]);
+    } else {
+      // fallback to defaults
+      setPriceRange([0, 10000]);
+    }
   };
 
   useEffect(() => {
@@ -103,8 +138,16 @@ export function ProductsFilterSidebar({
     });
   };
 
+  const priceRangePairs = [
+    { label: "All Prices", value: "" },
+    { label: "Under 1000", value: "0-1000" },
+    { label: "1000 - 2500", value: "1000-2500" },
+    { label: "2500 - $5000", value: "2500-5000" },
+    { label: "Over 5000", value: "5000-20000" },
+  ];
+
   return (
-    <div className="font-cormorant sticky top-14 h-fit w-full border border-border bg-card p-6 lg:w-64">
+    <div className="font-cormorant sticky top-14 h-fit w-full border border-border p-6 lg:w-64">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground uppercase">
           Filters
@@ -123,13 +166,13 @@ export function ProductsFilterSidebar({
         )}
       </div>
 
-      {/* Categories */}
-      <div className="mb-8">
+      <ScrollArea className="h-96 md:h-[28rem] pr-6">
+        {/* Categories */}
         <h3 className="mb-4 font-medium text-sm text-foreground uppercase">
           Categories
         </h3>
         <div className="space-y-3">
-          <ScrollArea className="h-40">
+          <ScrollArea className="h-52">
             {categories && categories.length > 0 ? (
               categories.map((category) => (
                 <div key={category._id} className="flex items-center space-x-2">
@@ -156,32 +199,33 @@ export function ProductsFilterSidebar({
             )}
           </ScrollArea>
         </div>
-      </div>
 
-      {/* Price Range */}
-      <div className="mb-8">
-        <h3 className="mb-4 font-medium text-foreground uppercase text-sm">
+        {/* Price Range */}
+        <h3 className="mb-4 font-medium text-sm text-foreground uppercase">
           Price Range
         </h3>
-        <div className="space-y-4">
-          <Slider
-            value={priceRange}
-            onValueChange={handlePriceChange}
-            min={0}
-            max={10000}
-            step={100}
-            className="w-full cursor-pointer"
-          />
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground text-xl font-semibold">
-              {priceRange[0]}
-            </span>
-            <span className="text-muted-foreground text-xl font-semibold">
-              {priceRange[1]}
-            </span>
-          </div>
-        </div>
-      </div>
+        <ScrollArea className="h-52">
+          <RadioGroup
+            value={selectedPriceRange}
+            onValueChange={(val) => handlePriceChange(val)}
+          >
+            {priceRangePairs.map((range) => {
+              const id = `price-${range.value || "all"}`;
+              return (
+                <div key={id} className="flex items-center space-x-2">
+                  <RadioGroupItem value={range.value} id={id} />
+                  <Label
+                    htmlFor={id}
+                    className="cursor-pointer text-base font-normal text-muted-foreground"
+                  >
+                    {range.label}
+                  </Label>
+                </div>
+              );
+            })}
+          </RadioGroup>
+        </ScrollArea>
+      </ScrollArea>
     </div>
   );
 }
