@@ -9,7 +9,13 @@ productRoutes.get("/", (c) => productController.getProducts(c));
 
 productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
+productRoutes.get("/variant:variantId", (c) =>
+  productController.getProductByVariantId(c)
+);
+
 productRoutes.get("/slug/:slug", (c) => productController.getProductBySlug(c));
+
+productRoutes.get("/sku/:sku", (c) => productController.getProductBySku(c));
 
 productRoutes.patch("/:productId/general", (c) =>
   productController.updateGeneralInfo(c)

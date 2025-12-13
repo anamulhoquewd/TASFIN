@@ -1,8 +1,7 @@
 // validation/admin.validation.ts
 import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { z, type TypeOf } from "zod";
-import type {} from "../interfaces/index.js";
+import { z } from "zod";
 
 // Image validation (matches your Image)
 export const imageZ = z.object({
@@ -52,7 +51,6 @@ export const productZ = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  sku: z.string().min(6),
   description: z.string().min(1).max(2000).optional(),
   keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
 
@@ -338,6 +336,42 @@ export const orderedItemsZ = z.object({
 });
 
 export type TOrderdProduct = z.infer<typeof orderFetchQueryZ>;
+
+// Product fetch query
+export const productFetchQueryZ = z.object({
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(10),
+  sortBy: z.enum(["createdAt", "updatedAt", "title"]).default("updatedAt"),
+  sortType: z.enum(["asc", "desc"]).optional().default("desc"),
+  search: z.instanceof(mongoose.Types.ObjectId).optional(),
+  isFeatured: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined
+    ),
+  isItNew: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined
+    ),
+  status: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined
+    ),
+  priceRange: z
+    .object({
+      min: z.number().min(0).default(0),
+      max: z.number().min(0).default(10000),
+    })
+    .optional(),
+  categories: z.array(z.string()).optional(),
+});
+
+export type TOrderFetchQuery = z.infer<typeof productFetchQueryZ>;
 
 // Payment status and order status enums
 export const paymentStatusEnumZ = z.enum(["unpaid", "paid"]);

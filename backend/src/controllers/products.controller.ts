@@ -9,7 +9,6 @@ export const register = async (c: Context) => {
   // Extract all fields from form data
   const title = formData.get("title") as string;
   const slug = formData.get("slug") as string;
-  const sku = formData.get("sku") as string;
   const fabric = formData.get("fabric") as string;
   const valueAddition = formData.get("valueAddition") as string;
   const cutFit = formData.get("cutFit") as string;
@@ -39,7 +38,10 @@ export const register = async (c: Context) => {
 
   while (formData.get(`variants[${variantIndex}][size]`)) {
     const variant = {
+      isCustom: formData.get("isCustom") === "true",
+      sku: formData.get(`variants[${variantIndex}][sku]`) as string,
       size: formData.get(`variants[${variantIndex}][size]`) as string,
+      color: formData.get(`variants[${variantIndex}][color]`) as string,
       stock: parseInt(
         formData.get(`variants[${variantIndex}][stock]`) as string
       ),
@@ -56,7 +58,6 @@ export const register = async (c: Context) => {
   const body = {
     title,
     slug,
-    sku,
     description,
     categories,
     images,
@@ -116,6 +117,38 @@ export const getProductBySlug = async (c: Context) => {
   const slug = c.req.param("slug");
 
   const response = await productService.getProductBySlug(slug);
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};
+
+export const getProductByVariantId = async (c: Context) => {
+  const variantId = c.req.param("variantId");
+
+  const response = await productService.getProductByVariantId(variantId);
+
+  if (response.error) {
+    return badRequestHandler(c, response.error);
+  }
+
+  if (response.serverError) {
+    return serverErrorHandler(c, response.serverError);
+  }
+
+  return c.json(response.success, 200);
+};
+
+export const getProductBySku = async (c: Context) => {
+  const sku = c.req.param("sku");
+
+  const response = await productService.getProductBySku(sku);
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -233,11 +266,11 @@ export const updateMainImages = async (c: Context) => {
     (f) => f && (f as File).name
   );
 
-  const deleteImagePublicId = parseDeleteUrls(formData, "deleteImagePublicId");
+  const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateMainImages({
     productId,
-    data: { newImages, deleteImagePublicId },
+    data: { newImages, deleteImagePublicIds },
   });
 
   if (response.error) {
@@ -267,12 +300,12 @@ export const updateVImages = async (c: Context) => {
     (f) => f && (f as File).name
   );
 
-  const deleteImagePublicId = parseDeleteUrls(formData, "deleteImagePublicId");
+  const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateVImages({
     productId,
     variantId,
-    data: { newImages, deleteImagePublicId },
+    data: { newImages, deleteImagePublicIds },
   });
 
   if (response.error) {
@@ -365,8 +398,8 @@ export const deleteProduct = async (c: Context) => {
 export const getProducts = async (c: Context) => {
   const page = parseInt(c.req.query("page") as string, 10) || 1;
   const limit = parseInt(c.req.query("limit") as string, 10) || 10;
-  const sortBy = c.req.query("sortBy") as string;
-  const sortType = c.req.query("sortType") as string;
+  const sortBy = c.req.query("sortBy") as "createdAt" | "updatedAt" | "title";
+  const sortType = c.req.query("sortType") as "desc" | "asc";
   const search = c.req.query("search") as string;
   const isFeatured = c.req.query("isFeatured") as string;
   const isItNew = c.req.query("isItNew") as string;

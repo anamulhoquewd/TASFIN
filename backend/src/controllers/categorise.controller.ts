@@ -5,7 +5,7 @@ import {
   serverErrorHandler,
 } from "./../error/index.js";
 import Category from "./../models/categorise.model.js";
-import { adminService, categoryService } from "./../services/index.js";
+import { categoryService } from "./../services/index.js";
 import { mongoIdZ } from "./../validations/zod.js";
 import type { Context } from "hono";
 
