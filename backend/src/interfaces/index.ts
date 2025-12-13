@@ -3,17 +3,23 @@ import mongoose from "mongoose";
 export interface IImage {
   alt: string;
   url: string;
+  publicId: string;
+  position?: number;
+  isPrimary?: boolean;
 }
 
-export interface IProductVariant extends mongoose.Document {
+export interface IProductVariant {
   _id: string;
+  sku: string;
   size: string;
+  color: string;
   stock: number;
   price: number;
+  isCustom?: boolean;
   images?: IImage[];
 }
 
-export interface IProduct extends mongoose.Document {
+export interface IProduct {
   _id: string;
   title: string;
   slug: string;
@@ -24,32 +30,30 @@ export interface IProduct extends mongoose.Document {
   images: IImage[];
   variants: IProductVariant[];
 
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
-
   isFeatured?: boolean;
-
-  isActive: boolean;
+  isItNew?: boolean;
+  status: boolean;
 
   tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
+
+  details: {
+    fabric?: string;
+    valueAddition?: string;
+    cutFit?: string;
+    collarNeck?: string;
+    sleeve?: string;
+    length?: string;
+    washCare?: string;
+    sideCut?: string;
+  };
 }
 
-export interface ICategory extends mongoose.Document {
+export interface ICategory {
   _id: string;
   name: string;
   slug: string;
   description?: string;
   image?: IImage;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface IAddress {
@@ -79,28 +83,23 @@ export interface IAdmin extends mongoose.Document {
   refresh?: string;
   resetPasswordToken: string | null;
   resetPasswordExpireDate: Date | null;
-
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface IUser extends mongoose.Document {
+export interface IUser {
   _id: string;
   name: string;
   occupation: string;
   email: string;
   phone: string;
   address?: IAddress;
-  isActive: boolean;
+  status: boolean;
   isBlocked?: boolean;
-  blockedAt: Date;
+  blockedAt?: Date;
+
   avatar: IImage;
 
   dob: Date;
   gender: "male" | "female";
-
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface ISubscriber {
@@ -111,28 +110,34 @@ export interface ISubscriber {
   ipAddress: string | null;
   userAgent: string | null;
   isBlocked?: boolean;
-  blockedAt: Date;
+  blockedAt?: Date;
 }
 
-export interface ICoupon extends mongoose.Document {
+export interface ICoupon {
   code: string;
   discountType: "percent" | "fixed";
-  amount: number;
-  maxDiscount: number;
+  value: number;
+  maxValue: number;
   minSubtotal: number;
 
   startAt: Date;
   endAt: Date;
 
-  usageLimitTotal: number;
-  usageLimitPerUser: number;
+  totalUsageLimit: number;
+  perUserUsageLimit: number;
   usedCount: number;
-  applicableProductIds: mongoose.Types.ObjectId;
 
-  active: boolean;
+  status: boolean;
 }
 
-export interface IOrderProduct extends mongoose.Document {
+export interface ICouponUsage {
+  couponId: mongoose.Types.ObjectId;
+  userId: mongoose.Types.ObjectId;
+  usedCount: number;
+  lastUsedAt: Date;
+}
+
+export interface IOrderProduct {
   productId: string;
   variantId: string;
   title: string;
@@ -141,66 +146,82 @@ export interface IOrderProduct extends mongoose.Document {
   quantity: number;
 }
 
-export interface IOrder extends mongoose.Document {
+export interface IOrder {
   _id: string;
+  name: string;
   user: mongoose.Types.ObjectId;
-  products: IOrderProduct[];
+  items: IOrderProduct[];
   address: IAddress;
   paymentStatus: "unpaid" | "paid";
-  paymentMethod: "cod" | "bkash" | "nagad";
-  totalAmount: number;
+  paymentMethod: "cod" | "bkash" | "nagad" | "bank";
+  discount: number;
   shippingCost: number;
+  subtotal: number;
+  total: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate: Date;
+  paymentId?: mongoose.Types.ObjectId;
 }
 
-export interface IPayment extends mongoose.Document {
+export interface IPayment {
   _id: string;
   orderId: mongoose.Types.ObjectId;
-  method: "cod" | "bkash" | "nagad" | "card";
+  method: "cod" | "bkash" | "nagad" | "bank";
   amount: number;
   currency: "BDT" | "USD";
   transactionId?: string;
   status: "pending" | "success" | "failed";
-  createdAt: Date;
-  updatedAt: Date;
+  gatewayResponse?: any;
 }
 
-export interface IReview extends mongoose.Document {
+export interface IReview {
   _id: string;
   productId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
   rating: number;
   comment?: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface IOffers extends mongoose.Document {
+export interface IOffer {
   name: string;
   message: string;
   image: IImage;
-  startDate: Date;
-  endDate: Date;
-  isActive: boolean;
+  startAt: Date;
+  endAt: Date;
+  status: boolean;
 }
 
-export interface IDiscount extends mongoose.Document {
-  _id: string;
+export interface IDiscount {
   title: string;
-  description?: string;
-
   discountType: "percentage" | "fixed";
   value: number;
 
   startAt: Date;
   endAt: Date;
 
-  productIds: mongoose.Types.ObjectId[];
+  applicableCategories?: mongoose.Types.ObjectId[];
+  applicableTags?: string[];
 
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  applicableProductIds?: mongoose.Types.ObjectId[];
+
+  status: boolean;
+}
+
+export interface ISettings {
+  siteName: string;
+  siteDescription: string;
+  logo: IImage;
+  favicon?: IImage;
+  contactEmail: string;
+  contactPhone?: string;
+  whatsApp?: string;
+  address?: IAddress;
+  socialLinks: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
 }
 
 export interface IPagination {
@@ -210,22 +231,4 @@ export interface IPagination {
   totalPages: number;
   nextPage?: number;
   prevPage?: number;
-}
-
-export interface ISettings extends mongoose.Document {
-  siteName: string;
-  siteDescription: string;
-  logo: IImage;
-  favicon?: IImage;
-  contactEmail: string;
-  contactPhone: string;
-  address: IAddress;
-  socialLinks: {
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-    linkedin?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
 }

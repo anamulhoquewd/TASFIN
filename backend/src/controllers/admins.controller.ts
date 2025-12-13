@@ -1,3 +1,5 @@
+import type { IAdmin } from "../interfaces/index.js";
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   authenticationError,
   authorizationError,
@@ -78,7 +80,7 @@ export const getAdmin = async (c: Context) => {
 export const getMe = async (c: Context) => {
   try {
     // Get admin from auth token
-    const me = c.get("admin");
+    const me: IAdmin = c.get("admin");
 
     // Check if admin is authenticated
     if (!me) {
@@ -123,7 +125,7 @@ export const getMe = async (c: Context) => {
 // Update profile
 export const updateMe = async (c: Context) => {
   // Get admin from auth token
-  const admin = c.get("admin");
+  const admin: IAdmin = c.get("admin");
 
   if (!admin) {
     return authenticationError(c);
@@ -229,7 +231,7 @@ export const refreshToken = async (c: Context) => {
 // Logout admin
 export const logout = async (c: Context) => {
   try {
-    const user = c.get("admin");
+    const user: IAdmin = c.get("admin");
     // Remove refresh token from database
     const admin = await Admin.updateOne({ _id: user._id }, { refresh: "" });
 
@@ -262,7 +264,7 @@ export const changePassword = async (c: Context) => {
   const body = await c.req.json();
 
   // Check if admin exists. and get email from token
-  const { email } = c.get("admin");
+  const { email }: IAdmin = c.get("admin");
 
   const admin = await Admin.findOne({ email }).select("password");
 
@@ -369,15 +371,7 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    // Generate filename
-    const fileN = c.req.query("filename") || "avatar";
-    const filename = `${fileN}-${Date.now()}.webp`;
-
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "admins",
-    });
+    const response = await uploadSingleFile(file, "tasfin_users");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -389,8 +383,9 @@ export const changeAvatar = async (c: Context) => {
 
     // Update admin.avatar.url and save
     admin.avatar = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.publicId,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
     };
 
     await admin.save();

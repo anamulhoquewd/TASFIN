@@ -1,10 +1,9 @@
 import type { IDiscount } from "./../interfaces/index.js";
-import mongoose from "mongoose";
+import { model, Schema } from "mongoose";
 
-const DiscountSchema: mongoose.Schema<IDiscount> = new mongoose.Schema(
+const DiscountSchema: Schema<IDiscount> = new Schema(
   {
     title: { type: String, required: true, trim: true },
-    description: { type: String },
     discountType: {
       type: String,
       enum: ["percentage", "fixed"],
@@ -13,11 +12,15 @@ const DiscountSchema: mongoose.Schema<IDiscount> = new mongoose.Schema(
     value: { type: Number, required: true, min: 0 },
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
-    productIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-    isActive: { type: Boolean, required: true, default: true },
+
+    applicableCategories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
+    applicableTags: [String],
+    applicableProductIds: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+
+    status: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-const Discount = mongoose.model<IDiscount>("Discount", DiscountSchema);
+const Discount = model<IDiscount>("Discount", DiscountSchema);
 export default Discount;

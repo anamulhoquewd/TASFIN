@@ -1,8 +1,9 @@
-import mongoose from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 import type { IOrder, IOrderProduct } from "./../interfaces/index.js";
+import { required } from "zod/mini";
 
-const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema({
+const OrderProductSchema: Schema<IOrderProduct> = new Schema<IOrderProduct>({
   productId: { type: String, required: true },
   variantId: { type: String, required: true },
   title: { type: String, required: true },
@@ -11,10 +12,11 @@ const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema({
   quantity: { type: Number, required: true, min: 1 },
 });
 
-const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
+const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    products: { type: [OrderProductSchema], required: true },
+    name: { type: String, required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User" },
+    items: { type: [OrderProductSchema], required: true },
     address: { type: AddressSchema, required: true },
     paymentStatus: {
       type: String,
@@ -26,18 +28,21 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
       type: String,
       enum: ["cod"],
     },
-    totalAmount: { type: Number, required: true, min: 0 },
+    subtotal: { type: Number, min: 0 },
+    discount: { type: Number },
     shippingCost: { type: Number, required: true, min: 0 },
+    total: { type: Number, required: true, min: 0 },
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
-
     orderDate: { type: Date, default: Date.now },
+
+    paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
   },
   { timestamps: true }
 );
 
-const Order = mongoose.model<IOrder>("Order", OrderSchema);
+const Order = model<IOrder>("Order", OrderSchema);
 export default Order;

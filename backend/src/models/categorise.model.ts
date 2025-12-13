@@ -1,16 +1,16 @@
 import type { ICategory } from "./../interfaces/index.js";
-import mongoose from "mongoose";
+import { model, Schema } from "mongoose";
 import { ImageSchema } from "./admins.model.js";
 
-const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
+const CategorySchema: Schema<ICategory> = new Schema<ICategory>(
   {
-    name: { type: String, required: true, trim: true, unique: true },
-    slug: { type: String, required: true, trim: true, unique: true },
-    description: { type: String },
-    image: { type: ImageSchema },
+    name: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    description: String,
+    image: ImageSchema,
   },
   { timestamps: true }
 );
 
-const Category = mongoose.model<ICategory>("Category", CategorySchema);
+const Category = model<ICategory>("Category", CategorySchema);
 export default Category;

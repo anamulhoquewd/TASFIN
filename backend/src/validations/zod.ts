@@ -1,32 +1,42 @@
 // validation/admin.validation.ts
 import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { string, z } from "zod";
+import { z, type TypeOf } from "zod";
+import type {} from "../interfaces/index.js";
 
-// Image validation (matches your ImageSchema)
+// Image validation (matches your Image)
 export const imageZ = z.object({
-  alt: z.string().min(1, "Image alt text required").trim(),
-  url: z.string().url("Invalid image URL").trim(),
+  alt: z.string().min(1),
+  url: z.string().url(),
+  publicId: z.string().optional(),
 });
 
+export type TImage = z.infer<typeof imageZ>;
+
 // Accept either a 24-char hex string or a real ObjectId instance
-export const objectIdSchemaZ = z.union([
+export const objectIdZ = z.union([
   z
     .string()
     .regex(/^[a-fA-F0-9]{24}$/, "Expected a 24-char hex ObjectId string"),
   z.instanceof(mongoose.Types.ObjectId),
 ]);
 
-// IProductVariant schema
-export const productVariantSchemaZ = z.object({
+export type TObjectId = z.infer<typeof objectIdZ>;
+
+// IProductVariant
+export const productVariantZ = z.object({
   size: z.string().min(1),
+  color: z.string().min(1),
+  sku: z.string().min(6),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(z.file()).optional(),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+export type TVariant = z.infer<typeof productVariantZ>;
+
+// If you want a separate update  where fields can be optional:
+export const productVariantUpdateZ = productVariantZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -34,38 +44,44 @@ export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// IProduct schema
-export const productSchemaZ = z.object({
+export type TUpdateVariant = z.infer<typeof productVariantUpdateZ>;
+
+// IProduct
+export const productZ = z.object({
   title: z.string().min(1, "title is required"),
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().max(1000).optional(),
-  keyFeatures: z.array(z.string().min(1)).optional(),
+  sku: z.string().min(6),
+  description: z.string().min(1).max(2000).optional(),
+  keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
 
-  categories: z.array(objectIdSchemaZ),
+  categories: z.array(objectIdZ),
+  tags: z.array(z.string().min(1).max(50)).optional(),
 
   images: z.array(z.file()).nonempty("At least 1 image is required"),
-  variants: z
-    .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
+  variants: z.array(productVariantZ).nonempty("At least 1 variant is required"),
 
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
+  details: z.object({
+    fabric: z.string().optional(),
+    valueAddition: z.string().optional(),
+    cutFit: z.string().optional(),
+    collarNeck: z.string().optional(),
+    sleeve: z.string().optional(),
+    length: z.string().optional(),
+    washCare: z.string().optional(),
+    sideCut: z.string().optional(),
+  }),
 
   isFeatured: z.boolean().optional(),
-  isActive: z.boolean().default(true),
-  tags: z.array(z.string().min(1).max(10)).optional(),
+  isItNew: z.boolean().optional(),
+  status: z.boolean().default(true),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const productUpdateZ = productSchemaZ.partial().refine(
+export type TProduct = z.infer<typeof productZ>;
+
+// If you want a separate update  where fields can be optional:
+export const productUpdateZ = productZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -73,13 +89,9 @@ export const productUpdateZ = productSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Types + helpers
-export type ProductCreateInput = z.infer<typeof productSchemaZ>;
-export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
+export type TUpdateProduct = z.infer<typeof productUpdateZ>;
 
-export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
-
-// Address validation (matches your AddressSchema fields)
+// Address validation (matches your Address fields)
 export const addressZ = z.object({
   street: z.string().min(1, "Street is required").trim(),
   city: z.string().min(1, "City is required").trim(),
@@ -92,8 +104,12 @@ export const addressZ = z.object({
     .default("Bangladesh"),
 });
 
+export type TAddress = z.infer<typeof addressZ>;
+
 // Bangladesh phone regex (local format like 017xxxxxxxx)
 export const BDPhoneRegex = /^01[3-9]\d{8}$/;
+
+export type TBDPhone = z.infer<typeof BDPhoneRegex>;
 
 // Admin (Amdin) validation
 export const adminCreateZ = z.object({
@@ -114,7 +130,9 @@ export const adminCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
-// If you want a separate update schema where fields can be optional:
+export type Tdmin = z.infer<typeof adminCreateZ>;
+
+// If you want a separate update  where fields can be optional:
 export const adminUpdateZ = adminCreateZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
@@ -123,12 +141,10 @@ export const adminUpdateZ = adminCreateZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Types (optional)
-export type AdminCreateInput = z.infer<typeof adminCreateZ>;
-export type AdminUpdateInput = z.infer<typeof adminUpdateZ>;
+export type TUpdateAdmin = z.infer<typeof adminUpdateZ>;
 
 //  Validate the ID (MongoDB ObjectId format)
-export const idSchemaZ = z.object({
+export const mongoIdZ = z.object({
   _id: z
     .any()
     .transform((val) =>
@@ -138,6 +154,8 @@ export const idSchemaZ = z.object({
       message: "Invalid MongoDB User ID format",
     }),
 });
+
+export type TMongoId = z.infer<typeof mongoIdZ>;
 
 export const changePasswordZ = z
   .object({
@@ -149,6 +167,8 @@ export const changePasswordZ = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
+
+export type TChangePassword = z.infer<typeof changePasswordZ>;
 
 // Admin (Amdin) validation
 export const userCreateZ = z.object({
@@ -168,7 +188,7 @@ export const userCreateZ = z.object({
     .trim(),
   address: addressZ.optional(),
 
-  isActive: z.boolean().default(true),
+  status: z.boolean().default(true),
 
   gender: z.enum(["male", "female"]).optional(),
 
@@ -177,7 +197,9 @@ export const userCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
-// If you want a separate update schema where fields can be optional:
+export type TUser = z.infer<typeof userCreateZ>;
+
+// If you want a separate update  where fields can be optional:
 export const userUpdateZ = userCreateZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
@@ -186,14 +208,14 @@ export const userUpdateZ = userCreateZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Types (optional)
-export type UserCreateInput = z.infer<typeof userCreateZ>;
-export type UserUpdateInput = z.infer<typeof userUpdateZ>;
+export type TUpdateUser = z.infer<typeof userUpdateZ>;
 
-export const querySchemaZ = z.object({
+export const queryZ = z.object({
   sortBy: z.enum(["createdAt", "updatedAt", "name", "email"]).optional(),
   sortType: z.enum(["asc", "desc"]).optional().default("asc"),
 });
+
+export type TQuery = z.infer<typeof queryZ>;
 
 export const loginSchemeZ = z
   .object({
@@ -213,7 +235,9 @@ export const loginSchemeZ = z
     path: ["email"], // Can also use "phone" or leave empty
   });
 
-export const avatarSchemaZ = z.object({
+export type TLogin = z.infer<typeof loginSchemeZ>;
+
+export const avatarZ = z.object({
   avatar: z
     .instanceof(File, { message: "Invalid file format" })
     .refine((file) => file.size <= 2 * 1024 * 1024, {
@@ -230,7 +254,9 @@ export const avatarSchemaZ = z.object({
     ),
 });
 
-// Category create/update schema
+export type TAvatar = z.infer<typeof avatarZ>;
+
+// Category create/update
 export const categoryCreateZ = z.object({
   name: z.string().min(1, "Name is required").trim(),
   // slug: require kebab-case (lowercase letters, numbers, hyphens)
@@ -247,7 +273,9 @@ export const categoryCreateZ = z.object({
   image: imageZ.optional().nullable(),
 });
 
-// If you want a separate update schema where fields can be optional:
+export type TCategory = z.infer<typeof categoryCreateZ>;
+
+// If you want a separate update  where fields can be optional:
 export const categoryUpdateZ = categoryCreateZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
@@ -256,11 +284,9 @@ export const categoryUpdateZ = categoryCreateZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Input Type inferred from Zod
-export type CategoryCreateInput = z.infer<typeof categoryCreateZ>;
-export type CategoryUpdateInput = z.infer<typeof categoryUpdateZ>;
+export type TUpdateCategory = z.infer<typeof categoryUpdateZ>;
 
-// Category create/update schema
+// Category create/update
 export const settingCreateZ = z.object({
   siteName: z.string().min(1, "Site Name is required").trim(),
   siteDescription: z.string().optional(),
@@ -275,6 +301,11 @@ export const settingCreateZ = z.object({
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
+  whatsApp: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim()
+    .optional(),
   address: addressZ.optional(),
   socialLinks: z
     .object({
@@ -286,7 +317,9 @@ export const settingCreateZ = z.object({
     .optional(),
 });
 
-// If you want a separate update schema where fields can be optional:
+export type TSettings = z.infer<typeof settingCreateZ>;
+
+// If you want a separate update  where fields can be optional:
 export const settingUpdateZ = settingCreateZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
@@ -295,19 +328,20 @@ export const settingUpdateZ = settingCreateZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Input Type inferred from Zod
-export type SettingCreateInput = z.infer<typeof settingCreateZ>;
-export type SettingUpdateInput = z.infer<typeof settingUpdateZ>;
+export type TUpdateSetting = z.infer<typeof settingUpdateZ>;
 
-/** OrderProduct schema */
-export const orderProductSchemaZ = z.object({
-  productId: objectIdSchemaZ,
-  variantId: objectIdSchemaZ,
+// OrderProduct
+export const orderedItemsZ = z.object({
+  productId: objectIdZ,
+  variantId: objectIdZ,
   quantity: z.number().int().min(1),
 });
 
-/** Payment status and order status enums */
+export type TOrderdProduct = z.infer<typeof orderFetchQueryZ>;
+
+// Payment status and order status enums
 export const paymentStatusEnumZ = z.enum(["unpaid", "paid"]);
+export type TPaymentStatus = z.infer<typeof paymentStatusEnumZ>;
 export const orderStatusEnumZ = z.enum([
   "pending",
   "processing",
@@ -316,11 +350,13 @@ export const orderStatusEnumZ = z.enum([
   "cancelled",
 ]);
 
-/** Main Order schema */
-export const orderSchemaZ = z.object({
+export type TOrderStatus = z.infer<typeof orderStatusEnumZ>;
+
+// Main Order
+export const orderZ = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  products: z
-    .array(orderProductSchemaZ)
+  items: z
+    .array(orderedItemsZ)
     .min(1, "Order must contain at least one product"),
 
   address: addressZ,
@@ -346,8 +382,10 @@ export const orderSchemaZ = z.object({
     .default(() => new Date()),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const orderUpdateZ = orderSchemaZ.partial().refine(
+export type TOrder = z.infer<typeof orderZ>;
+
+// If you want a separate update  where fields can be optional:
+export const orderUpdateZ = orderZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -355,12 +393,9 @@ export const orderUpdateZ = orderSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-/** TypeScript types inferred from schemas */
-export type OrderProductInput = z.infer<typeof orderProductSchemaZ>;
-export type OrderInput = z.infer<typeof orderSchemaZ>;
-export type OrderUpdateInput = z.infer<typeof orderUpdateZ>;
+export type TUpdateOrder = z.infer<typeof orderUpdateZ>;
 
-export const orderFetchQuerySchema = z.object({
+export const orderFetchQueryZ = z.object({
   sortBy: z.string().optional().default("createdAt"),
   sortType: z.enum(["asc", "desc"]).optional().default("desc"),
 
@@ -417,7 +452,9 @@ export const orderFetchQuerySchema = z.object({
   paymentStatus: z.enum(["paid", "unpaid"]).optional(),
 });
 
-export const subscriberSchemaZ = z.object({
+export type TOrderQuery = z.infer<typeof orderFetchQueryZ>;
+
+export const subscriberZ = z.object({
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
     z.string().email("Invalid email address").trim().toLowerCase()
@@ -433,14 +470,18 @@ export const subscriberSchemaZ = z.object({
   userAgent: z.string().optional(),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const subscriberUpdateZ = subscriberSchemaZ.partial().refine(
+export type TSubscribe = z.infer<typeof subscriberZ>;
+
+// If you want a separate update  where fields can be optional:
+export const subscriberUpdateZ = subscriberZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
   { message: "At least one field must be provided for update" }
 );
+
+export type TUpdateSubscribe = z.infer<typeof subscriberUpdateZ>;
 
 export const subscriberQueryZ = z.object({
   sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
@@ -460,6 +501,4 @@ export const subscriberQueryZ = z.object({
   search: z.string().optional(),
 });
 
-/** TypeScript types inferred from schemas */
-export type SubscribeInput = z.infer<typeof subscriberSchemaZ>;
-export type SubscribeUpdateInput = z.infer<typeof subscriberUpdateZ>;
+export type TQuerySubscribe = z.infer<typeof subscriberQueryZ>;

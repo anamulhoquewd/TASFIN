@@ -1,3 +1,4 @@
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import Settings from "./../models/settings.model.js";
 import { adminService, settingsService } from "./../services/index.js";
@@ -48,10 +49,6 @@ export const changeLogo = async (c: Context) => {
     });
   }
 
-  // Generate filename
-  const fileN = c.req.query("filename") || "avatar";
-  const filename = `${fileN}-${Date.now()}.webp`;
-
   try {
     const settings = await Settings.findOne();
 
@@ -61,11 +58,7 @@ export const changeLogo = async (c: Context) => {
       });
     }
 
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "settings",
-    });
+    const response = await uploadSingleFile(file, "settings");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -75,10 +68,10 @@ export const changeLogo = async (c: Context) => {
       return serverErrorHandler(c, response.serverError);
     }
 
-    // Update settings.logo.url and save
+    // Update and save
     settings.logo = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.publicId,
+      ...response.success.data,
     };
 
     await settings.save();
@@ -88,7 +81,7 @@ export const changeLogo = async (c: Context) => {
     return c.json(
       {
         success: false,
-        message: "Avatar upload failed",
+        message: "Logo avatar upload failed",
         error: error.message,
       },
       500

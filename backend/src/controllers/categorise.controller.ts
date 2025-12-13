@@ -1,3 +1,4 @@
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   badRequestHandler,
   schemaValidationError,
@@ -5,7 +6,7 @@ import {
 } from "./../error/index.js";
 import Category from "./../models/categorise.model.js";
 import { adminService, categoryService } from "./../services/index.js";
-import { idSchemaZ } from "./../validations/zod.js";
+import { mongoIdZ } from "./../validations/zod.js";
 import type { Context } from "hono";
 
 export const register = async (c: Context) => {
@@ -111,7 +112,7 @@ export const changeAvatar = async (c: Context) => {
   const body = await c.req.parseBody();
   const file = body["avatar"] as File;
 
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return badRequestHandler(
       c,
@@ -145,11 +146,7 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "admins",
-    });
+    const response = await uploadSingleFile(file, "tasfin_categories");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -161,8 +158,9 @@ export const changeAvatar = async (c: Context) => {
 
     // Update category.avatar.url and save
     category.image = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.publicId,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
     };
 
     await category.save();

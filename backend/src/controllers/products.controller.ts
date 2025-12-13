@@ -1,7 +1,7 @@
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { productService } from "./../services/index.js";
 import { parseDeleteUrls } from "./../utils/index.js";
-import type{ Context } from "hono";
+import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
@@ -9,6 +9,7 @@ export const register = async (c: Context) => {
   // Extract all fields from form data
   const title = formData.get("title") as string;
   const slug = formData.get("slug") as string;
+  const sku = formData.get("sku") as string;
   const fabric = formData.get("fabric") as string;
   const valueAddition = formData.get("valueAddition") as string;
   const cutFit = formData.get("cutFit") as string;
@@ -19,7 +20,8 @@ export const register = async (c: Context) => {
   const sideCut = formData.get("sideCut") as string;
   const description = formData.get("description") as string;
   const isFeatured = formData.get("isFeatured") === "true";
-  const isActive = formData.get("isActive") === "true";
+  const isItNew = formData.get("isItNew") === "true";
+  const status = formData.get("status") === "true";
 
   // Parse array fields
   const categories = JSON.parse(formData.get("categories") as string);
@@ -54,20 +56,26 @@ export const register = async (c: Context) => {
   const body = {
     title,
     slug,
+    sku,
     description,
     categories,
     images,
     variants,
-    fabric,
-    valueAddition,
-    cutFit,
-    collarNeck,
-    sleeve,
-    length,
-    washCare,
-    sideCut,
+
+    details: {
+      fabric,
+      valueAddition,
+      cutFit,
+      collarNeck,
+      sleeve,
+      length,
+      washCare,
+      sideCut,
+    },
+
     isFeatured,
-    isActive,
+    isItNew,
+    status,
     tags,
     keyFeatures,
   };
@@ -154,7 +162,7 @@ export const updateGeneralInfo = async (c: Context) => {
       washCare: formData["washCare"] || "",
       sideCut: formData["sideCut"] || "",
       isFeatured: formData["isFeatured"] === "true",
-      isActive: formData["isActive"] === "true",
+      status: formData["status"] === "true",
       categories,
       tags,
     };
@@ -192,6 +200,8 @@ export const updateVariantInfo = async (c: Context) => {
 
   const body = {
     size: formData["size"] || "",
+    color: formData["color"] || "",
+    isCustom: formData["isCustom"] || false,
     price: parseInt(formData["price"] as string) || 0,
     stock: parseInt(formData["stock"] as string) || 0,
   };
@@ -219,15 +229,15 @@ export const updateMainImages = async (c: Context) => {
   const formData = await c.req.formData();
 
   // Main images
-  const mainImages = (formData.getAll("images") as File[]).filter(
+  const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
 
-  const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+  const deleteImagePublicId = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateMainImages({
     productId,
-    data: { mainImages, deleteImageUrls },
+    data: { newImages, deleteImagePublicId },
   });
 
   if (response.error) {
@@ -253,16 +263,16 @@ export const updateVImages = async (c: Context) => {
   const formData = await c.req.formData();
 
   // Main images
-  const images = (formData.getAll("images") as File[]).filter(
+  const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
 
-  const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+  const deleteImagePublicId = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateVImages({
     productId,
     variantId,
-    data: { images, deleteImageUrls },
+    data: { newImages, deleteImagePublicId },
   });
 
   if (response.error) {
@@ -312,13 +322,15 @@ export const createVariant = async (c: Context) => {
   const images = formData.getAll("images") as File[];
 
   const size = formData.get("size") as string;
+  const color = formData.get("color") as string;
   const stock = parseInt(formData.get("stock") as string);
   const price = parseFloat(formData.get("price") as string);
+  const isCustom = formData.get("isCustom") as string;
 
   // Call service
   const response = await productService.createVariant({
-    data: { images, size, stock, price },
     productId,
+    data: { images, size, stock, price, color, isCustom },
   });
 
   if (response.error) {
@@ -357,7 +369,8 @@ export const getProducts = async (c: Context) => {
   const sortType = c.req.query("sortType") as string;
   const search = c.req.query("search") as string;
   const isFeatured = c.req.query("isFeatured") as string;
-  const isActive = c.req.query("isActive") as string;
+  const isItNew = c.req.query("isItNew") as string;
+  const status = c.req.query("status") as string;
 
   // categories in format category1,category2
   const categories = (c.req.query("categories") as string)?.split(",") || [];
@@ -375,7 +388,8 @@ export const getProducts = async (c: Context) => {
     search,
 
     isFeatured,
-    isActive,
+    isItNew,
+    status,
     priceRange: { min: minPrice, max: maxPrice },
     categories,
   });
