@@ -67,18 +67,18 @@ export async function uploadSingleFile(file: File, folder = "tasfin_uploads") {
 }
 
 export async function uploadMultipleFiles(
-  files: File[],
+  images: { file: File; position: number }[],
   folder = "tasfin_uploads"
 ) {
   try {
-    if (!Array.isArray(files) || files.length === 0) {
+    if (!Array.isArray(images) || images.length === 0) {
       return { error: { message: "files must be a non-empty array" } };
     }
 
-    const results: { url: string; publicId: string }[] = [];
+    const results: { url: string; publicId: string; position: number }[] = [];
 
-    for (const file of files) {
-      const uploaded = await uploadSingleFile(file, folder);
+    for (const image of images) {
+      const uploaded = await uploadSingleFile(image.file, folder);
 
       if (!uploaded.success) {
         return {
@@ -89,7 +89,7 @@ export async function uploadMultipleFiles(
         };
       }
 
-      results.push(uploaded.success.data);
+      results.push({ ...uploaded.success.data, position: image.position });
     }
 
     return {

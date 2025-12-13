@@ -4,7 +4,7 @@ export interface IImage {
   alt: string;
   url: string;
   publicId: string;
-  position?: number;
+  position: number;
   isPrimary?: boolean;
 }
 
@@ -148,19 +148,52 @@ export interface IOrderProduct {
 
 export interface IOrder {
   _id: string;
+  paymentId?: mongoose.Types.ObjectId;
   name: string;
   user: mongoose.Types.ObjectId;
-  items: IOrderProduct[];
   address: IAddress;
-  paymentStatus: "unpaid" | "paid";
-  paymentMethod: "cod" | "bkash" | "nagad" | "bank";
+
+  items: IOrderProduct[];
+
   discount: number;
   shippingCost: number;
   subtotal: number;
   total: number;
+
+  paymentStatus: "unpaid" | "paid";
+  paymentMethod: "cod" | "bkash" | "nagad" | "bank";
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate: Date;
-  paymentId?: mongoose.Types.ObjectId;
+
+  // Custom Order Fields
+  isCustom: boolean;
+  customDetails: {
+    topMeasurements: {
+      bust: string;
+      waist: string;
+      hip: string;
+      shoulder: string;
+      sleeveLength: string;
+      fullLength: string;
+      neck: string;
+      armhole: string;
+    };
+
+    bottomMeasurements: {
+      waist: string;
+      hip: string;
+      length: string;
+      inseam: string;
+      bottomOpening: string;
+    };
+
+    referenceImages: IImage[];
+
+    note: string;
+    customColor: string;
+    expectedDeliveryDate: Date;
+    extraCharge: number;
+  };
 }
 
 export interface IPayment {

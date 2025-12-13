@@ -29,7 +29,14 @@ export const productVariantZ = z.object({
   sku: z.string().min(6),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
-  images: z.array(z.file()).optional(),
+  images: z
+    .array(
+      z.object({
+        file: z.instanceof(File),
+        position: z.number().int().min(0),
+      })
+    )
+    .nonempty("At least 1 image is required"),
 });
 
 export type TVariant = z.infer<typeof productVariantZ>;
@@ -57,7 +64,15 @@ export const productZ = z.object({
   categories: z.array(objectIdZ),
   tags: z.array(z.string().min(1).max(50)).optional(),
 
-  images: z.array(z.file()).nonempty("At least 1 image is required"),
+  images: z
+    .array(
+      z.object({
+        file: z.instanceof(File),
+        position: z.number().int().min(0),
+      })
+    )
+    .nonempty("At least 1 image is required"),
+
   variants: z.array(productVariantZ).nonempty("At least 1 variant is required"),
 
   details: z.object({
@@ -386,9 +401,32 @@ export const orderStatusEnumZ = z.enum([
 
 export type TOrderStatus = z.infer<typeof orderStatusEnumZ>;
 
+export const measurementZ = z.object({
+  bust: z.string().optional(),
+  waist: z.string().optional(),
+  hip: z.string().optional(),
+  shoulder: z.string().optional(),
+  sleeveLength: z.string().optional(),
+  fullLength: z.string().optional(),
+  neck: z.string().optional(),
+  armhole: z.string().optional(),
+  inseam: z.string().optional(),
+});
+
+export const customOrderZ = z.object({
+  isCustom: z.literal(true),
+  measurements: measurementZ,
+  note: z.string().max(500).optional(),
+});
+
+export const normalOrderZ = z.object({
+  isCustom: z.literal(false),
+});
+
 // Main Order
 export const orderZ = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+
   items: z
     .array(orderedItemsZ)
     .min(1, "Order must contain at least one product"),
@@ -396,10 +434,12 @@ export const orderZ = z.object({
   address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
+
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
     z.string().email("Invalid email address").trim().toLowerCase().optional()
   ),
+
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -408,12 +448,22 @@ export const orderZ = z.object({
   status: orderStatusEnumZ.default("pending"),
 
   paymentMethod: z.enum(["cod"]).default("cod"),
-  shippingCost: z.number().nonnegative("price must be >= 0").default(0),
 
-  orderDate: z.coerce
-    .date()
-    .optional()
-    .default(() => new Date()),
+  shippingCost: z.number().nonnegative().default(0),
+
+  orderDate: z.coerce.date().default(() => new Date()),
+
+  referenceImages: z
+    .array(
+      z.object({
+        file: z.instanceof(File),
+        position: z.number().int().min(0),
+      })
+    )
+    .optional(),
+
+  // Custom / Normal Order Handling
+  customOrder: z.union([customOrderZ, normalOrderZ]),
 });
 
 export type TOrder = z.infer<typeof orderZ>;

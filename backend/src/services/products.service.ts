@@ -20,11 +20,7 @@ import {
 import type { IProductVariant } from "../interfaces/index.js";
 
 // Register new product
-export const register = async ({
-  body,
-}: {
-  body: TProduct & { images: File[]; variants: { images: File[] }[] };
-}) => {
+export const register = async ({ body }: { body: TProduct }) => {
   let imageObjects: { url: string; publicId: string }[] = [];
   let varinatImageObjects: { url: string; publicId: string }[] = []; // { variantIndex: [urls] }
 
@@ -78,24 +74,32 @@ export const register = async ({
     // -------------------------------
     const variantsWithImages = await Promise.all(
       (validData.data.variants || []).map(async (variant: TVariant) => {
-        if (variant.images && variant.images.length > 0) {
+        let uploadedImages: {
+          url: string;
+          publicId: string;
+          position: number;
+        }[] = [];
+
+        if (variant.images?.length) {
           const response = await uploadMultipleFiles(
-            variant.images,
+            variant.images, // ✅ { file, position }[]
             "tasfin_v_products"
           );
 
-          if (response.error) throw new Error(response?.error?.message);
-          if (response.serverError)
-            throw new Error(response?.serverError?.message);
+          if (response?.error) throw new Error(response.error.message);
+          if (response?.serverError)
+            throw new Error(response.serverError.message);
 
-          varinatImageObjects = response?.success?.data;
+          uploadedImages = response.success.data;
         }
 
         return {
           ...variant,
-          images: varinatImageObjects.map((image) => ({
-            alt: `${variant?.color}-${variant.size}`,
-            ...image,
+          images: uploadedImages.map((image) => ({
+            url: image.url,
+            publicId: image.publicId,
+            position: image.position,
+            alt: `${variant.color}-${variant.size}`,
           })),
         };
       })
@@ -317,7 +321,10 @@ export const updateMainImages = async ({
   data,
 }: {
   productId: string;
-  data: { newImages: File[]; deleteImagePublicIds: string[] };
+  data: {
+    newImages: { file: File; position: number }[];
+    deleteImagePublicIds: string[];
+  };
 }) => {
   const idValidation = mongoIdZ.safeParse({ _id: productId });
   if (!idValidation.success) {
@@ -326,7 +333,14 @@ export const updateMainImages = async ({
 
   const validData = z
     .object({
-      newImages: z.array(z.file()),
+      newImages: z
+        .array(
+          z.object({
+            file: z.instanceof(File),
+            position: z.number().int().min(0),
+          })
+        )
+        .nonempty("At least 1 image is required"),
       deleteImagePublicIds: z.array(z.string()),
     })
     .safeParse(data);
@@ -369,15 +383,16 @@ export const updateMainImages = async ({
 
       const data = response.success?.data || [];
 
-      const existingUrlsSet = new Set(product.images.map((img) => img.url));
+      const existingUrlsSet = new Set(product.images.map((image) => image.url));
       const uniqueNewImages = data.filter(
-        (img) => !existingUrlsSet.has(img.url)
+        (image) => !existingUrlsSet.has(image.url)
       );
       product.images.push(
-        ...uniqueNewImages.map((img) => ({
-          url: img.url,
-          publicId: img.publicId,
+        ...uniqueNewImages.map((image) => ({
+          url: image.url,
+          publicId: image.publicId,
           alt: product.title,
+          position: image.position,
         }))
       );
     }
@@ -416,7 +431,10 @@ export const updateVImages = async ({
 }: {
   productId: string;
   variantId: string;
-  data: { newImages: File[]; deleteImagePublicIds: string[] };
+  data: {
+    newImages: { file: File; position: number }[];
+    deleteImagePublicIds: string[];
+  };
 }) => {
   const idValidation = mongoIdZ.safeParse({ _id: productId });
   const vIdValidation = mongoIdZ.safeParse({ _id: variantId });
@@ -426,7 +444,14 @@ export const updateVImages = async ({
 
   const validData = z
     .object({
-      newImages: z.array(z.file()),
+      newImages: z
+        .array(
+          z.object({
+            file: z.instanceof(File),
+            position: z.number().int().min(0),
+          })
+        )
+        .nonempty("At least 1 image is required"),
       deleteImagePublicIds: z.array(z.string()),
     })
     .safeParse(data);
@@ -479,24 +504,26 @@ export const updateVImages = async ({
 
       const data = response.success?.data || [];
 
-      const existingUrlsSet = new Set(product.images.map((img) => img.url));
+      const existingUrlsSet = new Set(product.images.map((image) => image.url));
       const uniqueNewImages = data.filter(
-        (img) => !existingUrlsSet.has(img.url)
+        (image) => !existingUrlsSet.has(image.url)
       );
       product.images.push(
-        ...uniqueNewImages.map((img) => ({
-          url: img.url,
-          publicId: img.publicId,
+        ...uniqueNewImages.map((image) => ({
+          url: image.url,
+          publicId: image.publicId,
           alt: product.title,
+          position: image.position,
         }))
       );
 
       if (!variant.images) variant.images = [];
       variant.images.push(
-        ...uniqueNewImages.map((img) => ({
-          url: img.url,
-          publicId: img.publicId,
+        ...uniqueNewImages.map((image) => ({
+          url: image.url,
+          publicId: image.publicId,
           alt: product.title,
+          position: image.position,
         }))
       );
     }
@@ -551,7 +578,14 @@ export const createVariant = async ({
       isCustom: z.boolean().default(false),
       stock: z.number().int().min(0, "stock must be >= 0"),
       price: z.number().nonnegative("price must be >= 0"),
-      images: z.array(z.file()).optional().default([]),
+      images: z
+        .array(
+          z.object({
+            file: z.instanceof(File),
+            position: z.number().int().min(0),
+          })
+        )
+        .default([]),
     })
     .safeParse(data);
 
@@ -588,9 +622,9 @@ export const createVariant = async ({
 
       const data = response.success?.data || [];
 
-      const existingUrlsSet = new Set(product.images.map((img) => img.url));
+      const existingUrlsSet = new Set(product.images.map((image) => image.url));
       const uniqueNewImages = data.filter(
-        (img) => !existingUrlsSet.has(img.url)
+        (image) => !existingUrlsSet.has(image.url)
       );
 
       imageObjects = uniqueNewImages ?? [];
@@ -674,7 +708,7 @@ export const deleteVariant = async ({
     // Delete variant images from Cloudinary
     if (variant.images?.length) {
       const publicIds = variant.images.map(
-        (img: { publicId: string }) => img.publicId
+        (image: { publicId: string }) => image.publicId
       );
 
       if (publicIds.length) {

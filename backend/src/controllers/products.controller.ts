@@ -31,12 +31,31 @@ export const register = async (c: Context) => {
 
   // Get main images
   const images = formData.getAll("images") as File[];
+  const imagePositions = formData.getAll("images_position[]").map(Number);
+
+  const imagesWithPosition = images.map((file, index) => ({
+    file,
+    position: imagePositions[index] ?? index, // fallback
+  }));
 
   // Process variants
   const variants = [];
   let variantIndex = 0;
 
   while (formData.get(`variants[${variantIndex}][size]`)) {
+    const variantImages = formData.getAll(
+      `variants[${variantIndex}][images]`
+    ) as File[];
+
+    const variantPositions = formData
+      .getAll(`variants[${variantIndex}][images_position][]`)
+      .map(Number);
+
+    const imagesWithPosition = variantImages.map((file, i) => ({
+      file,
+      position: variantPositions[i] ?? i, // fallback
+    }));
+
     const variant = {
       isCustom: formData.get("isCustom") === "true",
       sku: formData.get(`variants[${variantIndex}][sku]`) as string,
@@ -48,8 +67,10 @@ export const register = async (c: Context) => {
       price: parseFloat(
         formData.get(`variants[${variantIndex}][price]`) as string
       ),
-      images: formData.getAll(`variants[${variantIndex}][images]`) as File[],
+
+      images: imagesWithPosition,
     };
+
     variants.push(variant);
     variantIndex++;
   }
@@ -60,7 +81,7 @@ export const register = async (c: Context) => {
     slug,
     description,
     categories,
-    images,
+    images: imagesWithPosition,
     variants,
 
     details: {
@@ -265,12 +286,18 @@ export const updateMainImages = async (c: Context) => {
   const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
+  const imagePositions = formData.getAll("images_position[]").map(Number);
+
+  const imagesWithPosition = newImages.map((file, index) => ({
+    file,
+    position: imagePositions[index] ?? index, // fallback
+  }));
 
   const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateMainImages({
     productId,
-    data: { newImages, deleteImagePublicIds },
+    data: { newImages: imagesWithPosition, deleteImagePublicIds },
   });
 
   if (response.error) {
@@ -299,13 +326,19 @@ export const updateVImages = async (c: Context) => {
   const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
+  const imagePositions = formData.getAll("images_position[]").map(Number);
+
+  const imagesWithPosition = newImages.map((file, index) => ({
+    file,
+    position: imagePositions[index] ?? index, // fallback
+  }));
 
   const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
 
   const response = await productService.updateVImages({
     productId,
     variantId,
-    data: { newImages, deleteImagePublicIds },
+    data: { newImages: imagesWithPosition, deleteImagePublicIds },
   });
 
   if (response.error) {
