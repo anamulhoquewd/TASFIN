@@ -69,7 +69,6 @@ export const getCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Update category
 export const updateCategory = async (c: Context) => {
   const _id = c.req.param("_id");
   if (!_id) return badRequestHandler(c, { message: "Category ID is required" });
@@ -89,7 +88,6 @@ export const updateCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Delete category
 export const deleteCategory = async (c: Context) => {
   const _id = c.req.param("_id");
 
@@ -106,7 +104,6 @@ export const deleteCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Change Admin Avatar
 export const changeAvatar = async (c: Context) => {
   const _id = c.req.param("_id");
   const body = await c.req.parseBody();
@@ -161,6 +158,7 @@ export const changeAvatar = async (c: Context) => {
       alt: response.success.data.publicId,
       url: response.success.data.url,
       publicId: response.success.data.publicId,
+      position: 0,
     };
 
     await category.save();

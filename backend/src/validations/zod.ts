@@ -1,7 +1,7 @@
 // validation/admin.validation.ts
 import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { z } from "zod";
+import { number, z } from "zod";
 
 // Image validation (matches your Image)
 export const imageZ = z.object({
@@ -401,7 +401,7 @@ export const orderStatusEnumZ = z.enum([
 
 export type TOrderStatus = z.infer<typeof orderStatusEnumZ>;
 
-export const measurementZ = z.object({
+export const toPmeasurementZ = z.object({
   bust: z.string().optional(),
   waist: z.string().optional(),
   hip: z.string().optional(),
@@ -410,12 +410,31 @@ export const measurementZ = z.object({
   fullLength: z.string().optional(),
   neck: z.string().optional(),
   armhole: z.string().optional(),
-  inseam: z.string().optional(),
 });
+
+export type TTopMeasurement = z.infer<typeof toPmeasurementZ>;
+
+export const bottonMeasurementZ = z.object({
+  waist: z.string().optional(),
+  hip: z.string().optional(),
+  length: z.string().optional(),
+  inseam: z.string().optional(),
+  bottomOpening: z.string().optional(),
+});
+
+export type TBottonMeasurement = z.infer<typeof bottonMeasurementZ>;
 
 export const customOrderZ = z.object({
   isCustom: z.literal(true),
-  measurements: measurementZ,
+  measurements: z.object({ toPmeasurementZ, bottonMeasurementZ }),
+  referenceImages: z
+    .array(
+      z.object({
+        file: z.instanceof(File),
+        position: z.number().int().min(0),
+      })
+    )
+    .optional(),
   note: z.string().max(500).optional(),
 });
 
@@ -433,8 +452,6 @@ export const orderZ = z.object({
 
   address: addressZ,
 
-  paymentStatus: paymentStatusEnumZ.default("unpaid"),
-
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
     z.string().email("Invalid email address").trim().toLowerCase().optional()
@@ -445,23 +462,11 @@ export const orderZ = z.object({
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
 
-  status: orderStatusEnumZ.default("pending"),
-
   paymentMethod: z.enum(["cod"]).default("cod"),
 
   shippingCost: z.number().nonnegative().default(0),
 
-  orderDate: z.coerce.date().default(() => new Date()),
-
-  referenceImages: z
-    .array(
-      z.object({
-        file: z.instanceof(File),
-        position: z.number().int().min(0),
-      })
-    )
-    .optional(),
-
+  couponCode: z.string().trim().optional(),
   // Custom / Normal Order Handling
   customOrder: z.union([customOrderZ, normalOrderZ]),
 });
@@ -556,7 +561,6 @@ export const subscriberZ = z.object({
 
 export type TSubscribe = z.infer<typeof subscriberZ>;
 
-// If you want a separate update  where fields can be optional:
 export const subscriberUpdateZ = subscriberZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
@@ -586,3 +590,68 @@ export const subscriberQueryZ = z.object({
 });
 
 export type TQuerySubscribe = z.infer<typeof subscriberQueryZ>;
+
+export const couponZ = z
+  .object({
+    code: z
+      .string()
+      .min(1)
+      .max(8, "Code must be less than 8 characters")
+      .toUpperCase(),
+
+    discountType: z.enum(["percent", "fixed"]),
+
+    value: z.number().positive(),
+
+    maxValue: z.number().positive(),
+
+    minSubtotal: z.number().nonnegative(),
+
+    startAt: z.coerce.date(),
+    endAt: z.coerce.date(),
+
+    totalUsageLimit: z.number().int().positive(),
+    perUserUsageLimit: z.number().int().positive(),
+
+    usedCount: z.number().int().nonnegative().default(0),
+
+    status: z.boolean().default(true),
+  })
+  .refine((data) => data.endAt > data.startAt, {
+    message: "End date must be after start date",
+    path: ["endAt"],
+  });
+
+export type TCoupon = z.infer<typeof couponZ>;
+
+export const updateCouponZ = couponZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+export type TUpdateCoupon = z.infer<typeof updateCouponZ>;
+
+export const couponUsageZ = z.object({
+  couponId: objectIdZ,
+  phone: z
+    .string()
+    .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
+    .trim(),
+  usedCount: z.number().int().nonnegative().default(0),
+  lastUsedAt: z.coerce.date().optional(),
+});
+
+export type TCouponUsage = z.infer<typeof couponUsageZ>;
+
+export const updateCouponUsageZ = couponUsageZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" }
+);
+
+export type TUpdateCouponUsage = z.infer<typeof updateCouponUsageZ>;

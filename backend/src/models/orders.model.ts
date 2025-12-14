@@ -22,13 +22,12 @@ const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
       type: String,
       enum: ["unpaid", "paid"],
       default: "unpaid",
-      required: true,
     },
     paymentMethod: {
       type: String,
       enum: ["cod"],
     },
-    subtotal: { type: Number, min: 0 },
+    subtotal: { type: Number, required: true, min: 0 },
     discount: { type: Number },
     shippingCost: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
@@ -40,6 +39,28 @@ const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
     orderDate: { type: Date, default: Date.now },
 
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },
+
+    // Custom Order Fields
+    isCustom: { type: Boolean, default: false },
+    customOrder: {
+      type: {
+        isCustom: { type: Boolean, default: false },
+        measurements: {
+          type: Schema.Types.Mixed,
+        },
+        referenceImages: [ImageSchema],
+        note: { type: String },
+      },
+      required: false,
+    },
+
+    // Coupon Fields
+    coupon: {
+      code: { type: String },
+      discountType: { type: String, enum: ["percent", "fixed"] },
+      value: { type: Number },
+      discountAmount: { type: Number },
+    },
   },
   { timestamps: true }
 );

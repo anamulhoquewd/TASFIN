@@ -3,19 +3,98 @@ import { orderService } from "./../services/index.js";
 import type { Context } from "hono";
 
 export const register = async (c: Context) => {
-  const body = await c.req.json();
+  const formData = await c.req.formData();
 
-  const response = await orderService.register(body);
+  try {
+    /* ================= BASIC INFO ================= */
+    const name = formData.get("name") as string;
+    const phone = formData.get("phone") as string;
+    const email = (formData.get("email") as string) || undefined;
+    const paymentMethod = formData.get("paymentMethod") as "cod";
+    const couponCode = (formData.get("couponCode") as string) || undefined;
 
-  if (response.error) {
-    return badRequestHandler(c, response.error);
+    /* ================= ADDRESS ================= */
+    const address = {
+      street: formData.get("address[street]") as string,
+      city: formData.get("address[city]") as string,
+      state: formData.get("address[state]") as string,
+      zipCode: formData.get("address[zipCode]") as string,
+      country: formData.get("address[country]") as string,
+    };
+
+    /* ================= ORDER ITEMS ================= */
+    const items = JSON.parse(formData.get("items") as string);
+
+    /* ================= FLAGS ================= */
+    const isCustom = formData.get("customOrder[isCustom]") === "true";
+
+    /* ================= CUSTOM ORDER ================= */
+    let customOrder: any = { isCustom };
+
+    if (isCustom) {
+      /* ---- Measurements ---- */
+      const topMeasurement = formData.get("customOrder[measurements][top]");
+      const bottomMeasurement = formData.get(
+        "customOrder[measurements][bottom]"
+      );
+
+      customOrder.measurements = {
+        top: topMeasurement ? JSON.parse(topMeasurement as string) : undefined,
+        bottom: bottomMeasurement
+          ? JSON.parse(bottomMeasurement as string)
+          : undefined,
+      };
+
+      /* ---- Reference Images ---- */
+      const refImages = formData.getAll(
+        "customOrder[referenceImages][files][]"
+      ) as File[];
+
+      const refPositions = formData
+        .getAll("customOrder[referenceImages][positions][]")
+        .map(Number);
+
+      customOrder.referenceImages = refImages.map((file, i) => ({
+        file,
+        position: refPositions[i] ?? i,
+      }));
+
+      /* ---- Note ---- */
+      const note = formData.get("customOrder[note]");
+      if (note) customOrder.note = note;
+    }
+
+    /* ================= FINAL PAYLOAD ================= */
+    const body = {
+      name,
+      phone,
+      email,
+      address,
+      items,
+      paymentMethod,
+      customOrder,
+      couponCode,
+      shippingCost: 0,
+    };
+
+    /* ================= SERVICE ================= */
+    const response = await orderService.register(body);
+
+    if (response.error) {
+      return badRequestHandler(c, response.error);
+    }
+
+    if (response.serverError) {
+      return serverErrorHandler(c, response.serverError);
+    }
+
+    return c.json(response.success, 201);
+  } catch (error: any) {
+    return serverErrorHandler(c, {
+      message: error.message,
+      stack: process.env.NODE_ENV === "production" ? null : error.stack,
+    });
   }
-
-  if (response.serverError) {
-    return serverErrorHandler(c, response.serverError);
-  }
-
-  return c.json(response.success, 201);
 };
 
 // Update order

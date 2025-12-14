@@ -6,116 +6,116 @@ import type { Context } from "hono";
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
 
-  // Extract all fields from form data
-  const title = formData.get("title") as string;
-  const slug = formData.get("slug") as string;
-  const fabric = formData.get("fabric") as string;
-  const valueAddition = formData.get("valueAddition") as string;
-  const cutFit = formData.get("cutFit") as string;
-  const collarNeck = formData.get("collarNeck") as string;
-  const sleeve = formData.get("sleeve") as string;
-  const length = formData.get("length") as string;
-  const washCare = formData.get("washCare") as string;
-  const sideCut = formData.get("sideCut") as string;
-  const description = formData.get("description") as string;
-  const isFeatured = formData.get("isFeatured") === "true";
-  const isItNew = formData.get("isItNew") === "true";
-  const status = formData.get("status") === "true";
+  try {
+    // Extract all fields from form data
+    const title = formData.get("title") as string;
+    const slug = formData.get("slug") as string;
 
-  // Parse array fields
-  const categories = JSON.parse(formData.get("categories") as string);
-  const tags = JSON.parse(formData.get("tags") as string);
-
-  // Parse key-featured description
-  const keyFeatures = JSON.parse(formData.get("keyFeatures") as string);
-
-  // Get main images
-  const images = formData.getAll("images") as File[];
-  const imagePositions = formData.getAll("images_position[]").map(Number);
-
-  const imagesWithPosition = images.map((file, index) => ({
-    file,
-    position: imagePositions[index] ?? index, // fallback
-  }));
-
-  // Process variants
-  const variants = [];
-  let variantIndex = 0;
-
-  while (formData.get(`variants[${variantIndex}][size]`)) {
-    const variantImages = formData.getAll(
-      `variants[${variantIndex}][images]`
-    ) as File[];
-
-    const variantPositions = formData
-      .getAll(`variants[${variantIndex}][images_position][]`)
-      .map(Number);
-
-    const imagesWithPosition = variantImages.map((file, i) => ({
-      file,
-      position: variantPositions[i] ?? i, // fallback
-    }));
-
-    const variant = {
-      isCustom: formData.get("isCustom") === "true",
-      sku: formData.get(`variants[${variantIndex}][sku]`) as string,
-      size: formData.get(`variants[${variantIndex}][size]`) as string,
-      color: formData.get(`variants[${variantIndex}][color]`) as string,
-      stock: parseInt(
-        formData.get(`variants[${variantIndex}][stock]`) as string
-      ),
-      price: parseFloat(
-        formData.get(`variants[${variantIndex}][price]`) as string
-      ),
-
-      images: imagesWithPosition,
+    const details = {
+      fabric: formData.get("details[fabric]") as string,
+      valueAddition: formData.get("details[valueAddition]") as string,
+      cutFit: formData.get("details[cutFit]") as string,
+      collarNeck: formData.get("details[collarNeck]") as string,
+      sleeve: formData.get("details[sleeve]") as string,
+      length: formData.get("details[length]") as string,
+      washCare: formData.get("details[washCare]") as string,
+      sideCut: formData.get("details[sideCut]") as string,
     };
 
-    variants.push(variant);
-    variantIndex++;
+    const description = formData.get("description") as string;
+    const isFeatured = formData.get("isFeatured") === "true";
+    const isItNew = formData.get("isItNew") === "true";
+    const status = formData.get("status") === "true";
+
+    // Parse array fields
+    const categories = JSON.parse(formData.get("categories") as string);
+    const tags = JSON.parse(formData.get("tags") as string);
+
+    // Parse key-featured description
+    const keyFeatures = JSON.parse(formData.get("keyFeatures") as string);
+
+    // Get main images
+    const images = formData.getAll("images") as File[];
+    const imagePositions = formData.getAll("images_position[]").map(Number);
+
+    const imagesWithPosition = images.map((file, index) => ({
+      file,
+      position: imagePositions[index] ?? index, // fallback
+    }));
+
+    // Process variants
+    const variants = [];
+    let variantIndex = 0;
+
+    while (formData.get(`variants[${variantIndex}][size]`)) {
+      const variantImages = formData.getAll(
+        `variants[${variantIndex}][images]`
+      ) as File[];
+
+      const variantPositions = formData
+        .getAll(`variants[${variantIndex}][images_position][]`)
+        .map(Number);
+
+      const imagesWithPosition = variantImages.map((file, i) => ({
+        file,
+        position: variantPositions[i] ?? i, // fallback
+      }));
+
+      const variant = {
+        isCustom: formData.get("isCustom") === "true",
+        sku: formData.get(`variants[${variantIndex}][sku]`) as string,
+        size: formData.get(`variants[${variantIndex}][size]`) as string,
+        color: formData.get(`variants[${variantIndex}][color]`) as string,
+        stock: parseInt(
+          formData.get(`variants[${variantIndex}][stock]`) as string
+        ),
+        price: parseFloat(
+          formData.get(`variants[${variantIndex}][price]`) as string
+        ),
+
+        images: imagesWithPosition,
+      };
+
+      variants.push(variant);
+      variantIndex++;
+    }
+
+    // Prepare body for service
+    const body = {
+      title,
+      slug,
+      description,
+      categories,
+      images: imagesWithPosition,
+      variants,
+
+      details,
+
+      isFeatured,
+      isItNew,
+      status,
+      tags,
+      keyFeatures,
+    };
+
+    // Call service
+    const response = await productService.register(body);
+
+    if (response.error) {
+      return badRequestHandler(c, response.error);
+    }
+
+    if (response.serverError) {
+      return serverErrorHandler(c, response.serverError);
+    }
+
+    return c.json(response.success, 201);
+  } catch (error: any) {
+    return serverErrorHandler(c, {
+      message: error.message,
+      stack: process.env.NODE_ENV === "production" ? null : error.stack,
+    });
   }
-
-  // Prepare body for service
-  const body = {
-    title,
-    slug,
-    description,
-    categories,
-    images: imagesWithPosition,
-    variants,
-
-    details: {
-      fabric,
-      valueAddition,
-      cutFit,
-      collarNeck,
-      sleeve,
-      length,
-      washCare,
-      sideCut,
-    },
-
-    isFeatured,
-    isItNew,
-    status,
-    tags,
-    keyFeatures,
-  };
-
-  // Call service
-  const response = await productService.register({
-    body,
-  });
-
-  if (response.error) {
-    return badRequestHandler(c, response.error);
-  }
-
-  if (response.serverError) {
-    return serverErrorHandler(c, response.serverError);
-  }
-
-  return c.json(response.success, 201);
 };
 
 export const getProduct = async (c: Context) => {

@@ -20,7 +20,7 @@ import {
 import type { IProductVariant } from "../interfaces/index.js";
 
 // Register new product
-export const register = async ({ body }: { body: TProduct }) => {
+export const register = async (body: TProduct) => {
   let imageObjects: { url: string; publicId: string }[] = [];
   let varinatImageObjects: { url: string; publicId: string }[] = []; // { variantIndex: [urls] }
 

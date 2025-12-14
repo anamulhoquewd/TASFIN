@@ -4,12 +4,18 @@ import { Schema, model } from "mongoose";
 // ---------- CouponUsage ----------
 const CouponUsageSchema: Schema<ICouponUsage> = new Schema<ICouponUsage>(
   {
-    couponId: { type: Schema.Types.ObjectId, ref: "Coupon" },
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
+    couponId: { type: Schema.Types.ObjectId, ref: "Coupon", required: true },
+    phone: {
+      type: String,
+      trim: true,
+    },
     usedCount: { type: Number, default: 0 },
-    lastUsedAt: Date,
+    lastUsedAt: { type: Date },
   },
   { timestamps: true }
 );
 
-export const Coupon = model<ICouponUsage>("Coupon", CouponUsageSchema);
+// Compound unique index: one phone can use a coupon multiple times, but tracked per coupon
+CouponUsageSchema.index({ couponId: 1, phone: 1 }, { unique: true });
+
+export const CouponUsage = model<ICouponUsage>("CouponUsage", CouponUsageSchema);

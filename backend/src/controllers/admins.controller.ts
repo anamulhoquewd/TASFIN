@@ -32,7 +32,6 @@ export const register = async (c: Context) => {
   return c.json(response.success, 201);
 };
 
-// Get all admins
 export const getAdmins = async (c: Context) => {
   const page = parseInt(c.req.query("page") as string, 10) || 1;
   const limit = parseInt(c.req.query("limit") as string, 10) || 10;
@@ -76,7 +75,6 @@ export const getAdmin = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Get Me
 export const getMe = async (c: Context) => {
   try {
     // Get admin from auth token
@@ -122,7 +120,6 @@ export const getMe = async (c: Context) => {
   }
 };
 
-// Update profile
 export const updateMe = async (c: Context) => {
   // Get admin from auth token
   const admin: IAdmin = c.get("admin");
@@ -146,7 +143,6 @@ export const updateMe = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Login admin
 export const login = async (c: Context) => {
   const body = await c.req.json();
 
@@ -163,7 +159,6 @@ export const login = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Refresh Token
 export const refreshToken = async (c: Context) => {
   try {
     const rToken = getCookie(c, "refreshToken");
@@ -228,7 +223,6 @@ export const refreshToken = async (c: Context) => {
   }
 };
 
-// Logout admin
 export const logout = async (c: Context) => {
   try {
     const user: IAdmin = c.get("admin");
@@ -259,7 +253,6 @@ export const logout = async (c: Context) => {
   }
 };
 
-// Change Password
 export const changePassword = async (c: Context) => {
   const body = await c.req.json();
 
@@ -288,7 +281,6 @@ export const changePassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Delete admin
 export const deleteAdmin = async (c: Context) => {
   const _id = c.req.param("_id");
 
@@ -305,7 +297,6 @@ export const deleteAdmin = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Forgot Password
 export const forgotPassword = async (c: Context) => {
   const { email } = await c.req.json();
 
@@ -322,7 +313,6 @@ export const forgotPassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Reset Password
 export const resetPassword = async (c: Context) => {
   // Token come from param
   const resetToken = c.req.param("resetToken");
@@ -346,7 +336,6 @@ export const resetPassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Change Admin Avatar
 export const changeAvatar = async (c: Context) => {
   try {
     const body = await c.req.parseBody();

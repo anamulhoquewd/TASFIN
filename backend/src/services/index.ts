@@ -5,6 +5,8 @@ import * as productService from "./products.service.js";
 import * as orderService from "./orders.service.js";
 import * as settingsService from "./settings.service.js";
 import * as subscribersService from "./subscriber.service.js";
+import * as couponService from "./coupon.service.js";
+import * as couponUsageService from "./couponUsage.service.js";
 
 export {
   adminService,
@@ -14,4 +16,6 @@ export {
   productService,
   orderService,
   subscribersService,
+  couponService,
+  couponUsageService,
 };

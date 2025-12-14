@@ -8,6 +8,44 @@ export interface IImage {
   isPrimary?: boolean;
 }
 
+export interface IAdmin extends mongoose.Document {
+  _id: string;
+  name: string;
+  email: string;
+  nid: string;
+  password: string;
+  phone: string;
+  address: IAddress;
+  avatar: IImage;
+
+  role: "super_admin" | "admin";
+
+  matchPassword: (password: string) => Promise<boolean>;
+  generateAuthToken: () => Promise<string>;
+  generateResetPasswordToken: (expMinutes?: number) => string;
+
+  refresh?: string;
+  resetPasswordToken: string | null;
+  resetPasswordExpireDate: Date | null;
+}
+
+export interface IUser {
+  _id: string;
+  name: string;
+  occupation: string;
+  email: string;
+  phone: string;
+  address?: IAddress;
+  status: boolean;
+  isBlocked?: boolean;
+  blockedAt?: Date;
+
+  avatar: IImage;
+
+  dob: Date;
+  gender: "male" | "female";
+}
+
 export interface IProductVariant {
   _id: string;
   sku: string;
@@ -64,44 +102,6 @@ export interface IAddress {
   country: string;
 }
 
-export interface IAdmin extends mongoose.Document {
-  _id: string;
-  name: string;
-  email: string;
-  nid: string;
-  password: string;
-  phone: string;
-  address: IAddress;
-  avatar: IImage;
-
-  role: "super_admin" | "admin";
-
-  matchPassword: (password: string) => Promise<boolean>;
-  generateAuthToken: () => Promise<string>;
-  generateResetPasswordToken: (expMinutes?: number) => string;
-
-  refresh?: string;
-  resetPasswordToken: string | null;
-  resetPasswordExpireDate: Date | null;
-}
-
-export interface IUser {
-  _id: string;
-  name: string;
-  occupation: string;
-  email: string;
-  phone: string;
-  address?: IAddress;
-  status: boolean;
-  isBlocked?: boolean;
-  blockedAt?: Date;
-
-  avatar: IImage;
-
-  dob: Date;
-  gender: "male" | "female";
-}
-
 export interface ISubscriber {
   email: string;
   status: "subscribed" | "unsubscribed";
@@ -111,30 +111,6 @@ export interface ISubscriber {
   userAgent: string | null;
   isBlocked?: boolean;
   blockedAt?: Date;
-}
-
-export interface ICoupon {
-  code: string;
-  discountType: "percent" | "fixed";
-  value: number;
-  maxValue: number;
-  minSubtotal: number;
-
-  startAt: Date;
-  endAt: Date;
-
-  totalUsageLimit: number;
-  perUserUsageLimit: number;
-  usedCount: number;
-
-  status: boolean;
-}
-
-export interface ICouponUsage {
-  couponId: mongoose.Types.ObjectId;
-  userId: mongoose.Types.ObjectId;
-  usedCount: number;
-  lastUsedAt: Date;
 }
 
 export interface IOrderProduct {
@@ -161,38 +137,42 @@ export interface IOrder {
   total: number;
 
   paymentStatus: "unpaid" | "paid";
-  paymentMethod: "cod" | "bkash" | "nagad" | "bank";
+  paymentMethod: "cod";
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   orderDate: Date;
 
   // Custom Order Fields
   isCustom: boolean;
-  customDetails: {
-    topMeasurements: {
-      bust: string;
-      waist: string;
-      hip: string;
-      shoulder: string;
-      sleeveLength: string;
-      fullLength: string;
-      neck: string;
-      armhole: string;
+  customOrder?: {
+    isCustom: boolean;
+    measurements?: {
+      top?: {
+        bust?: string;
+        waist?: string;
+        hip?: string;
+        shoulder?: string;
+        sleeveLength?: string;
+        fullLength?: string;
+        neck?: string;
+        armhole?: string;
+      };
+      bottom?: {
+        waist?: string;
+        hip?: string;
+        length?: string;
+        inseam?: string;
+        bottomOpening?: string;
+      };
     };
+    referenceImages?: IImage[];
+    note?: string;
+  };
 
-    bottomMeasurements: {
-      waist: string;
-      hip: string;
-      length: string;
-      inseam: string;
-      bottomOpening: string;
-    };
-
-    referenceImages: IImage[];
-
-    note: string;
-    customColor: string;
-    expectedDeliveryDate: Date;
-    extraCharge: number;
+  coupon: {
+    code: string;
+    discountType: "percent" | "fixed";
+    value: number;
+    discountAmount: number;
   };
 }
 
@@ -238,6 +218,32 @@ export interface IDiscount {
   applicableProductIds?: mongoose.Types.ObjectId[];
 
   status: boolean;
+}
+
+export interface ICoupon {
+  code: string;
+  discountType: "percent" | "fixed";
+  value: number;
+  maxValue: number;
+  minSubtotal: number;
+
+  startAt: Date;
+  endAt: Date;
+
+  totalUsageLimit: number;
+  perUserUsageLimit: number;
+  usedCount: number;
+
+  status: boolean;
+}
+
+export interface ICouponUsage {
+  couponId: mongoose.Types.ObjectId;
+
+  phone: string;
+
+  usedCount: number;
+  lastUsedAt: Date;
 }
 
 export interface ISettings {

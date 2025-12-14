@@ -5,13 +5,13 @@ import pagination from "./../utils/pagination.js";
 import {
   categoryCreateZ,
   categoryUpdateZ,
-  idSchemaZ,
-  querySchemaZ,
-  type CategoryCreateInput,
-  type CategoryUpdateInput,
+  mongoIdZ,
+  queryZ,
+  type TCategory,
+  type TUpdateCategory,
 } from "./../validations/zod.js";
 
-export const register = async (body: CategoryCreateInput) => {
+export const register = async (body: TCategory) => {
   // Safe Parse for better error handling
   const validData = categoryCreateZ.safeParse(body);
 
@@ -74,7 +74,7 @@ export const getCategories = async (queryParams: {
   search: string;
 }) => {
   // Safe Parse for better error handling
-  const validData = querySchemaZ.safeParse({
+  const validData = queryZ.safeParse({
     sortBy: queryParams.sortBy,
     sortType: queryParams.sortType,
   });
@@ -148,7 +148,7 @@ export const getCategories = async (queryParams: {
 
 export const getCategory = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -188,10 +188,10 @@ export const updateCategory = async ({
   body,
 }: {
   _id: string;
-  body: CategoryUpdateInput;
+  body: TUpdateCategory;
 }) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -242,7 +242,7 @@ export const updateCategory = async ({
 
 export const deleteCategory = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = mongoIdZ.safeParse({ _id: _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -253,12 +253,12 @@ export const deleteCategory = async (_id: string) => {
     if (!category) {
       return {
         error: {
-          message: `Admin not found with provided ID!`,
+          message: `coupon not found with provided ID!`,
         },
       };
     }
 
-    // Delete admin
+    // Delete coupon
     await category.deleteOne();
 
     // Response

@@ -14,11 +14,8 @@ import orderRoutes from "./routes/orders.route.js";
 import settingsRoutes from "./routes/settings.route.js";
 import dotenv from "dotenv";
 import subscriberRoutes from "./routes/subscribers.controller.js";
-import {
-  deleteSingleFile,
-  uploadMultipleFiles,
-  uploadSingleFile,
-} from "./utils/cloudinary.js";
+import couponRoutes from "./routes/coupon.route.js";
+import couponUsageRoutes from "./routes/couponUsage.route.js";
 
 dotenv.config();
 
@@ -93,33 +90,11 @@ app.route("/subscribers", subscriberRoutes);
 // Settings routes
 app.route("/settings", settingsRoutes);
 
-// ------------------
+// Coupns
+app.route("/coupon", couponRoutes);
 
-app.post("/upload-single", async (c) => {
-  const form = await c.req.formData(); // FormData
-  const file = form.get("file") as File; // 'file'
-
-  const uploaded = await uploadSingleFile(file, "tasfin_products");
-  return c.json(uploaded);
-});
-
-app.post("/upload-multiple", async (c) => {
-  const form = await c.req.formData(); // FormData
-  const files = form.getAll("files") as File[]; // 'files'
-
-  console.log("Files: ", files);
-
-  const uploaded = await uploadMultipleFiles(files, "tasfin_products");
-  return c.json(uploaded);
-});
-
-app.delete("/delete", async (c) => {
-  const publicId = c.req.query("publicId")!;
-  const deleted = await deleteSingleFile(publicId);
-  return c.json(deleted);
-});
-
-// ------------------
+// Coupon usages
+app.route("/coupon-usage", couponUsageRoutes);
 
 // Global Error Handler
 app.onError((error: any, c) => {
