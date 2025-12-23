@@ -1,3 +1,4 @@
+import { IImage } from "../global";
 import { IAddress } from "../orders";
 
 export interface IAdmin {
@@ -8,10 +9,7 @@ export interface IAdmin {
   nid: string;
   address: IAddress;
   role: "super_admin" | "admin";
-  avatar?: {
-    alt: string;
-    url: string;
-  };
+  avatar?: IImage;
 }
 
 export interface IUser {
