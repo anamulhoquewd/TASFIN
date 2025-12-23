@@ -1,11 +1,11 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useRouter, usePathname } from "next/navigation";
-import { handleAxiosError } from "@/utils/error";
-import { useState } from "react";
 import api from "@/axios/interceptor";
 import { resetPasswordFormSchemaZ } from "@/lib/schemas";
+import { handleAxiosError } from "@/utils/error";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const useReset = () => {
   const router = useRouter();

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
 export interface IImage {
-  alt: string;
   url: string;
   publicId: string;
   position: number;
@@ -29,7 +28,7 @@ export interface IAdmin extends mongoose.Document {
   resetPasswordExpireDate: Date | null;
 }
 
-export interface IUser {
+export interface IUser extends mongoose.Document {
   _id: string;
   name: string;
   occupation: string;
@@ -53,7 +52,6 @@ export interface IProductVariant {
   color: string;
   stock: number;
   price: number;
-  isCustom?: boolean;
   images?: IImage[];
 }
 
@@ -68,6 +66,7 @@ export interface IProduct {
   images: IImage[];
   variants: IProductVariant[];
 
+  isCustom?: boolean;
   isFeatured?: boolean;
   isItNew?: boolean;
   status: boolean;
@@ -122,6 +121,12 @@ export interface IOrderProduct {
   quantity: number;
 }
 
+export interface IOrderHistry {
+  date: Date;
+  note: string;
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+}
+
 export interface IOrder {
   _id: string;
   paymentId?: mongoose.Types.ObjectId;
@@ -136,6 +141,7 @@ export interface IOrder {
   subtotal: number;
   total: number;
 
+  statusHistory: IOrderHistry[];
   paymentStatus: "unpaid" | "paid";
   paymentMethod: "cod";
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";

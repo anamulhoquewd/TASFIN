@@ -171,10 +171,10 @@ function useCategory() {
     }
 
     const file = files[0];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (file.size > maxSize) {
-      setError("File size is too large. Maximum size is 2MB.");
+      setError("File size is too large. Maximum size is 10MB.");
       return;
     }
 

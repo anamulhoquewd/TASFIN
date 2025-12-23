@@ -1,3 +1,4 @@
+import type { Context } from "hono";
 import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   badRequestHandler,
@@ -7,7 +8,6 @@ import {
 import Category from "./../models/categorise.model.js";
 import { categoryService } from "./../services/index.js";
 import { mongoIdZ } from "./../validations/zod.js";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -130,10 +130,6 @@ export const changeAvatar = async (c: Context) => {
     });
   }
 
-  // Generate filename
-  const fileN = c.req.query("filename") || "avatar";
-  const filename = `${fileN}-${Date.now()}.webp`;
-
   try {
     const category = await Category.findById(idValidation.data._id);
 
@@ -155,7 +151,6 @@ export const changeAvatar = async (c: Context) => {
 
     // Update category.avatar.url and save
     category.image = {
-      alt: response.success.data.publicId,
       url: response.success.data.url,
       publicId: response.success.data.publicId,
       position: 0,

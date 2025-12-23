@@ -1,19 +1,19 @@
 import mongoose from "mongoose";
 import { schemaValidationError } from "../error/index.js";
 import Subscriber from "../models/subscribers.model.js";
-import {
-  idSchemaZ,
-  subscriberUpdateZ,
-  subscriberSchemaZ,
-  subscriberQueryZ,
-  type SubscribeInput,
-  type SubscribeUpdateInput,
-} from "../validations/zod.js";
 import pagination from "../utils/pagination.js";
+import {
+  mongoIdZ,
+  subscriberQueryZ,
+  subscriberUpdateZ,
+  subscriberZ,
+  type TSubscribe,
+  type TUpdateSubscribe,
+} from "../validations/zod.js";
 
-export const register = async (body: SubscribeInput) => {
+export const register = async (body: TSubscribe) => {
   // Safe Parse for better error handling
-  const validData = subscriberSchemaZ.safeParse(body);
+  const validData = subscriberZ.safeParse(body);
 
   if (!validData.success) {
     return {
@@ -156,7 +156,7 @@ export const getSubscribers = async (queryParams: {
 
 export const getSubscriber = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -195,11 +195,11 @@ export const updateSubscriber = async ({
   body,
   _id,
 }: {
-  body: SubscribeUpdateInput;
+  body: TUpdateSubscribe;
   _id: string;
 }) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return {
       error: schemaValidationError(idValidation.error, "Invalid ID"),
@@ -251,7 +251,7 @@ export const updateSubscriber = async ({
 
 export const deleteSubscriber = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = mongoIdZ.safeParse({ _id: _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }

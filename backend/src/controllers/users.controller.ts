@@ -1,3 +1,5 @@
+import axios from "axios";
+import type { Context } from "hono";
 import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   authenticationError,
@@ -5,8 +7,6 @@ import {
   serverErrorHandler,
 } from "./../error/index.js";
 import { adminService, userService } from "./../services/index.js";
-import axios from "axios";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -210,7 +210,6 @@ export const changeAvatar = async (c: Context) => {
 
     // Update and save
     user.avatar = {
-      alt: response.success.data.publicId,
       url: response.success.data.url,
       publicId: response.success.data.publicId,
     };

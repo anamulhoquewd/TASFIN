@@ -1,30 +1,24 @@
-import { schemaValidationError } from "./../error/index.js";
-import Admin from "./../models/admins.model.js";
-import { stringGenerator } from "./../utils/string-generator.js";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+import z from "zod";
+import { transporter } from "./../config/email.js";
+import { schemaValidationError } from "./../error/index.js";
+import type { IAdmin } from "./../interfaces/index.js";
+import Admin from "./../models/admins.model.js";
+import User from "./../models/users.model.js";
+import { generateAccessToken, generateRefreshToken } from "./../utils/index.js";
+import pagination from "./../utils/pagination.js";
+import { stringGenerator } from "./../utils/string-generator.js";
 import {
   adminCreateZ,
   adminUpdateZ,
-  avatarSchemaZ,
   changePasswordZ,
-  idSchemaZ,
   loginSchemeZ,
-  querySchemaZ,
-  type AdminCreateInput,
-  type AdminUpdateInput,
+  mongoIdZ,
+  queryZ,
+  type TAdmin,
+  type TUpdateAdmin,
 } from "./../validations/zod.js";
-import { transporter } from "./../config/email.js";
-import z from "zod";
-import pagination from "./../utils/pagination.js";
-import type { IAdmin } from "./../interfaces/index.js";
-import s3 from "./../config/s3.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  uploadAvatar,
-} from "./../utils/index.js";
-import User from "./../models/users.model.js";
-import mongoose from "mongoose";
 dotenv.config();
 
 // Get environment variables
@@ -34,7 +28,7 @@ const PHONE = process.env.ADMIN_PHONE;
 const PASSWORD = process.env.ADMIN_PASSWORD;
 const NID = process.env.ADMIN_NID;
 
-export const register = async (body: AdminCreateInput) => {
+export const register = async (body: TAdmin) => {
   // Safe Parse for better error handling
   const validData = adminCreateZ.safeParse(body);
 
@@ -185,7 +179,7 @@ export const getAdmins = async (queryParams: {
   search: string;
 }) => {
   // Safe Parse for better error handling
-  const validData = querySchemaZ.safeParse({
+  const validData = queryZ.safeParse({
     sortBy: queryParams.sortBy,
     sortType: queryParams.sortType,
   });
@@ -264,7 +258,7 @@ export const getUser = async (
   { userType }: { userType: "user" | "admin" }
 ) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -310,7 +304,7 @@ export const updateProfile = async ({
   body,
 }: {
   admin: IAdmin;
-  body: AdminUpdateInput;
+  body: TUpdateAdmin;
 }) => {
   // Validation without NID for update
   const validData = adminUpdateZ
@@ -349,7 +343,7 @@ export const updateProfile = async ({
 
 export const deleteAdmins = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = mongoIdZ.safeParse({ _id: _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }

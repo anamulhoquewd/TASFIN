@@ -171,6 +171,8 @@ export async function deleteMultipleFiles(publicIds: string[]) {
 
     const result = await cloudinary.api.delete_resources(publicIds);
 
+    console.log("Cloudinary delete multiple result:", result);
+
     if (!result) {
       return { error: { message: "Cloudinary delete failed" } };
     }

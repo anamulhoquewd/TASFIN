@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { couponUsageService } from "../services/index.js";
 import { badRequestHandler, serverErrorHandler } from "../error/index.js";
+import { couponUsageService } from "../services/index.js";
 
 export const getCouponUsages = async (c: Context) => {
   const page = parseInt(c.req.query("page") as string, 10) || 1;

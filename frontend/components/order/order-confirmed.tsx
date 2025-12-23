@@ -1,7 +1,7 @@
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { copyToClipboard, formatPrice } from "@/lib/utils";
+import { copyToClipboard, priceFormatting } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -89,7 +89,7 @@ export default function OrderConfirmed({
                   Total Amount
                 </span>
                 <span className="text-lg font-medium text-foreground">
-                  {formatPrice(totalAmount)}
+                  {priceFormatting(totalAmount)}
                 </span>
               </div>
               <div className="flex justify-between items-center">

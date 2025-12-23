@@ -1,7 +1,7 @@
+import type { Context } from "hono";
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { productService } from "./../services/index.js";
 import { parseDeleteUrls } from "./../utils/index.js";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
@@ -25,6 +25,7 @@ export const register = async (c: Context) => {
     const description = formData.get("description") as string;
     const isFeatured = formData.get("isFeatured") === "true";
     const isItNew = formData.get("isItNew") === "true";
+    const isCustom = formData.get("isCustom") === "true";
     const status = formData.get("status") === "true";
 
     // Parse array fields
@@ -35,12 +36,13 @@ export const register = async (c: Context) => {
     const keyFeatures = JSON.parse(formData.get("keyFeatures") as string);
 
     // Get main images
-    const images = formData.getAll("images") as File[];
-    const imagePositions = formData.getAll("images_position[]").map(Number);
+    const images = (formData.getAll("images") as File[]).filter(
+      (f) => f && (f as File).name
+    );
 
-    const imagesWithPosition = images.map((file, index) => ({
+    const finalImages = images.map((file, index) => ({
       file,
-      position: imagePositions[index] ?? index, // fallback
+      position: index,
     }));
 
     // Process variants
@@ -48,21 +50,16 @@ export const register = async (c: Context) => {
     let variantIndex = 0;
 
     while (formData.get(`variants[${variantIndex}][size]`)) {
-      const variantImages = formData.getAll(
-        `variants[${variantIndex}][images]`
-      ) as File[];
+      const images = (formData.getAll("images") as File[]).filter(
+        (f) => f && (f as File).name
+      );
 
-      const variantPositions = formData
-        .getAll(`variants[${variantIndex}][images_position][]`)
-        .map(Number);
-
-      const imagesWithPosition = variantImages.map((file, i) => ({
+      const finalImages = images.map((file, index) => ({
         file,
-        position: variantPositions[i] ?? i, // fallback
+        position: index,
       }));
 
       const variant = {
-        isCustom: formData.get("isCustom") === "true",
         sku: formData.get(`variants[${variantIndex}][sku]`) as string,
         size: formData.get(`variants[${variantIndex}][size]`) as string,
         color: formData.get(`variants[${variantIndex}][color]`) as string,
@@ -73,7 +70,7 @@ export const register = async (c: Context) => {
           formData.get(`variants[${variantIndex}][price]`) as string
         ),
 
-        images: imagesWithPosition,
+        images: finalImages,
       };
 
       variants.push(variant);
@@ -86,17 +83,20 @@ export const register = async (c: Context) => {
       slug,
       description,
       categories,
-      images: imagesWithPosition,
+      images: finalImages,
       variants,
 
       details,
 
       isFeatured,
       isItNew,
+      isCustom,
       status,
       tags,
       keyFeatures,
     };
+
+    console.log("BODY: ", body);
 
     // Call service
     const response = await productService.register(body);
@@ -182,6 +182,33 @@ export const getProductBySku = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
+// update activity
+export const updateActivity = async (c: Context) => {
+  const productId = c.req.param("productId");
+  if (!productId) {
+    return badRequestHandler(c, { message: "Product ID is required" });
+  }
+  try {
+    const body = await c.req.json();
+    const response = await productService.updateActivity({
+      productId,
+      data: body,
+    });
+    if (response.error) {
+      return badRequestHandler(c, response.error);
+    }
+
+    if (response.serverError) {
+      return serverErrorHandler(c, response.serverError);
+    }
+
+    return c.json({ success: true, data: response.success }, 200);
+  } catch (err: any) {
+    console.error("Update Activity Error:", err);
+    return serverErrorHandler(c, { message: err.message || "Server error" });
+  }
+};
+
 // update general info
 export const updateGeneralInfo = async (c: Context) => {
   const productId = c.req.param("productId");
@@ -202,21 +229,25 @@ export const updateGeneralInfo = async (c: Context) => {
       ? JSON.parse(formData["keyFeatures"] as string)
       : [];
 
+    const details = {
+      fabric: formData["details[fabric]"] as string,
+      valueAddition: formData["details[valueAddition]"] as string,
+      cutFit: formData["details[cutFit]"] as string,
+      collarNeck: formData["details[collarNeck]"] as string,
+      sleeve: formData["details[sleeve]"] as string,
+      length: formData["details[length]"] as string,
+      washCare: formData["details[washCare]"] as string,
+      sideCut: formData["details[sideCut]"] as string,
+    };
+
     const data = {
       title: formData["title"] || "",
       slug: formData["slug"] || "",
       description: formData["description"] || "",
       keyFeatures,
-      fabric: formData["fabric"] || "",
-      valueAddition: formData["valueAddition"] || "",
-      cutFit: formData["cutFit"] || "",
-      collarNeck: formData["collarNeck"] || "",
-      sleeve: formData["sleeve"] || "",
-      length: formData["length"] || "",
-      washCare: formData["washCare"] || "",
-      sideCut: formData["sideCut"] || "",
-      isFeatured: formData["isFeatured"] === "true",
-      status: formData["status"] === "true",
+
+      details,
+
       categories,
       tags,
     };
@@ -255,7 +286,6 @@ export const updateVariantInfo = async (c: Context) => {
   const body = {
     size: formData["size"] || "",
     color: formData["color"] || "",
-    isCustom: formData["isCustom"] || false,
     price: parseInt(formData["price"] as string) || 0,
     stock: parseInt(formData["stock"] as string) || 0,
   };
@@ -275,7 +305,7 @@ export const updateVariantInfo = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Update main iamges
+// Update main images
 export const updateMainImages = async (c: Context) => {
   const productId = c.req.param("productId");
   if (!productId) return c.json({ message: "Product ID is required" }, 400);
@@ -286,18 +316,23 @@ export const updateMainImages = async (c: Context) => {
   const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
-  const imagePositions = formData.getAll("images_position[]").map(Number);
 
-  const imagesWithPosition = newImages.map((file, index) => ({
+  const finalImages = newImages.map((file, index) => ({
     file,
-    position: imagePositions[index] ?? index, // fallback
+    position: index,
   }));
 
-  const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
+  const deleteImagePublicIds = formData.getAll(
+    "deleteImagePublicIds"
+  ) as string[];
 
+  // In the controller:
+  const keptImagePublicIds = formData.getAll("keptImagePublicIds") as string[];
+
+  // In the service call:
   const response = await productService.updateMainImages({
     productId,
-    data: { newImages: imagesWithPosition, deleteImagePublicIds },
+    data: { newImages: finalImages, deleteImagePublicIds, keptImagePublicIds },
   });
 
   if (response.error) {
@@ -326,11 +361,10 @@ export const updateVImages = async (c: Context) => {
   const newImages = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name
   );
-  const imagePositions = formData.getAll("images_position[]").map(Number);
 
-  const imagesWithPosition = newImages.map((file, index) => ({
+  const finalImages = newImages.map((file, index) => ({
     file,
-    position: imagePositions[index] ?? index, // fallback
+    position: index,
   }));
 
   const deleteImagePublicIds = parseDeleteUrls(formData, "deleteImagePublicId");
@@ -338,7 +372,7 @@ export const updateVImages = async (c: Context) => {
   const response = await productService.updateVImages({
     productId,
     variantId,
-    data: { newImages: imagesWithPosition, deleteImagePublicIds },
+    data: { newImages: finalImages, deleteImagePublicIds },
   });
 
   if (response.error) {
@@ -382,21 +416,12 @@ export const createVariant = async (c: Context) => {
       message: "Product ID is required",
     });
 
-  const formData = await c.req.formData();
-
-  // Get main images
-  const images = formData.getAll("images") as File[];
-
-  const size = formData.get("size") as string;
-  const color = formData.get("color") as string;
-  const stock = parseInt(formData.get("stock") as string);
-  const price = parseFloat(formData.get("price") as string);
-  const isCustom = formData.get("isCustom") as string;
+  const body = await c.req.json();
 
   // Call service
   const response = await productService.createVariant({
     productId,
-    data: { images, size, stock, price, color, isCustom },
+    data: body,
   });
 
   if (response.error) {
@@ -436,10 +461,16 @@ export const getProducts = async (c: Context) => {
   const search = c.req.query("search") as string;
   const isFeatured = c.req.query("isFeatured") as string;
   const isItNew = c.req.query("isItNew") as string;
+  const isCustom = c.req.query("isCustom") as string;
   const status = c.req.query("status") as string;
 
   // categories in format category1,category2
   const categories = (c.req.query("categories") as string)?.split(",") || [];
+
+  const category = c.req.query("category") as string;
+  if (category) {
+    categories.push(category);
+  }
 
   // priceRange in format min-max, e.g., 100-500
   const minPrice = parseInt(c.req.query("minPrice") as string, 10) || 0;
@@ -450,14 +481,14 @@ export const getProducts = async (c: Context) => {
     limit,
     sortBy,
     sortType,
-
     search,
-
     isFeatured,
     isItNew,
+    isCustom,
     status,
     priceRange: { min: minPrice, max: maxPrice },
     categories,
+    category,
   });
 
   if (response.error) {

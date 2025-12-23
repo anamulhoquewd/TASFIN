@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { couponService } from "../services/index.js";
 import { badRequestHandler, serverErrorHandler } from "../error/index.js";
+import { couponService } from "../services/index.js";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
-import { formatPrice } from "@/lib/utils";
+import { priceFormatting } from "@/lib/utils";
 import { Button } from "../ui/button";
 import { UseFormReturn } from "react-hook-form";
 import { CheckoutFormValues } from "@/lib/zod-validation";
@@ -284,7 +284,7 @@ function Checkout({
                           </p>
                         </div>
                         <p className="text-sm font-semibold">
-                          {formatPrice(item.price * item.quantity)}
+                          {priceFormatting(item.price * item.quantity)}
                         </p>
                       </div>
                     ))}
@@ -298,7 +298,7 @@ function Checkout({
                         Subtotal ({totalItems} items)
                       </span>
                       <span className="font-medium">
-                        {formatPrice(subtotal)}
+                        {priceFormatting(subtotal)}
                       </span>
                     </div>
                     <div className="flex justify-between text-sm">
@@ -306,7 +306,9 @@ function Checkout({
                         Shipping Fee
                       </span>
                       <span className="font-medium">
-                        {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
+                        {shippingFee === 0
+                          ? "FREE"
+                          : priceFormatting(shippingFee)}
                       </span>
                     </div>
                   </div>
@@ -316,7 +318,7 @@ function Checkout({
                   <div className="flex justify-between">
                     <span className="font-semibold">Total</span>
                     <span className="font-bold text-xl">
-                      {formatPrice(total)}
+                      {priceFormatting(total)}
                     </span>
                   </div>
 

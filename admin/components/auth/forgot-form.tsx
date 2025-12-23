@@ -1,8 +1,6 @@
 "use client";
 
-import type React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -11,7 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -20,9 +17,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import useForgot from "@/hooks/auth/useFormgot";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import SuccessComponent from "./forgot-success";
-import useForgot from "@/hooks/auth/useFormgot";
 
 function ForgotForm() {
   const { form, onSubmit, isLoading, isSuccess, value } = useForgot();

@@ -1,13 +1,12 @@
-export interface IImage {
-  alt: string;
-  url: string;
-}
+import { IImage } from "../global";
 
 export interface IProductVariant {
   _id: string;
   size: string;
   stock: number;
   price: number;
+  color?: string;
+  sku: string;
   images?: IImage[];
 }
 
@@ -16,60 +15,31 @@ export interface IProduct {
   title: string;
   slug: string;
   description: string;
-  keyFeatures?: string[];
+  keyFeatures: string[];
   categories: string[];
 
   images: IImage[];
   variants: IProductVariant[];
 
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
+  isCustom: boolean;
+  isFeatured: boolean;
+  isItNew: boolean;
+  status: boolean;
 
-  isFeatured?: boolean;
+  tags: string[];
 
-  isActive: boolean;
-
-  tags?: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// Update operation interfaces
-export interface IProductUpdateData {
-  title?: string;
-  slug?: string;
-  description?: {
-    html: string;
-    json: any;
+  details: {
+    fabric: string;
+    valueAddition: string;
+    cutFit: string;
+    collarNeck: string;
+    sleeve: string;
+    length: string;
+    washCare: string;
+    sideCut: string;
   };
-  categories?: string[];
-  images?: File[];
-  variants?: IProductVariantUpdate[];
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
-  isFeatured?: boolean;
-  isActive?: boolean;
-  tags?: string[];
-}
-
-export interface IProductVariantUpdate {
-  _id?: string; // Optional for new variants
-  size: string;
-  stock: number;
-  price: number;
-  images?: File[];
+  createdAt: Date | string;
+  updatedAt: Date | string;
 }
 
 export interface IImageOperation {

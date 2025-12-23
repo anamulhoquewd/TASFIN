@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -18,17 +18,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { IOrder, IOrderItem } from "@/interfaces/orders";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { IOrder, IOrderItem } from "@/interfaces/orders";
+import { copyToClipboard, priceFormatting } from "@/lib/utils";
 import { Copy } from "lucide-react";
-import { copyToClipboard, formatPrice } from "@/lib/utils";
 import Image from "next/image";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useState } from "react";
 
 export interface ShowItemsProps {
   open: boolean;
@@ -133,7 +133,7 @@ export default function ShowItems({
                             src={product.image.url || ""}
                             width={48}
                             height={48}
-                            alt={product.image.alt || product.title}
+                            alt={product.title || "Product image"}
                             className="object-cover rounded-md"
                           />
                         ) : (
@@ -148,16 +148,16 @@ export default function ShowItems({
                         {product.title}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatPrice(order.shippingCost)}
+                        {priceFormatting(order.shippingCost)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatPrice(product.price)}
+                        {priceFormatting(product.price)}
                       </TableCell>
                       <TableCell className="text-center font-medium">
                         {product.quantity?.toLocaleString()}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        {formatPrice(product.price * product.quantity)}
+                        {priceFormatting(product.price * product.quantity)}
                       </TableCell>
                     </TableRow>
                   ))

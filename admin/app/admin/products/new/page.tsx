@@ -1,14 +1,19 @@
 "use client";
 
-import type React from "react";
-import { ArrowLeft, Save } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { CreateProductForm } from "../_components/create-form";
-import useProducts from "../_hook/useProducts";
-import { useState } from "react";
-import { ProductCreateInput } from "@/lib/schemas";
-import { useRouter } from "next/navigation";
 import AlertConfirmation from "@/components/alert";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { productZ } from "@/lib/schemas";
+import { ArrowLeft, Save } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { z } from "zod";
+import useProducts from "../_hook/useProducts";
+import BasicInfo from "./components/basic-info";
+import CreateVariants from "./components/create-variants";
+import ProductDetails from "./components/product-details";
+import RightSidebar from "./components/right-sidebar";
+import UploadImages from "./components/upload-images";
 
 export default function NewProductPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +22,7 @@ export default function NewProductPage() {
 
   const {
     form,
-    onSubmit,
+    handleSubmit,
     handleTitleChange,
     categoryOpen,
     setCategoryOpen,
@@ -29,10 +34,12 @@ export default function NewProductPage() {
     removeVariantImage,
   } = useProducts();
 
-  const handleSubmit = async (data: ProductCreateInput) => {
+  const handleSubmit_ = async (data: z.input<typeof productZ>) => {
     try {
       setIsLoading(true);
-      await onSubmit(data);
+      // Parse input to output type (applies defaults)
+      const parsedData = productZ.parse(data);
+      await handleSubmit(parsedData);
     } catch (error) {
       console.error("Error creating product:", error);
     } finally {
@@ -60,7 +67,7 @@ export default function NewProductPage() {
           </Button>
           <Button
             className="bg-primary hover:bg-primary/90 cursor-pointer"
-            onClick={form.handleSubmit(handleSubmit)}
+            onClick={() => setIsAlertOpne(true)}
             disabled={isLoading}
           >
             <Save className="mr-2 h-4 w-4" />
@@ -69,26 +76,55 @@ export default function NewProductPage() {
         </div>
       </div>
 
-      <CreateProductForm
-        form={form}
-        onSubmit={handleSubmit}
-        handleTitleChange={handleTitleChange}
-        categoryOpen={categoryOpen}
-        setCategoryOpen={setCategoryOpen}
-        append={append}
-        remove={remove}
-        fields={fields}
-        variantImagePreviews={fields.map(
-          (_, index) => variantImagePreviews[index] || []
-        )}
-        handleVariantImageUpload={handleVariantImageUpload}
-        removeVariantImage={removeVariantImage}
-      />
+      <Form {...form}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setIsAlertOpne(true);
+          }}
+          className="space-y-8"
+        >
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-6">
+              {/* Basic Information */}
+              <BasicInfo form={form} handleTitleChange={handleTitleChange} />
+
+              {/* Product Images */}
+              <UploadImages form={form} />
+
+              {/* Product Variants */}
+              <CreateVariants
+                form={form}
+                fields={fields}
+                remove={remove}
+                handleVariantImageUpload={handleVariantImageUpload}
+                removeVariantImage={removeVariantImage}
+                append={append}
+                variantImagePreviews={variantImagePreviews}
+              />
+
+              {/* Product Details */}
+              <ProductDetails form={form} />
+            </div>
+
+            {/* Sidebar */}
+            <RightSidebar
+              form={form}
+              categoryOpen={categoryOpen}
+              changeCategoryOpen={setCategoryOpen}
+            />
+
+            <Button className="sr-only" type="submit">
+              Submit
+            </Button>
+          </div>
+        </form>
+      </Form>
 
       <AlertConfirmation
         isOpne={isAlertOpne}
         setIsOpen={setIsAlertOpne}
-        onConfirm={handleSubmit}
+        onConfirm={form.handleSubmit(handleSubmit_)}
       />
     </div>
   );

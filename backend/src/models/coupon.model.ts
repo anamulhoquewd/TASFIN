@@ -1,5 +1,5 @@
-import type { ICoupon } from "./../interfaces/index.js";
 import { Schema, model } from "mongoose";
+import type { ICoupon } from "./../interfaces/index.js";
 
 const CouponSchema: Schema<ICoupon> = new Schema<ICoupon>(
   {

@@ -1,6 +1,6 @@
+import { Hono } from "hono";
 import { couponController } from "../controllers/index.js";
 import { authenticatedAdmin } from "./../middlewares/auth.middleware.js";
-import { Hono } from "hono";
 
 const couponRoutes = new Hono();
 

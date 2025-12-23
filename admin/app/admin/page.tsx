@@ -1,18 +1,18 @@
 "use client";
 
-import Link from "next/link";
+import { addDays, format } from "date-fns";
 import {
-  ArrowUpRight,
   ArrowDownRight,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarIcon,
   DollarSign,
+  MoreHorizontal,
+  Package,
   ShoppingCart,
   Users,
-  Package,
-  MoreHorizontal,
-  ArrowRight,
-  CalendarIcon,
 } from "lucide-react";
-import { addDays, format } from "date-fns";
+import Link from "next/link";
 import { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -36,10 +38,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
-import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 export default function AdminDashboard() {
   const [date, setDate] = useState<DateRange | undefined>({

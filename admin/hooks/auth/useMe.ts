@@ -12,7 +12,7 @@ import { z } from "zod";
 function useMe() {
   const [user, setUser] = useState<IAdmin | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [passwordOpen, setpasswordOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   const router = useRouter();
@@ -129,7 +129,7 @@ function useMe() {
     isLoading,
     setIsLoading,
     passwordOpen,
-    setpasswordOpen,
+    setPasswordOpen,
     isEditing,
     setIsEditing,
     handleLogout,

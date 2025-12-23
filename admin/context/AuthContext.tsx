@@ -1,9 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { IAdmin } from "@/interfaces/users";
-import { deleteAllAuthCookies } from "@/app/actions";
+import { useRouter } from "next/navigation";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface AuthContextType {
   user: IAdmin | null;
@@ -19,8 +18,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      // Clear all auth cookies
-      await deleteAllAuthCookies();
       setUser(null);
       router.push("/auth/sign-in");
       router.refresh();

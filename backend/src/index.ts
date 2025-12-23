@@ -1,21 +1,21 @@
 import { serve } from "@hono/node-server";
+import dotenv from "dotenv";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import connectDB from "./config/db.js";
-import adminRoutes from "./routes/admins.route.js";
 import { notFound } from "./error/index.js";
-import userRoutes from "./routes/users.route.js";
-import { adminService, settingsService } from "./services/index.js";
+import adminRoutes from "./routes/admins.route.js";
 import categoryRoutes from "./routes/categorise.route.js";
-import productRoutes from "./routes/products.route.js";
-import orderRoutes from "./routes/orders.route.js";
-import settingsRoutes from "./routes/settings.route.js";
-import dotenv from "dotenv";
-import subscriberRoutes from "./routes/subscribers.controller.js";
 import couponRoutes from "./routes/coupon.route.js";
 import couponUsageRoutes from "./routes/couponUsage.route.js";
+import orderRoutes from "./routes/orders.route.js";
+import productRoutes from "./routes/products.route.js";
+import settingsRoutes from "./routes/settings.route.js";
+import subscriberRoutes from "./routes/subscribers.controller.js";
+import userRoutes from "./routes/users.route.js";
+import { adminService, settingsService } from "./services/index.js";
 
 dotenv.config();
 

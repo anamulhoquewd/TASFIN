@@ -1,8 +1,25 @@
 import mongoose, { model, Schema } from "mongoose";
-import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 import type { IOrder, IOrderProduct } from "./../interfaces/index.js";
-import { required } from "zod/mini";
+import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 
+const OrderStatusSchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+      required: true,
+    },
+    note: {
+      type: String,
+      trim: true,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
 const OrderProductSchema: Schema<IOrderProduct> = new Schema<IOrderProduct>({
   productId: { type: String, required: true },
   variantId: { type: String, required: true },
@@ -31,11 +48,24 @@ const OrderSchema: Schema<IOrder> = new Schema<IOrder>(
     discount: { type: Number },
     shippingCost: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true, min: 0 },
+
+    statusHistory: {
+      type: [OrderStatusSchema],
+      default: [
+        {
+          status: "pending",
+          note: "Order placed",
+          date: new Date(),
+        },
+      ],
+    },
+
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
       default: "pending",
     },
+
     orderDate: { type: Date, default: Date.now },
 
     paymentId: { type: Schema.Types.ObjectId, ref: "Payment" },

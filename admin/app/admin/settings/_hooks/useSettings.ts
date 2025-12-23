@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import api from "@/axios/interceptor";
 import { ISettings } from "@/interfaces/global";
 import { settingCreateZ, SettingFromValue } from "@/lib/schemas";
-import api from "@/axios/interceptor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 export default function useSettings() {
   const [settings, setSettings] = useState<ISettings | null>(null);
@@ -85,9 +85,9 @@ export default function useSettings() {
     if (!files || !files[0]) return;
 
     const file = files[0];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
-      setError("File size is too large. Maximum size is 2MB.");
+      setError("File size is too large. Maximum size is 10MB.");
       return;
     }
 
@@ -128,7 +128,7 @@ export default function useSettings() {
         contactPhone: settings.contactPhone || "",
         logo: {
           url: settings.logo?.url || "",
-          alt: settings.logo?.alt || "",
+          alt: settings.siteName || "",
         },
         socialLinks: {
           facebook: settings.socialLinks?.facebook || "",

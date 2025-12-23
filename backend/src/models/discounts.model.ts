@@ -1,5 +1,5 @@
-import type { IDiscount } from "./../interfaces/index.js";
 import { model, Schema } from "mongoose";
+import type { IDiscount } from "./../interfaces/index.js";
 
 const DiscountSchema: Schema<IDiscount> = new Schema(
   {

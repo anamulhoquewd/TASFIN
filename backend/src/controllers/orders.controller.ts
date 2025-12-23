@@ -1,6 +1,6 @@
+import type { Context } from "hono";
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { orderService } from "./../services/index.js";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();

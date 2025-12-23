@@ -1,9 +1,10 @@
 import api from "@/axios/interceptor";
 import { useState } from "react";
-import useMe from "./useMe";
 import { toast } from "sonner";
+import useMe from "./useMe";
 
 const useAvatar = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [error, setError] = useState("");
 
@@ -11,16 +12,17 @@ const useAvatar = () => {
 
   // upload avatar handler
   const uploadHandler = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsLoading(true);
     const files = event.target.files;
     if (!files || !files[0]) {
       return;
     }
 
     const file = files[0];
-    const maxSize = 2 * 1024 * 1024; // 2MB
+    const maxSize = 10 * 1024 * 1024; // 10MB
 
     if (file.size > maxSize) {
-      setError("File size is too large. Maximum size is 2MB.");
+      setError("File size is too large. Maximum size is 10MB.");
       return;
     }
 
@@ -28,17 +30,11 @@ const useAvatar = () => {
     formData.append("avatar", file);
 
     try {
-      const response = await api.post(
-        `/admins/upload-avatar?filename=${
-          user ? user.name.split(" ").join("-") : "user"
-        }`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.post(`/admins/upload-avatar`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -51,6 +47,8 @@ const useAvatar = () => {
       window.location.reload();
     } catch (error: any) {
       console.log("Error: ", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

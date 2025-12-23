@@ -9,7 +9,6 @@ const ProductVariantSchema: Schema<IProductVariant> =
     color: { type: String, required: true },
     stock: { type: Number, default: 0 },
     price: { type: Number, required: true },
-    isCustom: { type: Boolean, default: false },
     images: [ImageSchema],
   });
 
@@ -25,6 +24,7 @@ const ProductSchema: Schema<IProduct> = new Schema<IProduct>(
     variants: [ProductVariantSchema],
     isFeatured: { type: Boolean, default: false },
     isItNew: { type: Boolean, default: false },
+    isCustom: { type: Boolean, default: false },
     status: { type: Boolean, default: true },
     tags: [String],
     details: {

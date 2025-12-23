@@ -1,9 +1,9 @@
+import { Hono } from "hono";
 import {
   authenticatedAdmin,
   authenticatedAnyUser,
 } from "../middlewares/auth.middleware.js";
 import { orderController } from "./../controllers/index.js";
-import { Hono } from "hono";
 
 const orderRoutes = new Hono();
 

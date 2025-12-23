@@ -1,7 +1,7 @@
 import { IImage } from "@/interfaces/global";
 import { IProduct, IProductVariant } from "@/interfaces/products";
 import { useCartAndWishlist } from "@/lib/cart-context";
-import { cn, debounce, formatPrice } from "@/lib/utils";
+import { cn, debounce, priceFormatting } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -246,7 +246,7 @@ export function ProductCard({
 
         <div className="flex items-center gap-2">
           <span className="text-sm tracking-wide text-foreground">
-            {formatPrice(product.variants[0].price)}
+            {priceFormatting(product.variants[0].price)}
           </span>
           {/* {product.originalPrice && (
             <span className="text-sm tracking-wide text-muted-foreground line-through">

@@ -1,3 +1,7 @@
+import axios from "axios";
+import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 import type { IAdmin } from "../interfaces/index.js";
 import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
@@ -9,10 +13,6 @@ import {
 import Admin from "./../models/admins.model.js";
 import { adminService } from "./../services/index.js";
 import { generateAccessToken } from "./../utils/index.js";
-import axios from "axios";
-import type { Context } from "hono";
-import { getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
@@ -168,7 +168,10 @@ export const refreshToken = async (c: Context) => {
     }
 
     // Verify refresh token
-    const token = await verify(rToken, JWT_REFRESH_SECRET);
+    const token = await verify(
+      rToken,
+      "your-very-long-random-refresh-secret-string"
+    );
 
     if (!token) {
       return authenticationError(c);
@@ -372,7 +375,6 @@ export const changeAvatar = async (c: Context) => {
 
     // Update admin.avatar.url and save
     admin.avatar = {
-      alt: response.success.data.publicId,
       url: response.success.data.url,
       publicId: response.success.data.publicId,
     };

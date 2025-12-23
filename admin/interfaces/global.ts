@@ -9,8 +9,10 @@ export interface IPagination {
 }
 
 export interface IImage {
-  alt: string;
   url: string;
+  publicId: string;
+  position: number;
+  isPrimary?: boolean;
 }
 
 export interface ISettings {

@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CircleUser, LogOut } from "lucide-react";
 import useMe from "@/hooks/auth/useMe";
-import { DeleteConfirmation } from "../delete-confirmation";
+import { CircleUser, LogOut } from "lucide-react";
 import { useState } from "react";
+import { DeleteConfirmation } from "../delete-confirmation";
 
 export default function UserMenu() {
   const { handleLogout, user } = useMe();
@@ -28,7 +28,11 @@ export default function UserMenu() {
           className="relative h-8 w-8 rounded-full cursor-pointer"
         >
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatar?.url} alt={user?.name || "TASFIN"} />
+            <AvatarImage
+              className="object-cover"
+              src={user?.avatar?.url}
+              alt={user?.name || "TASFIN"}
+            />
             <AvatarFallback>{user?.name?.charAt(0) || "TASFIN"}</AvatarFallback>
           </Avatar>
         </Button>

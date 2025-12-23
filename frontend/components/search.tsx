@@ -14,7 +14,7 @@ import { Input } from "./ui/input";
 import { Card, CardContent } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import Image from "next/image";
-import { formatPrice } from "@/lib/utils";
+import { priceFormatting } from "@/lib/utils";
 
 interface SearchProps {
   open: boolean;
@@ -98,7 +98,7 @@ export default function Searching({ open, setOpen }: SearchProps) {
                         <h2>{product.title}</h2>
                       </div>
                       <p className="font-semibold">
-                        {formatPrice(product.variants[0].price)}
+                        {priceFormatting(product.variants[0].price)}
                       </p>
                     </div>
                   ))

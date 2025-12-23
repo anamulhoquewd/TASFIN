@@ -1,54 +1,96 @@
+"use client";
+
 import api from "@/axios/interceptor";
-import { ProductCreateInput, productSchemaZ } from "@/lib/schemas";
+import { IPagination } from "@/interfaces/global";
+import { IProduct } from "@/interfaces/products";
+import { productZ, TProduct } from "@/lib/schemas";
+import {
+  generateSlug,
+  mapFeaturedToBoolean,
+  mapIsCustomToBoolean,
+  mapIsItNewToBoolean,
+  mapStatusToBoolean,
+} from "@/lib/utils";
+import { defaultPagination } from "@/utils/details";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useState } from "react";
+import { z } from "zod";
+import React, { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
+
+const defaultValues = {
+  title: "",
+  slug: "",
+  description: "",
+  keyFeatures: [],
+  isCustom: false,
+  categories: [],
+  images: [],
+  variants: [
+    {
+      size: "",
+      color: "",
+      stock: 0,
+      price: 0,
+      sku: "",
+      images: [],
+    },
+  ],
+  details: {
+    fabric: "",
+    valueAddition: "",
+    cutFit: "",
+    collarNeck: "",
+    sleeve: "",
+    length: "",
+    washCare: "",
+    sideCut: "",
+  },
+  isFeatured: false,
+  isItNew: false,
+  status: true,
+  tags: [],
+};
 
 function useProducts() {
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [variantImagePreviews, setVariantImagePreviews] = useState<{
     [key: number]: string[];
   }>({});
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [pagination, setPagination] = useState<IPagination>(defaultPagination);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
+  const [featured, setFeatured] = useState("all");
+  const [isItNew, setIsItNew] = useState("all");
+  const [custom, setCustom] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [productIdForDelete, setProductIdForDelete] = useState<string | null>(
+    null
+  );
 
-  const form = useForm({
-    resolver: zodResolver(productSchemaZ),
-    defaultValues: {
-      title: "",
-      slug: "",
-      description: "",
-      keyFeatures: [],
-      categories: [],
-      images: [],
-      variants: [{ size: "", stock: 0, price: 0, images: [] }],
-      fabric: "",
-      valueAddition: "",
-      cutFit: "",
-      collarNeck: "",
-      sleeve: "",
-      length: "",
-      washCare: "",
-      sideCut: "",
-      isFeatured: false,
-      isActive: true,
-      tags: [],
-    },
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(search);
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [search]);
+
+  const form = useForm<z.input<typeof productZ>>({
+    resolver: zodResolver(productZ),
+    defaultValues,
   });
 
   const { fields, append, prepend, remove } = useFieldArray({
     control: form.control,
     name: "variants",
   });
-
-  // Generate slug from title
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .trim();
-  };
 
   // Handle title change and auto-generate slug
   const handleTitleChange = (value: string) => {
@@ -137,26 +179,40 @@ function useProducts() {
   const getProducts = async ({
     searchQuery,
     page = 1,
-    categoryFilter,
-    isActive,
+    category,
+    isCustom,
     isFeatured,
+    isItNew,
+    status,
   }: {
     searchQuery: string;
     page: number;
-    categoryFilter: string;
-    isActive: boolean | undefined;
+    category: string;
+    isCustom: boolean | undefined;
     isFeatured: boolean | undefined;
+    isItNew: boolean | undefined;
+    status: boolean | undefined;
   }) => {
     try {
-      const response = await api.get(`/products`, {
+      const response: {
+        data: {
+          success: boolean;
+          data: IProduct[];
+          message: string | null;
+          error: any;
+          pagination: IPagination;
+        };
+      } = await api.get(`/products`, {
         params: {
-          search: searchQuery,
+          ...(searchQuery && { search: searchQuery }),
           page,
-          ...(isActive !== undefined && { isActive }),
-          ...(isFeatured !== undefined && { isFeatured }),
-          ...(categoryFilter !== "all" && {
-            category: categoryFilter,
+          ...(category !== "all" && {
+            category,
           }),
+          ...(isCustom !== undefined && { isCustom }),
+          ...(isFeatured !== undefined && { isFeatured }),
+          ...(isItNew !== undefined && { isItNew }),
+          ...(status !== undefined && { status }),
         },
       });
 
@@ -164,14 +220,23 @@ function useProducts() {
         throw new Error(response.data.error.message || "Something with wrong!");
       }
 
-      return response.data;
+      setProducts(response.data.data);
+
+      setPagination(() => ({
+        page: response.data.pagination.page,
+        total: response.data.pagination.total,
+        totalPages: response.data.pagination.totalPages,
+        nextPage: response.data.pagination.nextPage || null,
+        prevPage: response.data.pagination.prevPage || null,
+      }));
+
+      toast.success("Products fetched successfully");
     } catch (error: any) {
-      console.log(error);
+      console.error("Error fetching products:", error);
     }
   };
 
-  // SUBMIT HANDLER
-  const onSubmit = async (data: ProductCreateInput) => {
+  const handleSubmit = async (data: TProduct) => {
     try {
       const formData = new FormData();
 
@@ -180,16 +245,22 @@ function useProducts() {
       formData.append("slug", data.slug);
       formData.append("description", data.description ?? "");
       formData.append("keyFeatures", JSON.stringify(data.keyFeatures));
-      formData.append("fabric", data.fabric ?? "");
-      formData.append("valueAddition", data.valueAddition ?? "");
-      formData.append("cutFit", data.cutFit ?? "");
-      formData.append("collarNeck", data.collarNeck ?? "");
-      formData.append("sleeve", data.sleeve ?? "");
-      formData.append("length", data.length ?? "");
-      formData.append("washCare", data.washCare ?? "");
-      formData.append("sideCut", data.sideCut ?? "");
+
+      formData.append("details[fabric]", data.details.fabric ?? "");
+      formData.append(
+        "details[valueAddition]",
+        data.details.valueAddition ?? ""
+      );
+      formData.append("details[cutFit]", data.details.cutFit ?? "");
+      formData.append("details[collarNeck]", data.details.collarNeck ?? "");
+      formData.append("details[sleeve]", data.details.sleeve ?? "");
+      formData.append("details[length]", data.details.length ?? "");
+      formData.append("details[washCare]", data.details.washCare ?? "");
+      formData.append("details[sideCut]", data.details.sideCut ?? "");
+
       formData.append("isFeatured", data.isFeatured.toString());
-      formData.append("isActive", data.isActive.toString());
+      formData.append("isItNew", data.isItNew.toString());
+      formData.append("status", data.status.toString());
 
       // Append arrays as JSON strings
       formData.append("categories", JSON.stringify(data.categories));
@@ -203,6 +274,8 @@ function useProducts() {
       // Append variants
       data.variants.forEach((variant, index) => {
         formData.append(`variants[${index}][size]`, variant.size);
+        formData.append(`variants[${index}][color]`, variant.color || "");
+        formData.append(`variants[${index}][sku]`, variant.sku);
         formData.append(`variants[${index}][stock]`, variant.stock.toString());
         formData.append(`variants[${index}][price]`, variant.price.toString());
 
@@ -220,7 +293,7 @@ function useProducts() {
       });
 
       if (!response.data.success) {
-        console.log("Failed to create product:", response.data.error);
+        console.error("Failed to create product:", response.data.error);
         toast.error(response.data.error.message || "Failed to create product.");
       }
 
@@ -229,33 +302,16 @@ function useProducts() {
       );
 
       // Reset form after successful submission
-      form.reset({
-        title: "",
-        slug: "",
-        description: "",
-        keyFeatures: [],
-        fabric: "",
-        valueAddition: "",
-        cutFit: "",
-        collarNeck: "",
-        sleeve: "",
-        length: "",
-        washCare: "",
-        sideCut: "",
-        isFeatured: false,
-        isActive: false,
-        categories: [],
-        tags: [],
-        images: [],
-        variants: [],
-      });
+      form.reset(defaultValues);
 
       getProducts({
-        searchQuery: "",
-        page: 1,
-        categoryFilter: "",
-        isActive: true,
-        isFeatured: false,
+        searchQuery,
+        page: pagination.page || 1,
+        category,
+        isCustom: mapIsCustomToBoolean(custom),
+        isFeatured: mapFeaturedToBoolean(featured),
+        isItNew: mapIsItNewToBoolean(isItNew),
+        status: mapStatusToBoolean(status),
       });
     } catch (error: any) {
       console.error("Error creating product:", error);
@@ -273,11 +329,14 @@ function useProducts() {
     }
   };
 
-  const onDelete = async (productId: string) => {
-    try {
-      const result = await api.delete(`/products/${productId}`, {});
+  const handleDelete = async () => {
+    if (!productIdForDelete) {
+      toast.error("Product ID is missing");
+      return false;
+    }
 
-      console.log("Delete product result:", result);
+    try {
+      const result = await api.delete(`/products/${productIdForDelete}`);
 
       if (!result.data.success) {
         toast.error("Failed to delete product");
@@ -285,16 +344,19 @@ function useProducts() {
 
       toast.success("Product deleted successfully");
 
+      // Refresh product list
       getProducts({
-        searchQuery: "",
-        page: 1,
-        categoryFilter: "",
-        isActive: true,
-        isFeatured: false,
+        searchQuery,
+        page: pagination.page || 1,
+        category,
+        isCustom: mapIsCustomToBoolean(custom),
+        isFeatured: mapFeaturedToBoolean(featured),
+        isItNew: mapIsItNewToBoolean(isItNew),
+        status: mapStatusToBoolean(status),
       });
     } catch (error) {
       toast.error("Failed to delete product");
-      console.log("Error: ", error);
+      console.error("Error on delete product: ", error);
       return false;
     }
   };
@@ -318,8 +380,6 @@ function useProducts() {
 
   async function updateProduct(productId: string, updateData: any) {
     const formData = new FormData();
-
-    console.log("Update data:", updateData);
 
     // ----- Basic fields -----
     if (updateData.name) {
@@ -359,12 +419,10 @@ function useProducts() {
       formData.append(`variants[${index}][stock]`, String(variant.stock ?? 0));
       formData.append(`variants[${index}][price]`, String(variant.price ?? 0));
 
-      // নতুন variant images
       variant?.newImages?.forEach((image: File) => {
         if (image) formData.append(`variants[${index}][images]`, image);
       });
 
-      // ডিলিট করার জন্য variant image urls
       if (
         Array.isArray(variant.deleteImageUrls) &&
         variant.deleteImageUrls.length > 0
@@ -390,7 +448,7 @@ function useProducts() {
       });
 
       if (!response.data.success) {
-        console.log("Failed to create product:", response.data.error);
+        console.error("Failed to create product:", response.data.error);
         toast.error(response.data.error.message || "Failed to create product.");
       }
 
@@ -399,33 +457,16 @@ function useProducts() {
       );
 
       // Reset form after successful submission
-      form.reset({
-        title: "",
-        slug: "",
-        description: "",
-        keyFeatures: [],
-        fabric: "",
-        valueAddition: "",
-        cutFit: "",
-        collarNeck: "",
-        sleeve: "",
-        length: "",
-        washCare: "",
-        sideCut: "",
-        isFeatured: false,
-        isActive: false,
-        categories: [],
-        tags: [],
-        images: [],
-        variants: [],
-      });
+      form.reset(defaultValues);
 
       getProducts({
-        searchQuery: "",
-        page: 1,
-        categoryFilter: "",
-        isActive: true,
-        isFeatured: false,
+        searchQuery,
+        page: pagination.page || 1,
+        category,
+        isCustom: mapIsCustomToBoolean(custom),
+        isFeatured: mapFeaturedToBoolean(featured),
+        isItNew: mapIsItNewToBoolean(isItNew),
+        status: mapStatusToBoolean(status),
       });
 
       return { success: true, data: response.data.data };
@@ -445,11 +486,33 @@ function useProducts() {
     }
   }
 
+  useEffect(() => {
+    getProducts({
+      searchQuery,
+      page: pagination.page || 1,
+      category,
+      isCustom: mapIsCustomToBoolean(custom),
+      isFeatured: mapFeaturedToBoolean(featured),
+      isItNew: mapIsItNewToBoolean(isItNew),
+      status: mapStatusToBoolean(status),
+    });
+  }, [
+    status,
+    featured,
+    isItNew,
+    custom,
+    category,
+    searchQuery,
+    pagination.page,
+  ]);
+
   return {
     form,
     getProductById,
-    onSubmit,
-    updateProduct, // Export the new function
+
+    handleSubmit,
+    handleDelete,
+    updateProduct,
     handleTitleChange,
     categoryOpen,
     setCategoryOpen,
@@ -460,8 +523,26 @@ function useProducts() {
     variantImagePreviews,
     handleVariantImageUpload,
     removeVariantImage,
-    onDelete,
-    getProducts,
+    products,
+    pagination,
+    setPagination,
+    search,
+    setSearch,
+    status,
+    setStatus,
+    featured,
+    setFeatured,
+    isItNew,
+    setIsItNew,
+    custom,
+    setCustom,
+    category,
+    setCategory,
+    isLoading,
+    setIsLoading,
+    productIdForDelete,
+    setProductIdForDelete,
+    setProducts,
   };
 }
 

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Clock, Search, Loader2 } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
 import { format } from "date-fns";
-import { formatPrice } from "@/lib/utils";
+import { priceFormatting } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -228,7 +228,7 @@ export default function OrderLookup({
                         Total
                       </p>
                       <p className="font-bold text-xl">
-                        {formatPrice(o.totalAmount)}
+                        {priceFormatting(o.totalAmount)}
                       </p>
                     </div>
                   </div>

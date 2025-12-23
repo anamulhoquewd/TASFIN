@@ -1,3 +1,4 @@
+import z from "zod";
 import { transporter } from "../config/email.js";
 import { Coupon } from "../models/coupon.model.js";
 import { CouponUsage } from "../models/couponUsage.model.js";
@@ -18,7 +19,6 @@ import {
   type TOrder,
   type TUpdateOrder,
 } from "./../validations/zod.js";
-import z from "zod";
 
 export interface GetOrderServiceProps {
   page: number;

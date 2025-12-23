@@ -1,8 +1,7 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { sign } from "hono/jwt";
 import dotenv from "dotenv";
 import type { Context } from "hono";
 import { setSignedCookie } from "hono/cookie";
+import { sign } from "hono/jwt";
 import type { IAdmin, IUser } from "./../interfaces/index.js";
 dotenv.config();
 
@@ -17,37 +16,6 @@ const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 // Validate query parameters
 export const isValidDate = (val: string) => !isNaN(Date.parse(val));
-
-// Upload Avatar to S3
-export const uploadAvatar = async ({
-  s3,
-  file,
-  key,
-  fileType = "image/webp",
-  bucketName,
-}: {
-  s3: S3Client;
-  file: File;
-  key: string;
-  fileType?: string;
-  bucketName?: string;
-}) => {
-  try {
-    const arrayBuffer = await file.arrayBuffer(); // Convert file to Buffer
-    const buffer = Buffer.from(arrayBuffer);
-
-    const command = new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key, // Save inside an 'uploads' folder
-      ContentType: fileType,
-      Body: buffer,
-    });
-
-    await s3.send(command);
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to upload avatar");
-  }
-};
 
 // Generate Access Token
 export const generateAccessToken = async ({

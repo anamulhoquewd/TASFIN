@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  Search,
-  Filter,
-  MoreHorizontal,
-  Truck,
-  X,
-  Calendar,
-  User,
-  ShoppingCart,
-  Copy,
-  Trash2,
-} from "lucide-react";
+import { DateRangePicker } from "@/components/date-range-picker";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
+import Paginations from "@/components/pagination";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -29,6 +22,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -36,7 +36,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -45,33 +44,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
-import { format } from "date-fns";
-import Paginations from "@/components/pagination";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { DateRangePicker } from "@/components/date-range-picker";
+import { IOrder } from "@/interfaces/orders";
+import { copyToClipboard, priceFormatting } from "@/lib/utils";
+import { format } from "date-fns";
+import {
+  Calendar,
+  Copy,
+  Filter,
+  MoreHorizontal,
+  Search,
+  ShoppingCart,
+  Trash2,
+  Truck,
+  User,
+  X,
+} from "lucide-react";
+import ShowItems from "./_components/show-items";
 import StatusDialog, {
+  getPaymentStatusBadge,
   getStatusBadge,
   getStatusIcon,
-  getPaymentStatusBadge,
 } from "./_components/status-dialog";
-import { IOrder } from "@/interfaces/orders";
-import ShowItems from "./_components/show-items";
 import useOrder from "./_hook/useOrder";
-import { copyToClipboard, formatPrice } from "@/lib/utils";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function OrdersPage() {
   const {
@@ -418,7 +418,7 @@ export default function OrdersPage() {
                         {getPaymentStatusBadge(order.paymentStatus)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {formatPrice(order.totalAmount)}
+                        {priceFormatting(order.totalAmount)}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

@@ -1,0 +1,155 @@
+export const mockProduct = {
+  _id: "prod_001",
+  title: "Premium Cotton Kurta Set",
+  slug: "premium-cotton-kurta-set",
+  description:
+    "Elevate your ethnic wardrobe with this exquisite Premium Cotton Kurta Set. Crafted from the finest quality cotton, this ensemble promises comfort without compromising on style. Perfect for festive occasions, family gatherings, or casual outings.",
+  keyFeatures: [
+    "100% Premium Cotton Fabric",
+    "Intricate Hand Embroidery",
+    "Breathable & Comfortable",
+    "Machine Washable",
+    "Available in Multiple Sizes",
+  ],
+  categories: ["Men", "Ethnic Wear", "Kurta Sets"],
+
+  images: [
+    {
+      publicId: "img_001",
+      url: "/premium-cotton-kurta-front-view.jpg",
+      position: 1,
+    },
+    {
+      publicId: "img_002",
+      url: "/premium-cotton-kurta-back-view.jpg",
+      position: 2,
+    },
+    {
+      publicId: "img_003",
+      url: "/premium-cotton-kurta-detail-embroidery.jpg",
+      position: 3,
+    },
+    {
+      publicId: "img_004",
+      url: "/premium-cotton-kurta-lifestyle.jpg",
+      position: 4,
+    },
+  ],
+
+  variants: [
+    {
+      _id: "var_001",
+      size: "S",
+      stock: 15,
+      price: 2499,
+      color: "White",
+      sku: "PCK-WHT-S",
+    },
+    {
+      _id: "var_002",
+      size: "M",
+      stock: 28,
+      price: 2499,
+      color: "White",
+      sku: "PCK-WHT-M",
+    },
+    {
+      _id: "var_003",
+      size: "L",
+      stock: 42,
+      price: 2599,
+      color: "White",
+      sku: "PCK-WHT-L",
+    },
+    {
+      _id: "var_004",
+      size: "XL",
+      stock: 35,
+      price: 2599,
+      color: "White",
+      sku: "PCK-WHT-XL",
+    },
+    {
+      _id: "var_005",
+      size: "XXL",
+      stock: 8,
+      price: 2699,
+      color: "White",
+      sku: "PCK-WHT-XXL",
+    },
+    {
+      _id: "var_006",
+      size: "S",
+      stock: 12,
+      price: 2499,
+      color: "Navy Blue",
+      sku: "PCK-NVY-S",
+    },
+    {
+      _id: "var_007",
+      size: "M",
+      stock: 22,
+      price: 2499,
+      color: "Navy Blue",
+      sku: "PCK-NVY-M",
+    },
+    {
+      _id: "var_008",
+      size: "L",
+      stock: 0,
+      price: 2599,
+      color: "Navy Blue",
+      sku: "PCK-NVY-L",
+    },
+  ],
+
+  isCustom: false,
+  isFeatured: true,
+  isItNew: true,
+  status: true,
+
+  tags: ["kurta", "cotton", "ethnic", "festive", "mens-wear", "traditional"],
+
+  details: {
+    fabric: "100% Premium Cotton",
+    valueAddition: "Hand Embroidery, Pearl Buttons",
+    cutFit: "Regular Fit",
+    collarNeck: "Mandarin Collar",
+    sleeve: "Full Sleeves with Roll-up Tab",
+    length: "42 inches",
+    washCare: "Machine Wash Cold, Tumble Dry Low",
+    sideCut: "Side Slits for Ease of Movement",
+  },
+  createdAt: "2024-11-15T10:30:00Z",
+};
+
+export const salesAnalytics = {
+  totalSales: 847,
+  totalRevenue: 2156847,
+  avgOrderValue: 2547,
+  conversionRate: 4.2,
+  monthlyData: [
+    { month: "Jul", sales: 65, revenue: 162435 },
+    { month: "Aug", sales: 89, revenue: 222611 },
+    { month: "Sep", sales: 112, revenue: 285488 },
+    { month: "Oct", sales: 145, revenue: 374855 },
+    { month: "Nov", sales: 198, revenue: 512502 },
+    { month: "Dec", sales: 238, revenue: 598956 },
+  ],
+  topVariants: [
+    { sku: "PCK-WHT-L", size: "L", color: "White", sales: 186 },
+    { sku: "PCK-WHT-XL", size: "XL", color: "White", sales: 154 },
+    { sku: "PCK-WHT-M", size: "M", color: "White", sales: 142 },
+    { sku: "PCK-NVY-M", size: "M", color: "Navy Blue", sales: 128 },
+    { sku: "PCK-WHT-S", size: "S", color: "White", sales: 98 },
+  ],
+  dailyViews: [
+    { day: "Mon", views: 245 },
+    { day: "Tue", views: 312 },
+    { day: "Wed", views: 287 },
+    { day: "Thu", views: 356 },
+    { day: "Fri", views: 423 },
+    { day: "Sat", views: 512 },
+    { day: "Sun", views: 478 },
+  ],
+};

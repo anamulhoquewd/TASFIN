@@ -1,4 +1,11 @@
 import mongoose from "mongoose";
+import z from "zod";
+import type { IProductVariant } from "../interfaces/index.js";
+import {
+  deleteMultipleFiles,
+  deleteSingleFile,
+  uploadMultipleFiles,
+} from "../utils/cloudinary.js";
 import { schemaValidationError } from "./../error/index.js";
 import Product from "./../models/products.model.js";
 import pagination from "./../utils/pagination.js";
@@ -7,17 +14,11 @@ import {
   objectIdZ,
   productFetchQueryZ,
   productVariantUpdateZ,
+  productVariantZ,
   productZ,
   type TProduct,
   type TVariant,
 } from "./../validations/zod.js";
-import z from "zod";
-import {
-  deleteMultipleFiles,
-  deleteSingleFile,
-  uploadMultipleFiles,
-} from "../utils/cloudinary.js";
-import type { IProductVariant } from "../interfaces/index.js";
 
 // Register new product
 export const register = async (body: TProduct) => {
@@ -82,7 +83,7 @@ export const register = async (body: TProduct) => {
 
         if (variant.images?.length) {
           const response = await uploadMultipleFiles(
-            variant.images, // ✅ { file, position }[]
+            variant.images, // { file, position }[]
             "tasfin_v_products"
           );
 
@@ -95,12 +96,7 @@ export const register = async (body: TProduct) => {
 
         return {
           ...variant,
-          images: uploadedImages.map((image) => ({
-            url: image.url,
-            publicId: image.publicId,
-            position: image.position,
-            alt: `${variant.color}-${variant.size}`,
-          })),
+          images: uploadedImages,
         };
       })
     );
@@ -148,6 +144,55 @@ export const register = async (body: TProduct) => {
   }
 };
 
+// update activity status
+export const updateActivity = async ({
+  productId,
+  data,
+}: {
+  productId: string;
+  data: any;
+}) => {
+  // Validate ID
+  const idValidation = mongoIdZ.safeParse({ _id: productId });
+  if (!idValidation.success) {
+    return { error: schemaValidationError(idValidation.error, "Invalid ID") };
+  }
+
+  try {
+    const product = await Product.findById(idValidation.data._id);
+    if (!product) {
+      return {
+        error: {
+          message: "Product not found!",
+        },
+      };
+    }
+
+    // Update fields
+    product.isFeatured = data.isFeatured;
+    product.isItNew = data.isItNew;
+    product.isCustom = data.isCustom;
+    product.status = data.status;
+
+    const updated = await product.save();
+    return {
+      success: {
+        success: true,
+        message: "Product activity updated successfully!",
+        data: updated,
+      },
+    };
+  } catch (error: any) {
+    return {
+      serverError: {
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === "production" ? null : error.stack,
+      },
+    };
+  }
+};
+
 // Update general info (non-images)
 export const updateGeneralInfo = async ({
   productId,
@@ -164,27 +209,26 @@ export const updateGeneralInfo = async ({
   // Validate body
   const validData = z
     .object({
-      title: z.string().min(1).optional(),
+      title: z.string().min(1, "title is required"),
       slug: z
         .string()
         .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-      description: z.string().min(1).max(2000).optional(),
-      details: {
-        fabric: z.string().max(100).optional(),
-        keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
-        valueAddition: z.string().max(500).optional(),
-        cutFit: z.string().max(100).optional(),
-        collarNeck: z.string().max(100).optional(),
-        sleeve: z.string().max(100).optional(),
-        length: z.string().max(100).optional(),
-        washCare: z.string().max(500).optional(),
-        sideCut: z.string().max(100).optional(),
-      },
-      isFeatured: z.boolean().optional(),
-      isItNew: z.boolean().optional(),
-      status: z.boolean().optional(),
+      description: z.string().max(2000).optional(),
+      keyFeatures: z.array(z.string().max(1000)).optional(),
+
       categories: z.array(objectIdZ),
       tags: z.array(z.string().max(50)).optional(),
+
+      details: z.object({
+        fabric: z.string().optional(),
+        valueAddition: z.string().optional(),
+        cutFit: z.string().optional(),
+        collarNeck: z.string().optional(),
+        sleeve: z.string().optional(),
+        length: z.string().optional(),
+        washCare: z.string().optional(),
+        sideCut: z.string().optional(),
+      }),
     })
     .safeParse(data);
 
@@ -297,6 +341,7 @@ export const updateVariantInfo = async ({
     Object.assign(variant, validData.data);
 
     const updated = await product.save();
+
     return {
       success: {
         success: true,
@@ -324,6 +369,7 @@ export const updateMainImages = async ({
   data: {
     newImages: { file: File; position: number }[];
     deleteImagePublicIds: string[];
+    keptImagePublicIds: string[]; // New field
   };
 }) => {
   const idValidation = mongoIdZ.safeParse({ _id: productId });
@@ -333,15 +379,14 @@ export const updateMainImages = async ({
 
   const validData = z
     .object({
-      newImages: z
-        .array(
-          z.object({
-            file: z.instanceof(File),
-            position: z.number().int().min(0),
-          })
-        )
-        .nonempty("At least 1 image is required"),
+      newImages: z.array(
+        z.object({
+          file: z.instanceof(File),
+          position: z.number().int().min(0),
+        })
+      ),
       deleteImagePublicIds: z.array(z.string()),
+      keptImagePublicIds: z.array(z.string()), // New
     })
     .safeParse(data);
 
@@ -358,8 +403,10 @@ export const updateMainImages = async ({
 
     // Delete old images
     if (validData.data.deleteImagePublicIds.length) {
-      const publicIds = validData.data.deleteImagePublicIds.filter((url) =>
-        product.images.some((image: { url: string }) => image.url === url)
+      const publicIds = validData.data.deleteImagePublicIds.filter((publicId) =>
+        product.images.some(
+          (image: { publicId: string }) => image.publicId === publicId
+        )
       );
 
       if (publicIds.length) {
@@ -370,7 +417,29 @@ export const updateMainImages = async ({
       }
     }
 
-    // Upload new images
+    // Reorder kept images based on frontend order
+    const keptPublicIds = validData.data.keptImagePublicIds;
+    if (keptPublicIds.length !== product.images.length) {
+      return { error: { message: "Mismatch in kept images count" } };
+    }
+
+    // Validate all kept IDs exist in remaining images
+    const remainingPublicIds = new Set(
+      product.images.map((img: { publicId: string }) => img.publicId)
+    );
+    if (!keptPublicIds.every((id) => remainingPublicIds.has(id))) {
+      return { error: { message: "Invalid kept image IDs provided" } };
+    }
+
+    // Assign new positions to kept images (0 to m-1 in the order provided)
+    product.images.forEach((image: { publicId: string; position: number }) => {
+      const newPosition = keptPublicIds.indexOf(image.publicId);
+      if (newPosition !== -1) {
+        image.position = newPosition;
+      }
+    });
+
+    // Upload new images (unchanged, but positions will start after kept)
     if (validData.data.newImages.length) {
       const response = await uploadMultipleFiles(
         validData.data.newImages,
@@ -387,15 +456,20 @@ export const updateMainImages = async ({
       const uniqueNewImages = data.filter(
         (image) => !existingUrlsSet.has(image.url)
       );
+
+      const start = product.images.length;
+
       product.images.push(
         ...uniqueNewImages.map((image) => ({
           url: image.url,
           publicId: image.publicId,
           alt: product.title,
-          position: image.position,
+          position: start + image.position, // image.position is relative (from frontend order)
         }))
       );
     }
+
+    product.images.sort((a, b) => a.position - b.position);
 
     // Save changes
     const updated = await product.save();
@@ -559,7 +633,13 @@ export const createVariant = async ({
   data,
   productId,
 }: {
-  data: any;
+  data: {
+    color: string;
+    size: string;
+    stock: number;
+    price: number;
+    sku: string;
+  };
   productId: string;
 }) => {
   let imageObjects: { url: string; publicId: string }[] = [];
@@ -570,24 +650,7 @@ export const createVariant = async ({
   }
 
   // Step 1: validate fields (skip file validation here)
-  const validData = z
-    .object({
-      sku: z.string(),
-      size: z.string(),
-      color: z.string(),
-      isCustom: z.boolean().default(false),
-      stock: z.number().int().min(0, "stock must be >= 0"),
-      price: z.number().nonnegative("price must be >= 0"),
-      images: z
-        .array(
-          z.object({
-            file: z.instanceof(File),
-            position: z.number().int().min(0),
-          })
-        )
-        .default([]),
-    })
-    .safeParse(data);
+  const validData = productVariantZ.omit({ images: true }).safeParse(data);
 
   if (!validData.success) {
     return {
@@ -608,32 +671,9 @@ export const createVariant = async ({
     }
 
     // -------------------------------
-    // Step 2: Upload Images
-    // -------------------------------
-    if (validData.data.images.length > 0) {
-      const response = await uploadMultipleFiles(
-        validData.data.images,
-        "tasfin_products"
-      );
-
-      if (response.error) throw new Error(response?.error?.message);
-      if (response.serverError) throw new Error(response?.serverError?.message);
-      if (!response.success) throw new Error("Failed to upload main images");
-
-      const data = response.success?.data || [];
-
-      const existingUrlsSet = new Set(product.images.map((image) => image.url));
-      const uniqueNewImages = data.filter(
-        (image) => !existingUrlsSet.has(image.url)
-      );
-
-      imageObjects = uniqueNewImages ?? [];
-    }
-
-    // -------------------------------
     // Step 3: Build variant & Save in DB
     // -------------------------------
-    const { size, stock, price, sku, isCustom, color } = validData.data;
+    const { size, stock, price, sku, color } = validData.data;
 
     product.variants.push({
       size,
@@ -641,17 +681,16 @@ export const createVariant = async ({
       price,
       images: imageObjects,
       sku,
-      isCustom,
       color,
     } as IProductVariant);
 
-    const docs = product.save();
+    const updated = await product.save();
 
     return {
       success: {
         success: true,
         message: "Variant created successfully",
-        data: docs,
+        data: updated,
       },
     };
   } catch (error: any) {
@@ -705,17 +744,6 @@ export const deleteVariant = async ({
       return { error: { message: "Variant not found!" } };
     }
 
-    // Delete variant images from Cloudinary
-    if (variant.images?.length) {
-      const publicIds = variant.images.map(
-        (image: { publicId: string }) => image.publicId
-      );
-
-      if (publicIds.length) {
-        await deleteMultipleFiles(publicIds);
-      }
-    }
-
     // Remove variant from product
     product.variants = product.variants.filter(
       (v) => v._id.toString() !== vIdValidation.data._id
@@ -747,14 +775,14 @@ export const getProducts = async (queryParams: {
   limit: number;
   sortBy: string;
   sortType: string;
-
   search: string;
-
   isFeatured: string;
   isItNew: string;
   status: string;
+  isCustom: string;
   priceRange: { min: number; max: number };
   categories: string[];
+  category?: string;
 }) => {
   // Safe Parse for better error handling
   const validData = productFetchQueryZ.safeParse(queryParams);
@@ -766,13 +794,26 @@ export const getProducts = async (queryParams: {
     };
   }
 
-  const { sortBy, search, isFeatured, status, priceRange } = validData.data;
+  const {
+    sortBy,
+    search,
+    isFeatured,
+    isItNew,
+    isCustom,
+    status,
+    priceRange,
+    category,
+    categories,
+  } = validData.data;
 
   try {
     // Build query
     const query: any = {};
-    if (validData.data.categories && validData.data.categories.length) {
-      query.categories = { $in: validData.data.categories };
+    if (categories && categories.length) {
+      query.categories = { $in: categories };
+    }
+    if (category) {
+      query.categories = { $in: [category] };
     }
 
     if (priceRange) {
@@ -781,6 +822,7 @@ export const getProducts = async (queryParams: {
         $lte: priceRange.max,
       };
     }
+
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -796,6 +838,8 @@ export const getProducts = async (queryParams: {
     }
     if (typeof isFeatured === "boolean") query.isFeatured = isFeatured;
     if (typeof status === "boolean") query.status = status;
+    if (typeof isItNew === "boolean") query.isItNew = isItNew;
+    if (typeof isCustom === "boolean") query.isCustom = isCustom;
 
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "title", "slug"].includes(

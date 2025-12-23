@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Truck, XCircle, Package } from "lucide-react";
+import { CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface StatusDialogProps {
   open: boolean;

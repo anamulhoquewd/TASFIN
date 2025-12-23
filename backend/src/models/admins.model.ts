@@ -1,7 +1,7 @@
-import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
-import { model, Schema } from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { model, Schema } from "mongoose";
+import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
 
 // ---------- Address ----------
 export const AddressSchema: Schema<IAddress> = new Schema<IAddress>(
@@ -18,7 +18,6 @@ export const AddressSchema: Schema<IAddress> = new Schema<IAddress>(
 // ---------- Image Schema ----------
 export const ImageSchema: Schema<IImage> = new Schema<IImage>(
   {
-    alt: { type: String, required: true },
     url: { type: String, required: true },
     publicId: { type: String, required: true },
     position: { type: Number, default: 0 },

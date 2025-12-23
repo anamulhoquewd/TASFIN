@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import { schemaValidationError } from "../error/index.js";
 import { Coupon } from "../models/coupon.model.js";
+import { CouponUsage } from "../models/couponUsage.model.js";
+import pagination from "../utils/pagination.js";
 import {
   couponZ,
   mongoIdZ,
@@ -9,8 +11,6 @@ import {
   type TCoupon,
   type TUpdateCoupon,
 } from "../validations/zod.js";
-import pagination from "../utils/pagination.js";
-import { CouponUsage } from "../models/couponUsage.model.js";
 
 export const register = async (body: TCoupon) => {
   const validData = couponZ.safeParse(body);

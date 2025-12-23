@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
-import { MenuIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import { MenuIcon } from "lucide-react";
 import UserMenu from "./use-menu";
 
 export default function Header() {

@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
-import { ImageSchema } from "./admins.model.js";
 import type { IOffer } from "../interfaces/index.js";
+import { ImageSchema } from "./admins.model.js";
 
 const OffersSchema: Schema<IOffer> = new Schema<IOffer>(
   {

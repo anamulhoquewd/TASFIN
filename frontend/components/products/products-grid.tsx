@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown, Heart } from "lucide-react";
-import { cn, debounce, formatPrice } from "@/lib/utils";
+import { cn, debounce, priceFormatting } from "@/lib/utils";
 import { IProduct, IProductVariant } from "@/interfaces/products";
 import { IImage } from "@/interfaces/global";
 import { Spinner } from "../ui/spinner";

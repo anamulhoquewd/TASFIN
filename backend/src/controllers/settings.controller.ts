@@ -1,8 +1,8 @@
+import type { Context } from "hono";
 import { uploadSingleFile } from "../utils/cloudinary.js";
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import Settings from "./../models/settings.model.js";
-import { adminService, settingsService } from "./../services/index.js";
-import type { Context } from "hono";
+import { settingsService } from "./../services/index.js";
 
 export const getSettings = async (c: Context) => {
   const response = await settingsService.getSettings();
@@ -70,8 +70,9 @@ export const changeLogo = async (c: Context) => {
 
     // Update and save
     settings.logo = {
-      alt: response.success.data.publicId,
-      ...response.success.data,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
+      position: 0,
     };
 
     await settings.save();

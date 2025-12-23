@@ -1,6 +1,6 @@
+import { Hono } from "hono";
 import { subscribersController } from "../controllers/index.js";
 import { authenticatedAdmin } from "./../middlewares/auth.middleware.js";
-import { Hono } from "hono";
 
 const subscriberRoutes = new Hono();
 

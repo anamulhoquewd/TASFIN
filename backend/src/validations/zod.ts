@@ -1,11 +1,10 @@
 // validation/admin.validation.ts
-import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { number, z } from "zod";
+import { z } from "zod";
+import { isValidDate } from "./../utils/index.js";
 
 // Image validation (matches your Image)
 export const imageZ = z.object({
-  alt: z.string().min(1),
   url: z.string().url(),
   publicId: z.string().optional(),
 });
@@ -52,22 +51,33 @@ export const productVariantUpdateZ = productVariantZ.partial().refine(
 
 export type TUpdateVariant = z.infer<typeof productVariantUpdateZ>;
 
+export const fileZ = z
+  .instanceof(File)
+  .refine((file) => file.size <= 10 * 1024 * 1024, {
+    message: "File size must be <= 10MB",
+  })
+  .refine((file) => ["image/jpeg", "image/png"].includes(file.type), {
+    message: "Only JPEG/PNG allowed",
+  });
+
+export type TFile = z.infer<typeof fileZ>;
+
 // IProduct
 export const productZ = z.object({
   title: z.string().min(1, "title is required"),
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().min(1).max(2000).optional(),
-  keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
+  description: z.string().max(2000).optional(),
+  keyFeatures: z.array(z.string().max(1000)).optional(),
 
   categories: z.array(objectIdZ),
-  tags: z.array(z.string().min(1).max(50)).optional(),
+  tags: z.array(z.string().max(50)).optional(),
 
   images: z
     .array(
       z.object({
-        file: z.instanceof(File),
+        file: fileZ,
         position: z.number().int().min(0),
       })
     )
@@ -87,6 +97,7 @@ export const productZ = z.object({
   }),
 
   isFeatured: z.boolean().optional(),
+  isCustom: z.boolean().default(false),
   isItNew: z.boolean().optional(),
   status: z.boolean().default(true),
 });
@@ -143,7 +154,7 @@ export const adminCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
-export type Tdmin = z.infer<typeof adminCreateZ>;
+export type TAdmin = z.infer<typeof adminCreateZ>;
 
 // If you want a separate update  where fields can be optional:
 export const adminUpdateZ = adminCreateZ.partial().refine(
@@ -253,8 +264,8 @@ export type TLogin = z.infer<typeof loginSchemeZ>;
 export const avatarZ = z.object({
   avatar: z
     .instanceof(File, { message: "Invalid file format" })
-    .refine((file) => file.size <= 2 * 1024 * 1024, {
-      message: "File size must be less than 2MB",
+    .refine((file) => file.size <= 10 * 1024 * 1024, {
+      message: "File size must be less than 10MB",
     })
     .refine(
       (file) =>
@@ -358,7 +369,7 @@ export const productFetchQueryZ = z.object({
   limit: z.number().min(1).max(100).default(10),
   sortBy: z.enum(["createdAt", "updatedAt", "title"]).default("updatedAt"),
   sortType: z.enum(["asc", "desc"]).optional().default("desc"),
-  search: z.instanceof(mongoose.Types.ObjectId).optional(),
+  search: z.string().optional(),
   isFeatured: z
     .string()
     .optional()
@@ -384,6 +395,8 @@ export const productFetchQueryZ = z.object({
     })
     .optional(),
   categories: z.array(z.string()).optional(),
+  category: z.string().optional(),
+  isCustom: z.string().optional(),
 });
 
 export type TOrderFetchQuery = z.infer<typeof productFetchQueryZ>;

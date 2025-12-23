@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatPrice = (price: number = 0) =>
+export const priceFormatting = (price: number = 0) =>
   `BDT ${price.toLocaleString()}`;
 
 // Function to copy the access key to clipboard

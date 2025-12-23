@@ -1,5 +1,5 @@
-import type { ICoupon, ICouponUsage } from "./../interfaces/index.js";
 import { Schema, model } from "mongoose";
+import type { ICouponUsage } from "./../interfaces/index.js";
 
 // ---------- CouponUsage ----------
 const CouponUsageSchema: Schema<ICouponUsage> = new Schema<ICouponUsage>(
@@ -18,4 +18,7 @@ const CouponUsageSchema: Schema<ICouponUsage> = new Schema<ICouponUsage>(
 // Compound unique index: one phone can use a coupon multiple times, but tracked per coupon
 CouponUsageSchema.index({ couponId: 1, phone: 1 }, { unique: true });
 
-export const CouponUsage = model<ICouponUsage>("CouponUsage", CouponUsageSchema);
+export const CouponUsage = model<ICouponUsage>(
+  "CouponUsage",
+  CouponUsageSchema
+);
