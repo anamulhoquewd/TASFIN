@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useCartAndWishlist } from "@/lib/cart-context";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, priceFormatting } from "@/lib/utils";
 import Image from "next/image";
 import {
   Breadcrumb,
@@ -194,7 +194,7 @@ export default function CartPage() {
 
                       {/* Price */}
                       <p className="text-foreground">
-                        {formatPrice(item.price * item.quantity)}
+                        {priceFormatting(item.price * item.quantity)}
                       </p>
                     </div>
 
@@ -224,7 +224,7 @@ export default function CartPage() {
                     Subtotal ({totalCartItems} items)
                   </span>
                   <span className="font-medium text-foreground">
-                    {formatPrice(subtotal)}
+                    {priceFormatting(subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -235,7 +235,7 @@ export default function CartPage() {
                       shippingFee === 0 && "text-green-400"
                     )}
                   >
-                    {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
+                    {shippingFee === 0 ? "FREE" : priceFormatting(shippingFee)}
                   </span>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function CartPage() {
               <div className="flex justify-between">
                 <span className="font-semibold text-foreground">Total</span>
                 <span className="font-bold text-xl text-foreground">
-                  {formatPrice(total)}
+                  {priceFormatting(total)}
                 </span>
               </div>
 
@@ -253,7 +253,9 @@ export default function CartPage() {
                 <div className="p-3 bg-green-500/10">
                   <p className="text-xs text-green-700">
                     Add{" "}
-                    {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
+                    {priceFormatting(
+                      Number(FREE_SHIPPING_START_FROM) - subtotal
+                    )}{" "}
                     more for free shipping!
                   </p>
                 </div>

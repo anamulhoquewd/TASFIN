@@ -1,18 +1,18 @@
-import type { IOffers } from "./../interfaces/index.js";
-import mongoose from "mongoose";
+import { model, Schema } from "mongoose";
+import type { IOffer } from "../interfaces/index.js";
 import { ImageSchema } from "./admins.model.js";
 
-const OffersSchema: mongoose.Schema<IOffers> = new mongoose.Schema(
+const OffersSchema: Schema<IOffer> = new Schema<IOffer>(
   {
     name: { type: String, required: true, trim: true },
     message: { type: String, required: true },
     image: { type: ImageSchema, required: true },
-    startDate: { type: Date, required: true },
-    endDate: { type: Date, required: true },
-    isActive: { type: Boolean, required: true, default: true },
+    startAt: Date,
+    endAt: Date,
+    status: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-const Offers = mongoose.model<IOffers>("Offers", OffersSchema);
+const Offers = model<IOffer>("Offers", OffersSchema);
 export default Offers;

@@ -1,18 +1,28 @@
 import { z } from "zod";
 
-// Image validation (matches your ImageSchema)
+// Accept either a 24-char hex string or a real ObjectId instance
+export const objectIdZ = z
+  .string()
+  .regex(/^[a-fA-F0-9]{24}$/, "Expected a 24-char hex ObjectId string");
+
+export type TObjectId = z.infer<typeof objectIdZ>;
+
+// Image validation (matches your Image)
 export const imageZ = z.object({
   alt: z.string().min(1, "Image alt text required").trim(),
   url: z.string().url("Invalid image URL").trim(),
+  publicId: z.string().optional(),
 });
+
+export type TImage = z.infer<typeof imageZ>;
 
 // Bangladesh phone regex (local format like 017xxxxxxxx)
 export const BDPhoneRegex = /^01[3-9]\d{8}$/;
 
-const fileSchema = z
+const fileZ = z
   .instanceof(File)
-  .refine((file) => file.size <= 2 * 1024 * 1024, {
-    message: "File size must be <= 2MB",
+  .refine((file) => file.size <= 10 * 1024 * 1024, {
+    message: "File size must be <= 10MB",
   })
   .refine((file) => ["image/jpeg", "image/png"].includes(file.type), {
     message: "Only JPEG/PNG allowed",
@@ -31,59 +41,20 @@ export const categorySchema = z.object({
   name: z.string().min(1, "Name is required").trim(),
 });
 
-// Zod schema for IProduct
-export const productSchema = z.object({
-  slug: z
-    .string()
-    .regex(
-      /^[a-z0-9]+(-[a-z0-9]+)*$/,
-      "Slug must be lowercase letters, numbers, and hyphens only (no spaces or special characters)."
-    ),
-  name: z.string().min(1, "Name is required"),
-  images: z.array(
-    z.object({
-      alt: z.string().min(1, "Image alt is required"),
-      url: z.string().url("Must be a valid URL"),
-    })
-  ),
-  keywords: z
-    .array(
-      z.object({
-        value: z.string().optional(),
-      })
-    )
-    .optional(),
-  price: z.coerce.number().positive("Price must be a positive number"),
-  description: z.string().optional(),
-  sizes: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Size is required"),
-        inStock: z.boolean(),
-        quantity: z.coerce.number().nonnegative("Quantity must be 0 or more"),
-      })
-    )
-    .min(1, "At least one size is required"),
-
-  category: z
-    .string()
-    .length(24, { message: "Invalid category ID" })
-    .regex(/^[a-fA-F0-9]{24}$/, { message: "Invalid ObjectId format" }),
-});
-
-// IProductVariant schema
-export const productVariantSchemaZ = z.object({
+// IProductVariant
+export const productVariantZ = z.object({
   size: z.string().min(1),
-  stock: z.number().int().min(0, "stock must be >= 0"),
+  color: z.string().optional(),
+  sku: z.string().min(6),
   price: z.number().nonnegative("price must be >= 0"),
-  images: z.array(fileSchema).optional(),
-  existingImages: z.array(z.string()).optional(),
-  deleteImageUrls: z.array(z.string()).optional(),
-  _id: z.string().optional(),
+  stock: z.number().nonnegative("stock must be >= 0"),
+  images: z.array(fileZ).optional(),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+export type TVariant = z.infer<typeof productVariantZ>;
+
+// If you want a separate update  where fields can be optional:
+export const productVariantUpdateZ = productVariantZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -91,38 +62,45 @@ export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// IProduct schema
-export const productSchemaZ = z.object({
+export type TUpdateVariant = z.infer<typeof productVariantUpdateZ>;
+
+// IProduct
+export const productZ = z.object({
   title: z.string().min(1, "title is required"),
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().max(1000).optional(),
-  keyFeatures: z.array(z.string().min(1)).optional(),
+  description: z.string().max(2000).optional(),
+  keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
 
-  categories: z.array(z.string()),
+  categories: z.array(objectIdZ),
+  tags: z.array(z.string().min(1).max(50)).optional(),
 
-  images: z.array(fileSchema).nonempty("At least 1 image is required"),
-  variants: z
-    .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
+  images: z.array(fileZ).nonempty("At least 1 image is required"),
 
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
+  variants: z.array(productVariantZ).nonempty("At least 1 variant is required"),
 
+  details: z.object({
+    fabric: z.string().optional(),
+    valueAddition: z.string().optional(),
+    cutFit: z.string().optional(),
+    collarNeck: z.string().optional(),
+    sleeve: z.string().optional(),
+    length: z.string().optional(),
+    washCare: z.string().optional(),
+    sideCut: z.string().optional(),
+  }),
+
+  isCustom: z.boolean().default(false),
   isFeatured: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  tags: z.array(z.string().min(1)).optional(),
+  isItNew: z.boolean().default(false),
+  status: z.boolean().default(true),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const productUpdateZ = productSchemaZ.partial().refine(
+export type TProduct = z.infer<typeof productZ>;
+
+// If you want a separate update  where fields can be optional:
+export const productUpdateZ = productZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -130,14 +108,7 @@ export const productUpdateZ = productSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Types + helpers
-export type ProductCreateInput = z.infer<typeof productSchemaZ>;
-export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
-
-export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
-
-export type ProductFormValues = z.infer<typeof productSchema>;
-export type CategoryFormValues = z.infer<typeof categorySchema>;
+export type TUpdateProduct = z.infer<typeof productUpdateZ>;
 
 // Address schema
 export const addressZ = z.object({

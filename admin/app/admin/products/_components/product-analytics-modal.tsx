@@ -2,18 +2,23 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -23,41 +28,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  X,
-  RefreshCw,
-  Download,
-  Printer,
-  Share2,
-  ExternalLink,
-  TrendingUp,
-  TrendingDown,
-  MoreHorizontal,
-  Calendar,
-  Users,
-  AlertTriangle,
-  MapPin,
-  Copy,
-} from "lucide-react";
-import Link from "next/link";
-import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
-import { formatPrice } from "@/lib/utils";
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import { priceFormatting } from "@/lib/utils";
+import {
+  AlertTriangle,
+  Calendar,
+  Copy,
+  Download,
+  ExternalLink,
+  MapPin,
+  MoreHorizontal,
+  Printer,
+  RefreshCw,
+  Share2,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  X,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Types
 interface Analytics {
@@ -391,11 +391,11 @@ export function ProductAnalyticsModal({
                         ))}
                       </div>
                     )}
-                    {product.fabric && (
-                      <Badge variant="default">{product.fabric}</Badge>
+                    {product.details.fabric && (
+                      <Badge variant="default">{product.details.fabric}</Badge>
                     )}
-                    <Badge variant={product.isActive ? "default" : "secondary"}>
-                      {product.isActive ? "Active" : "Inactive"}
+                    <Badge variant={product.status ? "default" : "secondary"}>
+                      {product.status ? "Active" : "Inactive"}
                     </Badge>
                     {product.isFeatured && (
                       <Badge className="bg-blue-100 text-blue-800">
@@ -621,12 +621,12 @@ export function ProductAnalyticsModal({
                             Others information
                           </h4>
                           <div className="space-y-2 text-sm">
-                            {product.fabric && (
+                            {product.details.fabric && (
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
                                   Fabric:
                                 </span>
-                                <span>{product.fabric}</span>
+                                <span>{product.details.fabric}</span>
                               </div>
                             )}
                             <div className="flex justify-between">
@@ -652,10 +652,10 @@ export function ProductAnalyticsModal({
                               <div className="flex gap-1">
                                 <Badge
                                   variant={
-                                    product.isActive ? "default" : "secondary"
+                                    product.status ? "default" : "secondary"
                                   }
                                 >
-                                  {product.isActive ? "Active" : "Inactive"}
+                                  {product.status ? "Active" : "Inactive"}
                                 </Badge>
                                 {product.isFeatured && (
                                   <Badge className="bg-blue-100 text-blue-800">
@@ -724,7 +724,7 @@ export function ProductAnalyticsModal({
                                 {variant.size}
                               </TableCell>
                               <TableCell className="font-medium">
-                                {formatPrice(
+                                {priceFormatting(
                                   product.variants.find(
                                     (v) => v._id === variant._id
                                   )?.price || 0
@@ -946,22 +946,22 @@ export function ProductAnalyticsModal({
                               {variant.size}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.fabric}
+                              {product.details.fabric}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.sleeve}
+                              {product.details.sleeve}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.collarNeck}
+                              {product.details.collarNeck}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.cutFit}
+                              {product.details.cutFit}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.valueAddition}
+                              {product.details.valueAddition}
                             </TableCell>
                             <TableCell className="font-medium">
-                              {product.washCare}
+                              {product.details.washCare}
                             </TableCell>
                           </TableRow>
                         ))}

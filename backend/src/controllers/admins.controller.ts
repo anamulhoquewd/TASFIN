@@ -1,3 +1,9 @@
+import axios from "axios";
+import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
+import type { IAdmin } from "../interfaces/index.js";
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   authenticationError,
   authorizationError,
@@ -7,10 +13,6 @@ import {
 import Admin from "./../models/admins.model.js";
 import { adminService } from "./../services/index.js";
 import { generateAccessToken } from "./../utils/index.js";
-import axios from "axios";
-import type { Context } from "hono";
-import { getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
@@ -30,7 +32,6 @@ export const register = async (c: Context) => {
   return c.json(response.success, 201);
 };
 
-// Get all admins
 export const getAdmins = async (c: Context) => {
   const page = parseInt(c.req.query("page") as string, 10) || 1;
   const limit = parseInt(c.req.query("limit") as string, 10) || 10;
@@ -74,11 +75,10 @@ export const getAdmin = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Get Me
 export const getMe = async (c: Context) => {
   try {
     // Get admin from auth token
-    const me = c.get("admin");
+    const me: IAdmin = c.get("admin");
 
     // Check if admin is authenticated
     if (!me) {
@@ -120,10 +120,9 @@ export const getMe = async (c: Context) => {
   }
 };
 
-// Update profile
 export const updateMe = async (c: Context) => {
   // Get admin from auth token
-  const admin = c.get("admin");
+  const admin: IAdmin = c.get("admin");
 
   if (!admin) {
     return authenticationError(c);
@@ -144,7 +143,6 @@ export const updateMe = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Login admin
 export const login = async (c: Context) => {
   const body = await c.req.json();
 
@@ -161,7 +159,6 @@ export const login = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Refresh Token
 export const refreshToken = async (c: Context) => {
   try {
     const rToken = getCookie(c, "refreshToken");
@@ -171,7 +168,10 @@ export const refreshToken = async (c: Context) => {
     }
 
     // Verify refresh token
-    const token = await verify(rToken, JWT_REFRESH_SECRET);
+    const token = await verify(
+      rToken,
+      "your-very-long-random-refresh-secret-string"
+    );
 
     if (!token) {
       return authenticationError(c);
@@ -226,10 +226,9 @@ export const refreshToken = async (c: Context) => {
   }
 };
 
-// Logout admin
 export const logout = async (c: Context) => {
   try {
-    const user = c.get("admin");
+    const user: IAdmin = c.get("admin");
     // Remove refresh token from database
     const admin = await Admin.updateOne({ _id: user._id }, { refresh: "" });
 
@@ -257,12 +256,11 @@ export const logout = async (c: Context) => {
   }
 };
 
-// Change Password
 export const changePassword = async (c: Context) => {
   const body = await c.req.json();
 
   // Check if admin exists. and get email from token
-  const { email } = c.get("admin");
+  const { email }: IAdmin = c.get("admin");
 
   const admin = await Admin.findOne({ email }).select("password");
 
@@ -286,7 +284,6 @@ export const changePassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Delete admin
 export const deleteAdmin = async (c: Context) => {
   const _id = c.req.param("_id");
 
@@ -303,7 +300,6 @@ export const deleteAdmin = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Forgot Password
 export const forgotPassword = async (c: Context) => {
   const { email } = await c.req.json();
 
@@ -320,7 +316,6 @@ export const forgotPassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Reset Password
 export const resetPassword = async (c: Context) => {
   // Token come from param
   const resetToken = c.req.param("resetToken");
@@ -344,7 +339,6 @@ export const resetPassword = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Change Admin Avatar
 export const changeAvatar = async (c: Context) => {
   try {
     const body = await c.req.parseBody();
@@ -369,15 +363,7 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    // Generate filename
-    const fileN = c.req.query("filename") || "avatar";
-    const filename = `${fileN}-${Date.now()}.webp`;
-
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "admins",
-    });
+    const response = await uploadSingleFile(file, "tasfin_users");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -389,8 +375,8 @@ export const changeAvatar = async (c: Context) => {
 
     // Update admin.avatar.url and save
     admin.avatar = {
-      alt: filename,
-      url: response.success.data,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
     };
 
     await admin.save();

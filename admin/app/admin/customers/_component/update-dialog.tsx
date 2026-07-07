@@ -20,11 +20,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { ICustomer } from "@/interfaces/users";
-import { FormValues } from "../_hook/useCustomer";
-import { UseFormReturn } from "react-hook-form";
-import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { ICustomer } from "@/interfaces/users";
+import { UseFormReturn } from "react-hook-form";
+import { FormValues } from "../_hook/useCustomer";
 
 interface Props {
   form: UseFormReturn<FormValues>;

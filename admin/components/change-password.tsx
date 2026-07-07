@@ -1,6 +1,6 @@
 "use client";
 
-import type React from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -10,11 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import { Form } from "@/components/ui/form";
-import { PasswordInputField } from "./password-input-field";
 import useChangePass from "@/hooks/auth/useChangePass";
+import { Loader2 } from "lucide-react";
+import { PasswordInputField } from "./password-input-field";
 
 interface PasswordChangeModalProps {
   isOpen: boolean;

@@ -1,46 +1,45 @@
 import type { IProduct, IProductVariant } from "./../interfaces/index.js";
-import mongoose from "mongoose";
+import { model, Schema } from "mongoose";
 import { ImageSchema } from "./admins.model.js";
 
-const ProductVariantSchema: mongoose.Schema<IProductVariant> =
-  new mongoose.Schema({
-    size: { type: String, required: true, trim: true },
-    stock: { type: Number, required: true, min: 0 },
-    price: { type: Number, required: true, min: 0 },
-    images: [{ type: ImageSchema, required: false }],
+const ProductVariantSchema: Schema<IProductVariant> =
+  new Schema<IProductVariant>({
+    sku: { type: String, required: true },
+    size: { type: String, required: true },
+    color: { type: String, required: true },
+    stock: { type: Number, default: 0 },
+    price: { type: Number, required: true },
+    images: [ImageSchema],
   });
 
-const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
+// ---------- Product ----------
+const ProductSchema: Schema<IProduct> = new Schema<IProduct>(
   {
-    title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, trim: true, unique: true },
-    description: { type: String, required: false, trim: true },
-    keyFeatures: [{ type: String, trim: true }],
-    categories: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-        required: true,
-      },
-    ],
-    images: [{ type: ImageSchema, required: true }],
-    variants: { type: [ProductVariantSchema], required: true },
-
-    fabric: { type: String, trim: true },
-    valueAddition: { type: String, trim: true },
-    cutFit: { type: String, trim: true },
-    collarNeck: { type: String, trim: true },
-    sleeve: { type: String, trim: true },
-    length: { type: String, trim: true },
-    washCare: { type: String, trim: true },
-    sideCut: { type: String, trim: true },
-
+    title: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    description: { type: String },
+    keyFeatures: [String],
+    categories: [{ type: Schema.Types.ObjectId, ref: "Category" }],
+    images: [ImageSchema],
+    variants: [ProductVariantSchema],
     isFeatured: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: true },
-    tags: [{ type: String, trim: true }],
+    isItNew: { type: Boolean, default: false },
+    isCustom: { type: Boolean, default: false },
+    status: { type: Boolean, default: true },
+    tags: [String],
+    details: {
+      fabric: String,
+      valueAddition: String,
+      cutFit: String,
+      collarNeck: String,
+      sleeve: String,
+      length: String,
+      washCare: String,
+      sideCut: String,
+    },
   },
   { timestamps: true }
 );
 
-const Product = mongoose.model("Product", ProductSchema);
+const Product = model<IProduct>("Product", ProductSchema);
 export default Product;

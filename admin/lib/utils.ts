@@ -29,5 +29,61 @@ export const copyToClipboard = (text: string) => {
   toast("Copied!");
 };
 
-export const formatPrice = (price: number = 0) =>
+export const priceFormatting = (price: number = 0) =>
   `BDT ${price.toLocaleString()}`;
+
+type GenerateSKUProps = {
+  size: string;
+  color: string;
+  brand?: string; // default TF
+};
+
+export function generateSKU({ size, color, brand = "TF" }: GenerateSKUProps) {
+  if (!size || !color) return "";
+
+  const normalize = (value: string) =>
+    value
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s-]/g, "") // remove special chars
+      .replace(/\s+/g, "-") // spaces → dash
+      .replace(/-+/g, "-"); // multiple dash → single
+
+  const safeColor = normalize(color);
+  const safeSize = normalize(size);
+  const safeBrand = normalize(brand);
+
+  return `${safeBrand}-${safeColor}-${safeSize}`;
+}
+
+// Generate slug from title
+export const generateSlug = (title: string) => {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .trim();
+};
+
+// mapping helper
+export const mapStatusToBoolean = (state: string): boolean | undefined => {
+  if (state === "active") return true;
+  if (state === "inactive") return false;
+  return undefined; // "all"
+};
+export const mapIsItNewToBoolean = (state: string): boolean | undefined => {
+  if (state === "newest") return true;
+  if (state === "oldest") return false;
+  return undefined; // "all"
+};
+export const mapIsCustomToBoolean = (state: string): boolean | undefined => {
+  if (state === "custom") return true;
+  if (state === "not-custom") return false;
+  return undefined; // "all"
+};
+export const mapFeaturedToBoolean = (state: string): boolean | undefined => {
+  if (state === "featured") return true;
+  if (state === "not-featured") return false;
+  return undefined; // "all"
+};

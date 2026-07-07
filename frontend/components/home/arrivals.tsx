@@ -4,7 +4,7 @@ import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
-import { ProductCard } from "../products/products-grid";
+import { ProductCard } from "../products/product-card";
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);

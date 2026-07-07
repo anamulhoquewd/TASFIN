@@ -129,6 +129,7 @@ export function TestimonialsSection() {
                   <div className="flex gap-4 items-center border-t border-border pt-4 mt-auto">
                     <Avatar className="w-10 h-10">
                       <AvatarImage
+                        className="object-cover"
                         src={testimonial.avatar.url}
                         alt={testimonial.avatar.alt}
                       />

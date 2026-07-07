@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "tasfin-shop.s3.eu-north-1.amazonaws.com",
+        hostname: "res.cloudinary.com",
       },
     ],
   },

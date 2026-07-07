@@ -1,12 +1,13 @@
+import type { Context } from "hono";
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   badRequestHandler,
   schemaValidationError,
   serverErrorHandler,
 } from "./../error/index.js";
 import Category from "./../models/categorise.model.js";
-import { adminService, categoryService } from "./../services/index.js";
-import { idSchemaZ } from "./../validations/zod.js";
-import type { Context } from "hono";
+import { categoryService } from "./../services/index.js";
+import { mongoIdZ } from "./../validations/zod.js";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -68,7 +69,6 @@ export const getCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Update category
 export const updateCategory = async (c: Context) => {
   const _id = c.req.param("_id");
   if (!_id) return badRequestHandler(c, { message: "Category ID is required" });
@@ -88,7 +88,6 @@ export const updateCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Delete category
 export const deleteCategory = async (c: Context) => {
   const _id = c.req.param("_id");
 
@@ -105,13 +104,12 @@ export const deleteCategory = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Change Admin Avatar
 export const changeAvatar = async (c: Context) => {
   const _id = c.req.param("_id");
   const body = await c.req.parseBody();
   const file = body["avatar"] as File;
 
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return badRequestHandler(
       c,
@@ -132,10 +130,6 @@ export const changeAvatar = async (c: Context) => {
     });
   }
 
-  // Generate filename
-  const fileN = c.req.query("filename") || "avatar";
-  const filename = `${fileN}-${Date.now()}.webp`;
-
   try {
     const category = await Category.findById(idValidation.data._id);
 
@@ -145,11 +139,7 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "admins",
-    });
+    const response = await uploadSingleFile(file, "tasfin_categories");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -161,8 +151,9 @@ export const changeAvatar = async (c: Context) => {
 
     // Update category.avatar.url and save
     category.image = {
-      alt: filename,
-      url: response.success.data,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
+      position: 0,
     };
 
     await category.save();

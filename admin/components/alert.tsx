@@ -12,7 +12,7 @@ import {
 interface AlertConfirmationProps {
   isOpne: boolean;
   setIsOpen: (isOpne: boolean) => void;
-  onConfirm: (data: any) => void;
+  onConfirm: () => void;
 }
 
 function AlertConfirmation({
@@ -32,7 +32,12 @@ function AlertConfirmation({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={(data) => onConfirm(data)}>
+          <AlertDialogAction
+            onClick={() => {
+              setIsOpen(false);
+              onConfirm();
+            }}
+          >
             Continue
           </AlertDialogAction>
         </AlertDialogFooter>

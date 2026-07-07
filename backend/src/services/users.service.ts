@@ -1,21 +1,20 @@
+import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { schemaValidationError } from "./../error/index.js";
-import type { IUser } from "./../interfaces/index.js";
 import User from "./../models/users.model.js";
 import pagination from "./../utils/pagination.js";
 import {
-  idSchemaZ,
-  querySchemaZ,
-  type UserCreateInput,
+  mongoIdZ,
+  queryZ,
   userCreateZ,
-  type UserUpdateInput,
   userUpdateZ,
+  type TUpdateUser,
+  type TUser,
 } from "./../validations/zod.js";
-import dotenv from "dotenv";
 
 dotenv.config();
 
-export const register = async (body: UserCreateInput) => {
+export const register = async (body: TUser) => {
   // Safe Parse for better error handling
   const validData = userCreateZ.safeParse(body);
 
@@ -82,7 +81,7 @@ export const getUsers = async (queryParams: {
   search: string;
 }) => {
   // Safe Parse for better error handling
-  const validData = querySchemaZ.safeParse({
+  const validData = queryZ.safeParse({
     sortBy: queryParams.sortBy,
     sortType: queryParams.sortType,
   });
@@ -159,8 +158,8 @@ export const updateProfile = async ({
   user,
   body,
 }: {
-  user: IUser;
-  body: UserUpdateInput;
+  user: InstanceType<typeof User>;
+  body: TUpdateUser;
 }) => {
   // Validation without NID for update
   const validData = userUpdateZ.safeParse(body);
@@ -199,11 +198,11 @@ export const updateUser = async ({
   body,
   _id,
 }: {
-  body: UserUpdateInput;
+  body: TUpdateUser;
   _id: string;
 }) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return {
       error: schemaValidationError(idValidation.error, "Invalid ID"),
@@ -255,7 +254,7 @@ export const updateUser = async ({
 
 export const deleteUsers = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = mongoIdZ.safeParse({ _id: _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }

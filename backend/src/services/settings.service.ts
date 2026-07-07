@@ -1,11 +1,11 @@
+import dotenv from "dotenv";
 import { schemaValidationError } from "./../error/index.js";
 import Settings from "./../models/settings.model.js";
 import {
   settingCreateZ,
-  type SettingUpdateInput,
   settingUpdateZ,
+  type TUpdateSetting,
 } from "./../validations/zod.js";
-import dotenv from "dotenv";
 dotenv.config();
 
 const NAME = process.env.SITE_NAME;
@@ -81,7 +81,7 @@ export const getSettings = async () => {
   }
 };
 
-export const updateSettings = async (body: SettingUpdateInput) => {
+export const updateSettings = async (body: TUpdateSetting) => {
   // Validation without NID for update
   const validData = settingUpdateZ.safeParse(body);
 

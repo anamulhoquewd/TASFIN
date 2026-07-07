@@ -1,12 +1,10 @@
 "use client";
 
-import type React from "react";
 
+import { ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -23,9 +21,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import useReset from "@/hooks/auth/useReset";
 import Link from "next/link";
 import SuccessComponent from "./reset-success";
-import useReset from "@/hooks/auth/useReset";
 
 export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);

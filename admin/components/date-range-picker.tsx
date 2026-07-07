@@ -1,15 +1,13 @@
 /* eslint-disable max-lines */
 "use client";
 
-import React, { type FC, useState, useEffect, useRef, JSX } from "react";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { DateInput } from "./date-input";
 import {
   Select,
   SelectContent,
@@ -19,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Calendar as CalendarIcon, CheckIcon } from "lucide-react";
+import { type FC, JSX, useEffect, useRef, useState } from "react";
+import { DateInput } from "./date-input";
 
 export interface DateRangePickerProps {
   /** Click handler for applying the updates from DateRangePicker. */

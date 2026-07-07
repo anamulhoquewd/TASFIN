@@ -1,10 +1,10 @@
+import { model, Schema } from "mongoose";
 import type { IPayment } from "./../interfaces/index.js";
-import mongoose from "mongoose";
 
-const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
+const PaymentSchema: Schema<IPayment> = new Schema<IPayment>(
   {
     orderId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Order",
       required: true,
     },
@@ -26,9 +26,11 @@ const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
       enum: ["pending", "success", "failed"],
       required: true,
     },
+
+    gatewayResponse: Schema.Types.Mixed,
   },
   { timestamps: true }
 );
 
-const Payment = mongoose.model<IPayment>("Payment", PaymentSchema);
+const Payment = model<IPayment>("Payment", PaymentSchema);
 export default Payment;

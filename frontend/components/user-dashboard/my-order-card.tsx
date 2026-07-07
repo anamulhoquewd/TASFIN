@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, MessageCircle, RotateCcw, Truck } from "lucide-react";
 import { IOrder } from "@/interfaces/orders";
-import { formatPrice } from "@/lib/utils";
+import { priceFormatting } from "@/lib/utils";
 import useShare from "@/lib/use-share-in-wa";
 
 export default function MyOrderCard({ order }: { order: IOrder }) {
@@ -74,12 +74,14 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
               <p className="font-semibold">
                 {order.shippingCost === 0
                   ? "FREE"
-                  : formatPrice(order.shippingCost)}
+                  : priceFormatting(order.shippingCost)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Amount</p>
-              <p className="font-semibold">{formatPrice(order.totalAmount)}</p>
+              <p className="font-semibold">
+                {priceFormatting(order.totalAmount)}
+              </p>
             </div>
           </div>
           <div>
@@ -102,7 +104,7 @@ export default function MyOrderCard({ order }: { order: IOrder }) {
                   <span>
                     {item.title.substring(0, 26)}: x {item.quantity}
                   </span>
-                  <span>{formatPrice(item.price * item.quantity)}</span>
+                  <span>{priceFormatting(item.price * item.quantity)}</span>
                 </div>
               ))}
             </div>

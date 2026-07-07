@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import Image from "next/image";
 import { ProductNotFound } from "@/components/products/product/product-not-found";
-import { cn, debounce, formatPrice } from "@/lib/utils";
+import { cn, debounce, priceFormatting } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -374,7 +374,7 @@ export default function ProductPage() {
             </div>
             <div className="flex items-baseline gap-3">
               <span className="text-xl tracking-wide text-foreground">
-                {formatPrice(
+                {priceFormatting(
                   selectedVariant?.price || product.variants[0].price
                 )}
               </span>
@@ -524,7 +524,7 @@ export default function ProductPage() {
             <div className="p-3 bg-green-500/10 rounded-md text-xs text-center">
               <p className="text-xs text-green-700">
                 Free shipping on orders over
-                {formatPrice(Number(FREE_SHIPPING_START_FROM) - 1)}
+                {priceFormatting(Number(FREE_SHIPPING_START_FROM) - 1)}
               </p>
             </div>
           </div>

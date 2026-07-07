@@ -1,9 +1,8 @@
-import axios from "axios";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { z } from "zod";
 import api from "@/axios/interceptor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const forgotPasswordFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address." }),

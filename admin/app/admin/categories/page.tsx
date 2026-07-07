@@ -1,17 +1,19 @@
 "use client";
 
 import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Trash2,
   ListIcon as Category,
-  ImageIcon,
   Copy,
+  ImageIcon,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2,
 } from "lucide-react";
 
+import { DeleteConfirmation } from "@/components/delete-confirmation";
+import Paginations from "@/components/pagination";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -27,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -35,20 +38,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Paginations from "@/components/pagination";
-import UpdateDialog from "./_component/update-dialog";
-import NewCategory from "./_component/new-category-dialog";
-import useCategory from "./_hook/useCategory";
-import { UploadAvatar } from "@/components/upload-avatar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { UploadAvatar } from "@/components/upload-avatar";
 import { copyToClipboard } from "@/lib/utils";
+import NewCategory from "./_component/new-category-dialog";
+import UpdateDialog from "./_component/update-dialog";
+import useCategory from "./_hook/useCategory";
 
 export default function Categories() {
   const {
@@ -150,6 +150,7 @@ export default function Categories() {
                         <div className="relative h-10 w-10 overflow-hidden rounded-md">
                           <Avatar>
                             <AvatarImage
+                              className="object-cover"
                               src={category?.image?.url as string}
                               alt={category?.image?.alt || category?.name}
                               // className="object-cover"

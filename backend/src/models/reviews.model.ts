@@ -1,15 +1,15 @@
+import { Schema, model } from "mongoose";
 import type { IReview } from "./../interfaces/index.js";
-import mongoose from "mongoose";
 
-const ReviewSchema: mongoose.Schema<IReview> = new mongoose.Schema(
+const ReviewSchema: Schema<IReview> = new Schema(
   {
     productId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Product",
       required: true,
     },
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
@@ -19,5 +19,5 @@ const ReviewSchema: mongoose.Schema<IReview> = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Review = mongoose.model<IReview>("Review", ReviewSchema);
+const Review = model<IReview>("Review", ReviewSchema);
 export default Review;

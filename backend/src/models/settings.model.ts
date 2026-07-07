@@ -1,8 +1,9 @@
+import mongoose, { model, Schema } from "mongoose";
 import type { ISettings } from "./../interfaces/index.js";
-import mongoose from "mongoose";
+
 import { AddressSchema, ImageSchema } from "./admins.model.js";
 
-const SettingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
+const SettingsSchema: Schema<ISettings> = new Schema<ISettings>(
   {
     siteName: { type: String, required: true, trim: true },
     siteDescription: { type: String, required: true, trim: true },
@@ -31,5 +32,5 @@ SettingsSchema.pre("save", async function (next) {
   next();
 });
 
-const Settings = mongoose.model<ISettings>("Settings", SettingsSchema);
+const Settings = model<ISettings>("Settings", SettingsSchema);
 export default Settings;

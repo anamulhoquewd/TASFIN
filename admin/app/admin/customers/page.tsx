@@ -1,9 +1,10 @@
 "use client";
 
-import { Search, MoreHorizontal, Trash2, User, Copy } from "lucide-react";
+import { Copy, MoreHorizontal, Search, Trash2, User } from "lucide-react";
 
+import { DeleteConfirmation } from "@/components/delete-confirmation";
+import Paginations from "@/components/pagination";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,18 +29,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Paginations from "@/components/pagination";
-import { ICustomer } from "@/interfaces/users";
-import useCustomer from "./_hook/useCustomer";
-import UpdateDialog from "./_component/update-dialog";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ICustomer } from "@/interfaces/users";
 import { copyToClipboard } from "@/lib/utils";
+import UpdateDialog from "./_component/update-dialog";
+import useCustomer from "./_hook/useCustomer";
 
 export default function CustomersPage() {
   const {

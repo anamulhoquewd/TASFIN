@@ -1,11 +1,12 @@
+import axios from "axios";
+import type { Context } from "hono";
+import { uploadSingleFile } from "../utils/cloudinary.js";
 import {
   authenticationError,
   badRequestHandler,
   serverErrorHandler,
 } from "./../error/index.js";
 import { adminService, userService } from "./../services/index.js";
-import axios from "axios";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -197,15 +198,7 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    // Generate filename
-    const fileN = c.req.query("filename") || "avatar";
-    const filename = `${fileN}-${Date.now()}.webp`;
-
-    const response = await adminService.uploadSingleFile({
-      body: { avatar: file },
-      filename,
-      folder: "users",
-    });
+    const response = await uploadSingleFile(file, "tasfin_users");
 
     if (response.error) {
       return badRequestHandler(c, response.error);
@@ -215,10 +208,10 @@ export const changeAvatar = async (c: Context) => {
       return serverErrorHandler(c, response.serverError);
     }
 
-    // Update user.avatar.url and save
+    // Update and save
     user.avatar = {
-      alt: filename,
-      url: response.success.data,
+      url: response.success.data.url,
+      publicId: response.success.data.publicId,
     };
 
     await user.save();

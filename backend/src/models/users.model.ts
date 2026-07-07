@@ -1,8 +1,8 @@
+import { model, Schema } from "mongoose";
 import type { IUser } from "./../interfaces/index.js";
-import mongoose from "mongoose";
 import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 
-const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
+const userSchema: Schema<IUser> = new Schema<IUser>(
   {
     name: { type: String, trim: true },
     occupation: { type: String },
@@ -18,7 +18,7 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     dob: { type: Date, required: false },
     gender: { type: String, enum: ["male", "female"] },
 
-    isActive: { type: Boolean, default: true },
+    status: { type: Boolean, default: true },
     isBlocked: { type: Boolean, default: false },
     blockedAt: { type: Date, required: false },
   },
@@ -34,5 +34,5 @@ userSchema.index(
   }
 );
 
-const User = mongoose.model<IUser>("User", userSchema);
+const User = model<IUser>("User", userSchema);
 export default User;

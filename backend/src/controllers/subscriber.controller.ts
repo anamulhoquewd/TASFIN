@@ -1,6 +1,6 @@
 import type { Context } from "hono";
-import { subscribersService } from "../services/index.js";
 import { badRequestHandler, serverErrorHandler } from "../error/index.js";
+import { subscribersService } from "../services/index.js";
 
 export const register = async (c: Context) => {
   const userAgent = c.req.header("User-Agent");

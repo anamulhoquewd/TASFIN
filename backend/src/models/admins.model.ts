@@ -1,9 +1,10 @@
-import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
-import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import { model, Schema } from "mongoose";
+import type { IAddress, IAdmin, IImage } from "./../interfaces/index.js";
 
-export const AddressSchema: mongoose.Schema<IAddress> = new mongoose.Schema(
+// ---------- Address ----------
+export const AddressSchema: Schema<IAddress> = new Schema<IAddress>(
   {
     street: { type: String, required: true, trim: true },
     city: { type: String, required: true, trim: true },
@@ -14,15 +15,18 @@ export const AddressSchema: mongoose.Schema<IAddress> = new mongoose.Schema(
   { _id: false }
 );
 
-export const ImageSchema: mongoose.Schema<IImage> = new mongoose.Schema(
+// ---------- Image Schema ----------
+export const ImageSchema: Schema<IImage> = new Schema<IImage>(
   {
-    alt: { type: String, required: true, trim: true },
-    url: { type: String, required: true, trim: true },
+    url: { type: String, required: true },
+    publicId: { type: String, required: true },
+    position: { type: Number, default: 0 },
+    isPrimary: { type: Boolean, default: false },
   },
   { _id: false }
 );
 
-const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
+const amdinSchema: Schema<IAdmin> = new Schema<IAdmin>(
   {
     name: {
       type: String,
@@ -106,5 +110,5 @@ amdinSchema.pre("save", async function (next) {
   next();
 });
 
-const Admin = mongoose.model<IAdmin>("Admin", amdinSchema);
+const Admin = model<IAdmin>("Admin", amdinSchema);
 export default Admin;

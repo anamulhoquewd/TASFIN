@@ -1,9 +1,5 @@
+import { IImage } from "../global";
 import { IAddress } from "../orders";
-
-export interface IImage {
-  alt: string;
-  url: string;
-}
 
 export interface IAdmin {
   _id: string;

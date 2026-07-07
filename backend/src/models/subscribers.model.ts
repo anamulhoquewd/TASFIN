@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import type { ISubscriber } from "../interfaces/index.js";
 
-const SubscriberSchema = new Schema(
+const SubscriberSchema: Schema<ISubscriber> = new Schema<ISubscriber>(
   {
     email: {
       type: String,
@@ -17,7 +17,7 @@ const SubscriberSchema = new Schema(
     },
     source: {
       type: String,
-      default: "website", // homepage, popup, footer, campaign, etc
+      default: "website",
     },
 
     verified: { type: Boolean, default: false }, // verified by admin
@@ -33,7 +33,7 @@ const SubscriberSchema = new Schema(
       default: null,
     },
   },
-  { timestamps: true } // createdAt, updatedAt
+  { timestamps: true }
 );
 
 const Subscriber = mongoose.model<ISubscriber>("Subscribe", SubscriberSchema);

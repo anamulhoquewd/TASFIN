@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { Search, Plus, MoreHorizontal, Trash2 } from "lucide-react";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
+import Paginations from "@/components/pagination";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -18,7 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -27,11 +28,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Paginations from "@/components/pagination";
 import { IAdmin } from "@/interfaces/users";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
 import useAdmin from "./_hook/useAdmin";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function UsersPage() {
   const {
@@ -116,8 +116,9 @@ export default function UsersPage() {
                         <div className="relative h-10 w-10 ring rounded-4xl overflow-hidden">
                           <Avatar className="w-full h-full">
                             <AvatarImage
-                              src={admin?.avatar?.url || undefined}
-                              alt={admin?.avatar?.alt || undefined}
+                              className="object-cover"
+                              src={admin?.avatar?.url as string}
+                              alt={admin?.name}
                             />
                             <AvatarFallback className="uppercase">
                               {admin.name.charAt(0)}

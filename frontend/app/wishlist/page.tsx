@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Heart } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, priceFormatting } from "@/lib/utils";
 import Image from "next/image";
 import {
   Breadcrumb,
@@ -241,7 +241,7 @@ function Wishlist() {
 
                 <div className="flex items-center gap-2">
                   <span className="text-sm tracking-wide text-foreground">
-                    {formatPrice(item.variants[0].price)}
+                    {priceFormatting(item.variants[0].price)}
                   </span>
                 </div>
 

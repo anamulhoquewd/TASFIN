@@ -1,4 +1,8 @@
+import z from "zod";
 import { transporter } from "../config/email.js";
+import { Coupon } from "../models/coupon.model.js";
+import { CouponUsage } from "../models/couponUsage.model.js";
+import { uploadMultipleFiles } from "../utils/cloudinary.js";
 import { schemaValidationError } from "./../error/index.js";
 import type { IOrder } from "./../interfaces/index.js";
 import Order from "./../models/orders.model.js";
@@ -7,15 +11,14 @@ import User from "./../models/users.model.js";
 import pagination from "./../utils/pagination.js";
 import {
   addressZ,
-  idSchemaZ,
-  orderFetchQuerySchema,
-  type OrderInput,
-  orderSchemaZ,
+  mongoIdZ,
+  orderFetchQueryZ,
   orderStatusEnumZ,
-  type OrderUpdateInput,
+  orderZ,
   paymentStatusEnumZ,
+  type TOrder,
+  type TUpdateOrder,
 } from "./../validations/zod.js";
-import z from "zod";
 
 export interface GetOrderServiceProps {
   page: number;
@@ -36,8 +39,8 @@ export interface GetOrderServiceProps {
   email?: string;
 }
 
-export const register = async (body: OrderInput) => {
-  const validData = orderSchemaZ.safeParse(body);
+export const register = async (body: TOrder) => {
+  const validData = orderZ.safeParse(body);
 
   if (!validData.success) {
     return {
@@ -46,46 +49,50 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const { phone, address, products, name, shippingCost, email } =
-      validData.data;
+    const {
+      phone,
+      address,
+      items,
+      name,
+      shippingCost,
+      email,
+      paymentMethod,
+      customOrder,
+      couponCode,
+    } = validData.data;
 
-    // 🔹 Step 1: Find or Create User
+    /* ================= USER ================= */
     let user = await User.findOne({ phone });
 
     if (!user) {
-      const newUser = new User({
+      user = await User.create({
         phone,
         ...(email && { email }),
         address,
         name,
       });
-      user = await newUser.save();
     }
 
-    // 🔹 Step 2: Validate Products & Calculate total
+    /* ================= ORDER ITEMS ================= */
     const orderProducts: any[] = [];
     let totalAmount = 0;
 
-    for (const item of products) {
+    for (const item of items) {
       const product = await Product.findById(item.productId);
-      if (!product) {
-        return { error: { message: "Product not found!" } };
-      }
-      if (!product.isActive) {
-        return { error: { message: "Product not Orderable!" } };
-      }
+      if (!product) return { error: { message: "Product not found!" } };
+      if (!product.status)
+        return { error: { message: "Product not orderable!" } };
 
       const variant = product.variants.find(
         (v) => v._id.toString() === item.variantId
       );
-      if (!variant) {
-        return { error: { message: "Variant not found." } };
-      }
+
+      if (!variant) return { error: { message: "Variant not found!" } };
 
       if (variant.stock < item.quantity) {
         return {
           error: {
-            message: `Not enough stock for ${product.title} (${variant.size}). Available stock ${variant.stock}`,
+            message: `Not enough stock for ${product.title} (${variant.size} - ${variant?.color}) `,
           },
         };
       }
@@ -95,8 +102,8 @@ export const register = async (body: OrderInput) => {
       totalAmount += lineTotal;
 
       orderProducts.push({
-        variantId: variant._id.toString(),
-        productId: product._id.toString(),
+        productId: product._id,
+        variantId: variant._id,
         title: `${product.title} - ${variant.size}`,
         image: product.images?.[0],
         price,
@@ -107,35 +114,158 @@ export const register = async (body: OrderInput) => {
       await product.save();
     }
 
-    // 🔹 Step 3: Create Order
+    /* ================= CALCULATE COUPON DISCOUNT ================= */
+    let appliedCoupon = null;
+    let couponDiscount = 0;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({
+        code: couponCode,
+        status: true,
+        startAt: { $lte: new Date() },
+        endAt: { $gte: new Date() },
+      });
+
+      if (!coupon) return { error: { message: "Invalid coupon code" } };
+
+      if (totalAmount < coupon.minSubtotal) {
+        return { error: { message: "Minimum order amount not reached" } };
+      }
+
+      if (coupon.usedCount >= coupon.totalUsageLimit) {
+        return { error: { message: "Coupon usage limit exceeded" } };
+      }
+
+      const usage = await CouponUsage.findOne({
+        couponId: coupon._id,
+        phone,
+      });
+
+      if (usage && usage.usedCount >= coupon.perUserUsageLimit) {
+        return { error: { message: "Coupon already used by this user" } };
+      }
+
+      // Discount calculate
+      if (coupon.discountType === "percent") {
+        couponDiscount = (totalAmount * coupon.value) / 100;
+      } else {
+        couponDiscount = coupon.value;
+      }
+
+      couponDiscount = Math.min(couponDiscount, coupon.maxValue);
+
+      appliedCoupon = coupon;
+    }
+
+    if (appliedCoupon) {
+      // Increment coupon global usage
+      await Coupon.findByIdAndUpdate(appliedCoupon._id, {
+        $inc: { usedCount: 1 },
+      });
+
+      // Per user usage tracking
+      const existingUsage = await CouponUsage.findOne({
+        couponId: appliedCoupon._id,
+        phone,
+      });
+
+      if (existingUsage) {
+        existingUsage.usedCount += 1;
+        existingUsage.lastUsedAt = new Date();
+        await existingUsage.save();
+      } else {
+        await CouponUsage.create({
+          couponId: appliedCoupon._id,
+          phone,
+          usedCount: 1,
+          lastUsedAt: new Date(),
+        });
+      }
+    }
+
+    const finalAmount = totalAmount - couponDiscount + shippingCost;
+
+    /* ================= CUSTOM ORDER (UPLOAD IMAGES) ================= */
+    let customOrderData: any = { isCustom: false };
+
+    if (customOrder.isCustom) {
+      let uploadedRefImages: {
+        url: string;
+        publicId: string;
+        position: number;
+      }[] = [];
+
+      if (customOrder.referenceImages?.length) {
+        const files = customOrder.referenceImages.map((img) => img.file);
+
+        const uploadResponse = await uploadMultipleFiles(
+          customOrder.referenceImages,
+          "tasfin_custom_orders"
+        );
+
+        if (uploadResponse.error) throw new Error(uploadResponse.error.message);
+        if (uploadResponse.serverError)
+          throw new Error(uploadResponse.serverError.message);
+        if (!uploadResponse.success)
+          throw new Error("Reference image upload failed");
+
+        uploadedRefImages = uploadResponse.success.data;
+      }
+
+      customOrderData = {
+        isCustom: true,
+        measurements: customOrder.measurements,
+        referenceImages: uploadedRefImages,
+        note: customOrder.note,
+      };
+    }
+
+    /* ================= CREATE ORDER ================= */
     const order = await Order.create({
+      name,
       user: user._id,
-      orderDate: new Date(),
-      products: orderProducts,
+      items: orderProducts,
       address,
+      paymentMethod,
       shippingCost,
-      totalAmount: totalAmount + shippingCost,
+      subtotal: totalAmount,
+      discount: couponDiscount,
+      total: finalAmount,
+      customOrder: customOrderData,
+      orderDate: new Date(),
+
+      ...(appliedCoupon && {
+        coupon: {
+          code: appliedCoupon.code,
+          discountType: appliedCoupon.discountType,
+          value: appliedCoupon.value,
+          discountAmount: couponDiscount,
+        },
+      }),
     });
 
-    // Step 4: Send Email to admin
+    /* ================= NOTIFY ADMIN ================= */
+    let orderMessage = `Hello Admin,
+
+    A new order has been placed on the website. Here are the order details:
+
+    Order ID: ${order._id}
+    Total Amount: ${order.total} BDT
+    Payment Method: ${order.paymentMethod}
+    Order Date: ${order.orderDate}
+    `;
+
+    if (customOrder.isCustom) {
+      orderMessage += `\nThis is a CUSTOM order. Please review the custom requirements carefully.`;
+    }
+
+    orderMessage += `\n\nPlease check the admin dashboard for full order details.\n\nThank you!\nTasfin Team`;
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
       subject: "New Order Received",
-      text: `Hello Admin,
-
-A new order has been placed on the website. Here are the order details:
-
-Order ID: ${order._id}
-Total Amount: ${order.totalAmount} BDT
-Payment Method: ${order.paymentMethod}
-Order Date: ${order.orderDate}
-
-Please check the admin dashboard for full order details.
-
-Thank you!
-Tasfin Team
-`,
+      text: orderMessage,
     };
 
     // Send Email
@@ -160,7 +290,6 @@ Tasfin Team
   }
 };
 
-// Suppose you receive filters from request query, e.g., /orders?status=pending&minAmount=5000
 function buildOrderQuery(filters: {
   status?: string;
   paymentStatus?: string;
@@ -216,9 +345,9 @@ function buildOrderQuery(filters: {
     query.user = filters.userId;
   }
 
-  // Filter for a specific variant inside products array
+  // Filter for a specific variant inside items array
   if (filters.variantId) {
-    query["products.variantId"] = filters.variantId;
+    query["items.variantId"] = filters.variantId;
   }
 
   return query;
@@ -226,7 +355,7 @@ function buildOrderQuery(filters: {
 
 export const getOrders = async (queryParams: GetOrderServiceProps) => {
   // Safe Parse for better error handling
-  const queryValidation = orderFetchQuerySchema.safeParse(queryParams);
+  const queryValidation = orderFetchQueryZ.safeParse(queryParams);
 
   if (!queryValidation.success) {
     return {
@@ -342,7 +471,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
 
 export const getOrder = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -382,10 +511,10 @@ export async function updateOrder({
   body,
   _id,
 }: {
-  body: OrderUpdateInput;
+  body: TUpdateOrder;
   _id: string;
 }) {
-  const idValidation = idSchemaZ.safeParse({ _id });
+  const idValidation = mongoIdZ.safeParse({ _id });
   if (!idValidation.success) {
     return {
       error: schemaValidationError(idValidation.error, "Invalid ID"),
@@ -411,7 +540,7 @@ export async function updateOrder({
   }
 
   try {
-    const order: IOrder | null = await Order.findById(idValidation.data._id);
+    const order = await Order.findById(idValidation.data._id);
     if (!order)
       return {
         error: { message: "Order not found with the provided ID" },
@@ -448,7 +577,7 @@ export async function updateOrder({
     if (status === "cancelled") {
       // Stock restore logic
       if ((order.status as string) !== "cancelled") {
-        for (const item of order.products) {
+        for (const item of order.items) {
           const product = await Product.findById(item.productId);
           if (product) {
             const variant = product.variants.find(
@@ -520,7 +649,7 @@ export async function updateOrder({
 // TODO./.. Test kora baki ache.
 export const deleteOrder = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = mongoIdZ.safeParse({ _id: _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
