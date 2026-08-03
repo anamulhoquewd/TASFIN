@@ -36,5 +36,5 @@ const SubscriberSchema = new Schema(
   { timestamps: true } // createdAt, updatedAt
 );
 
-const Subscriber = mongoose.model<ISubscriber>("Subscribe", SubscriberSchema);
+const Subscriber = mongoose.model<ISubscriber>("Subscriber", SubscriberSchema);
 export default Subscriber;

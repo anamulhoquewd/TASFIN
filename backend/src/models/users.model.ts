@@ -21,11 +21,14 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
     isActive: { type: Boolean, default: true },
     isBlocked: { type: Boolean, default: false },
     blockedAt: { type: Date, required: false },
+    blockedReason: { type: String, required: true }, // Added — admin note for why a user was blocked
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// ✅ Create a partial unique index (only applies when email exists)
+
+// Partial unique index — only enforced when email actually exists,
+// since not every login method guarantees one.
 userSchema.index(
   { email: 1 },
   {

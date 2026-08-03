@@ -36,6 +36,138 @@ export interface GetOrderServiceProps {
   email?: string;
 }
 
+/**
+ * STATE MACHINE — allowed transitions only.
+ * Prevents illegal jumps like delivered -> pending, or cancelling
+ * something that's already shipped.
+ */
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  pending: ["confirmed", "cancelled"],
+  confirmed: ["shipped", "cancelled"],
+  shipped: ["delivered", "returned"], // "returned" here = delivery refused/failed, not post-delivery return
+  delivered: ["returned"], // post-delivery return/exchange window
+  cancelled: [], // terminal
+  returned: [], // terminal
+};
+
+function assertTransitionAllowed(from: string, to: string) {
+  if (!ALLOWED_TRANSITIONS[from]?.includes(to)) {
+    throw new Error(`Cannot move order from "${from}" to "${to}"`);
+  }
+}
+
+/**
+ * Shared restock helper — bumps variant stock back up and recomputes
+ * the product's denormalized inStock flag. Used by both cancel and return.
+ */
+async function restockItems(
+  items: { product: mongoose.Types.ObjectId; variantId: mongoose.Types.ObjectId; quantity: number }[],
+  session: mongoose.ClientSession
+) {
+  for (const item of items) {
+    const updated = await Product.findOneAndUpdate(
+      { _id: item.product, "variants._id": item.variantId },
+      { $inc: { "variants.$.stock": item.quantity } },
+      { session, new: true }
+    );
+    if (updated) {
+      updated.inStock = updated.variants.some((v) => v.stock > 0);
+      await updated.save({ session });
+    }
+  }
+}
+
+/**
+ * CANCEL — only allowed while order hasn't shipped yet.
+ * Full restock. Refund only if payment was already captured
+ * (relevant for bkash/nagad/card, irrelevant for COD-unpaid).
+ */
+export async function cancelOrder(orderId: string, reason: string, cancelledBy: "user" | "admin") {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const order = await Order.findById(orderId).session(session);
+    if (!order) throw new Error("Order not found");
+
+    assertTransitionAllowed(order.status, "cancelled");
+
+    await restockItems(
+      order.items.map((i) => ({ product: i.product, variantId: i.variantId, quantity: i.quantity })),
+      session
+    );
+
+    order.status = "cancelled";
+    order.statusHistory.push({ status: "cancelled", note: `${cancelledBy}: ${reason}` });
+
+    if (order.paymentStatus === "paid") {
+      order.paymentStatus = "refunded";
+      // trigger actual refund via payment gateway/manual process here
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+}
+
+/**
+ * RETURN — only allowed after delivery. Supports partial returns
+ * (customer may return only some items from a multi-item order).
+ * Admin-approval gate is intentionally separate from this function —
+ * call this only once a return is approved, from your admin panel.
+ */
+export async function processReturn(
+  orderId: string,
+  returnedVariantIds: string[], // which variants are being returned
+  reason: string
+) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const order = await Order.findById(orderId).session(session);
+    if (!order) throw new Error("Order not found");
+
+    assertTransitionAllowed(order.status, "returned");
+
+    const returnedItems = order.items.filter((i) =>
+      returnedVariantIds.includes(i.variantId.toString())
+    );
+    if (returnedItems.length === 0) throw new Error("No matching items to return");
+
+    await restockItems(
+      returnedItems.map((i) => ({ product: i.product, variantId: i.variantId, quantity: i.quantity })),
+      session
+    );
+
+    const isFullReturn = returnedItems.length === order.items.length;
+    order.status = isFullReturn ? "returned" : order.status; // keep status if partial
+    order.statusHistory.push({
+      status: "returned",
+      note: `${isFullReturn ? "Full" : "Partial"} return: ${reason} (${returnedItems.length} item(s))`,
+    });
+
+    if (order.paymentStatus === "paid") {
+      order.paymentStatus = "refunded"; // for partial returns, calculate partial refund amount separately
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+}
+
 export const register = async (body: OrderInput) => {
   const validData = orderSchemaZ.safeParse(body);
 

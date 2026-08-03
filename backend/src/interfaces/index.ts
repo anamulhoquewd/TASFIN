@@ -7,6 +7,7 @@ export interface IImage {
 
 export interface IProductVariant extends mongoose.Document {
   _id: string;
+  sku: string;
   size: string;
   stock: number;
   price: number;
@@ -20,24 +21,23 @@ export interface IProduct extends mongoose.Document {
   description?: string;
   keyFeatures?: string[];
   categories: mongoose.Types.ObjectId[];
-
   images: IImage[];
   variants: IProductVariant[];
-
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
-
+  specifications?: Map<string, string>;
+  minPrice: number;
+  maxPrice: number;
+  inStock: boolean;
+  avgRating: number;
+  reviewCount: number;
   isFeatured?: boolean;
-
   isActive: boolean;
-
   tags?: string[];
+  discount?: {
+    discountType: "percentage" | "fixed";
+    value: number;
+    startAt: Date;
+    endAt: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,8 +48,10 @@ export interface ICategory extends mongoose.Document {
   slug: string;
   description?: string;
   image?: IImage;
+  sortOrder?: number;
   createdAt: Date;
   updatedAt: Date;
+  isActive?: boolean;
 }
 
 export interface IAddress {
@@ -79,6 +81,8 @@ export interface IAdmin extends mongoose.Document {
   refresh?: string;
   resetPasswordToken: string | null;
   resetPasswordExpireDate: Date | null;
+  failedLoginAttempts: number;
+  lockUntil?: Date;
 
   createdAt: Date;
   updatedAt: Date;
@@ -94,8 +98,8 @@ export interface IUser extends mongoose.Document {
   isActive: boolean;
   isBlocked?: boolean;
   blockedAt: Date;
+  blockedReason: string; // Added — admin note for why a user was blocked
   avatar: IImage;
-
   dob: Date;
   gender: "male" | "female";
 
@@ -112,13 +116,14 @@ export interface ISubscriber {
   userAgent: string | null;
   isBlocked?: boolean;
   blockedAt: Date;
+  blockedReason: string; // Added — admin note for why a user was blocked
 }
 
 export interface ICoupon extends mongoose.Document {
   code: string;
-  discountType: "percent" | "fixed";
-  amount: number;
-  maxDiscount: number;
+  type: "percent" | "fixed";
+  value: number;
+  maxValue: number;
   minSubtotal: number;
 
   startAt: Date;
@@ -133,16 +138,19 @@ export interface ICoupon extends mongoose.Document {
 }
 
 export interface IOrderProduct extends mongoose.Document {
-  productId: string;
-  variantId: string;
+  productId: mongoose.Types.ObjectId;
+  variantId: mongoose.Types.ObjectId;
   title: string;
   image: IImage;
   price: number;
   quantity: number;
+  sku: string; // Added — needed for support/logistics
+  size: string; // Added — was missing entirely; no way to show size without re-querying Product
 }
 
 export interface IOrder extends mongoose.Document {
   _id: string;
+  orderNumber: string;
   user: mongoose.Types.ObjectId;
   products: IOrderProduct[];
   address: IAddress;
@@ -151,7 +159,24 @@ export interface IOrder extends mongoose.Document {
   totalAmount: number;
   shippingCost: number;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  orderDate: Date;
+  subtotal: number;
+  productDiscountTotal: number;
+  couponCode?: string;
+  couponDiscount: number;
+  statusHistory: {
+    note?: string;
+    status:
+      | "pending"
+      | "confirmed"
+      | "processing"
+      | "shipped"
+      | "delivered"
+      | "cancelled"
+      | "returned";
+    at: Date;
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface IPayment extends mongoose.Document {
@@ -161,7 +186,10 @@ export interface IPayment extends mongoose.Document {
   amount: number;
   currency: "BDT" | "USD";
   transactionId?: string;
-  status: "pending" | "success" | "failed";
+  status: "pending" | "success" | "failed" | "refunded";
+  refundedAmount: number;
+  refundedAt?: Date;
+  gatewayResponse?: any; // Store raw gateway response for failed payments
   createdAt: Date;
   updatedAt: Date;
 }
@@ -170,6 +198,8 @@ export interface IReview extends mongoose.Document {
   _id: string;
   productId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
+  orderId: mongoose.Types.ObjectId;
+  isApproved: boolean;
   rating: number;
   comment?: string;
   createdAt: Date;

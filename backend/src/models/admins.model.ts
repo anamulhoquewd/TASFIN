@@ -45,7 +45,9 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     password: {
       type: String,
       required: true,
-      minLength: 8,
+      minlength: 8, // FIXED: was "minLength" (capital L) — Mongoose doesn't
+      // recognize that option and silently ignored it, so the 8-character
+      // minimum was never actually enforced.
       select: false,
     },
     nid: {
@@ -62,11 +64,15 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     address: { type: AddressSchema },
     avatar: { type: ImageSchema, required: false },
 
-    refresh: { type: String, required: false },
+    refresh: { type: String, required: false, select: false },
     resetPasswordToken: { type: String },
     resetPasswordExpireDate: { type: Date },
+    // Added: brute-force protection. Admin accounts control the entire
+    // store — worth locking out after repeated failed logins.
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 amdinSchema.methods.generateResetPasswordToken = function (expMinutes = 30) {
@@ -92,8 +98,12 @@ amdinSchema.methods.matchPassword = async function (assword: string) {
 // Hash password
 amdinSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    // If password is not modified, skip hashing
-    next();
+    // FIXED: was missing `return` here. Without it, execution fell
+    // through to the code below and re-hashed an already-hashed
+    // password on every unrelated update (name, phone, address, etc.),
+    // silently corrupting the admin's password and calling next()
+    // a second time.
+    return next();
   }
 
   if (!this.password) {
