@@ -21,6 +21,8 @@ const CouponSchema = new Schema<ICoupon>(
     usageLimitPerUser: { type: Number, default: 1 },
     usedCount: { type: Number, default: 0 },
     applicableProductIds: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    applicableCategoryIds: [{ type: Schema.Types.ObjectId, ref: "Category" }],
+    excludedProductIds: [{ type: Schema.Types.ObjectId, ref: "Product" }],
 
     active: { type: Boolean, default: true },
   },

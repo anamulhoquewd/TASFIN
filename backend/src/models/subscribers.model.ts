@@ -20,20 +20,12 @@ const SubscriberSchema = new Schema(
       default: "website", // homepage, popup, footer, campaign, etc
     },
 
-    verified: { type: Boolean, default: false }, // verified by admin
+    verifiedByAdmin: { type: Boolean, default: false }, // verified by admin
     isBlocked: { type: Boolean, default: false },
     blockedAt: { type: Date, required: false },
-
-    ipAddress: {
-      type: String,
-      default: null,
-    },
-    userAgent: {
-      type: String,
-      default: null,
-    },
+    blockedReason: { type: String, required: false },
   },
-  { timestamps: true } // createdAt, updatedAt
+  { timestamps: true }, // createdAt, updatedAt
 );
 
 const Subscriber = mongoose.model<ISubscriber>("Subscriber", SubscriberSchema);

@@ -6,9 +6,14 @@ const ProductVariantSchema: mongoose.Schema<IProductVariant> =
   new mongoose.Schema(
     {
       sku: { type: String, required: true, trim: true, unique: true },
-      size: { type: String, required: true, trim: true },
+      attributes: {
+        type: Map,
+        of: String,
+        default: () => new Map(),
+      },
       stock: { type: Number, required: true, min: 0, default: 0 },
       price: { type: Number, required: true, min: 0 },
+      // Optional images for this variant (e.g. different color)
       images: [{ type: ImageSchema, required: false }],
     },
     { _id: true }, // keep _id — still useful for cart line-item references
@@ -29,6 +34,7 @@ const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
       },
     ],
 
+    // common/primary images
     images: [{ type: ImageSchema, required: true }],
     variants: { type: [ProductVariantSchema], required: true },
 
@@ -36,7 +42,7 @@ const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
     specifications: {
       type: Map,
       of: String,
-      default: {},
+      default: () => new Map(),
     },
 
     // --- Denormalized fields (auto-computed, do not set manually) ---

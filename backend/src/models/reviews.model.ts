@@ -21,7 +21,7 @@ const ReviewSchema: mongoose.Schema<IReview> = new mongoose.Schema(
     },
     rating: { type: Number, required: true, min: 1, max: 5 },
     comment: { type: String },
-    isApproved: { type: Boolean, default: true },
+    isApproved: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

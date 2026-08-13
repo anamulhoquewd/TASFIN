@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+export interface CustomerSessionT extends mongoose.Document {
+  userId: mongoose.Types.ObjectId;
+  tokenHash: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IImage {
   alt: string;
   url: string;
@@ -8,7 +16,7 @@ export interface IImage {
 export interface IProductVariant extends mongoose.Document {
   _id: string;
   sku: string;
-  size: string;
+  attributes: Map<string, string>; // flexible attributes
   stock: number;
   price: number;
   images?: IImage[];
@@ -91,10 +99,9 @@ export interface IAdmin extends mongoose.Document {
 export interface IUser extends mongoose.Document {
   _id: string;
   name: string;
-  occupation: string;
   email: string;
   phone: string;
-  address?: IAddress;
+  addresses?: IAddress[];
   isActive: boolean;
   isBlocked?: boolean;
   blockedAt: Date;
@@ -102,6 +109,7 @@ export interface IUser extends mongoose.Document {
   avatar: IImage;
   dob: Date;
   gender: "male" | "female";
+  lastOrderAt: Date;
 
   createdAt: Date;
   updatedAt: Date;
@@ -112,8 +120,6 @@ export interface ISubscriber {
   status: "subscribed" | "unsubscribed";
   source: string;
   verified: boolean;
-  ipAddress: string | null;
-  userAgent: string | null;
   isBlocked?: boolean;
   blockedAt: Date;
   blockedReason: string; // Added — admin note for why a user was blocked
@@ -132,7 +138,9 @@ export interface ICoupon extends mongoose.Document {
   usageLimitTotal: number;
   usageLimitPerUser: number;
   usedCount: number;
-  applicableProductIds: mongoose.Types.ObjectId;
+  applicableProductIds: mongoose.Types.ObjectId[];
+  applicableCategoryIds: mongoose.Types.ObjectId[];
+  excludedProductIds: mongoose.Types.ObjectId[];
 
   active: boolean;
 }

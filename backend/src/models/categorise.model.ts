@@ -21,7 +21,6 @@ const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
   { timestamps: true },
 );
 
-CategorySchema.index({ parentCategory: 1, sortOrder: 1 });
 CategorySchema.index({ isActive: 1 });
 
 const Category = mongoose.model<ICategory>("Category", CategorySchema);
