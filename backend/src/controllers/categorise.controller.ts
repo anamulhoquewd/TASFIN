@@ -53,7 +53,7 @@ export const getCategories = async (c: Context) => {
 };
 
 export const getCategory = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await categoryService.getCategory(_id);
 
@@ -70,7 +70,7 @@ export const getCategory = async (c: Context) => {
 
 // Update category
 export const updateCategory = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
   if (!_id) return badRequestHandler(c, { message: "Category ID is required" });
 
   const body = await c.req.json();
@@ -90,7 +90,7 @@ export const updateCategory = async (c: Context) => {
 
 // Delete category
 export const deleteCategory = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await categoryService.deleteCategory(_id);
 

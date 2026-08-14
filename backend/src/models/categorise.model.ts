@@ -2,7 +2,7 @@ import type { ICategory } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 import { ImageSchema } from "./admins.model.js";
 
-const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
+const categorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true, unique: true },
     slug: { type: String, required: true, trim: true, unique: true },
@@ -21,7 +21,7 @@ const CategorySchema: mongoose.Schema<ICategory> = new mongoose.Schema(
   { timestamps: true },
 );
 
-CategorySchema.index({ isActive: 1 });
+categorySchema.index({ isActive: 1 });
 
-const Category = mongoose.model<ICategory>("Category", CategorySchema);
+const Category = mongoose.model<ICategory>("Category", categorySchema);
 export default Category;

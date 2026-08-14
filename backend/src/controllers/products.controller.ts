@@ -1,7 +1,7 @@
+import type { Context } from "hono";
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { productService } from "./../services/index.js";
 import { parseDeleteUrls } from "./../utils/index.js";
-import type{ Context } from "hono";
 
 export const register = async (c: Context) => {
   const formData = await c.req.formData();
@@ -9,44 +9,88 @@ export const register = async (c: Context) => {
   // Extract all fields from form data
   const title = formData.get("title") as string;
   const slug = formData.get("slug") as string;
-  const fabric = formData.get("fabric") as string;
-  const valueAddition = formData.get("valueAddition") as string;
-  const cutFit = formData.get("cutFit") as string;
-  const collarNeck = formData.get("collarNeck") as string;
-  const sleeve = formData.get("sleeve") as string;
-  const length = formData.get("length") as string;
-  const washCare = formData.get("washCare") as string;
-  const sideCut = formData.get("sideCut") as string;
   const description = formData.get("description") as string;
   const isFeatured = formData.get("isFeatured") === "true";
   const isActive = formData.get("isActive") === "true";
 
-  // Parse array fields
-  const categories = JSON.parse(formData.get("categories") as string);
-  const tags = JSON.parse(formData.get("tags") as string);
+  let categories: string[], tags: string[], keyFeatures: string[];
+  let specifications: Record<string, string>;
+  let discount:
+    | {
+        discountType: "percentage" | "fixed";
+        value: number;
+        startAt?: Date;
+        endAt?: Date;
+      }
+    | undefined;
 
-  // Parse key-featured description
-  const keyFeatures = JSON.parse(formData.get("keyFeatures") as string);
+  try {
+    categories = JSON.parse((formData.get("categories") as string) ?? "[]");
+    tags = JSON.parse((formData.get("tags") as string) ?? "[]");
+    keyFeatures = JSON.parse((formData.get("keyFeatures") as string) ?? "[]");
+
+    const parsedSpecifications = JSON.parse(
+      (formData.get("specifications") as string) ?? "[]",
+    ) as Array<{ key: string; value: string }>;
+
+    specifications = Object.fromEntries(
+      (Array.isArray(parsedSpecifications) ? parsedSpecifications : []).map(
+        ({ key, value }) => [String(key).trim(), String(value).trim()],
+      ),
+    );
+
+    const rawDiscount = formData.get("discount") as string | null;
+    const parsedDiscount = rawDiscount ? JSON.parse(rawDiscount) : undefined;
+
+    if (parsedDiscount && parsedDiscount.discountType && typeof parsedDiscount.value === "number") {
+      discount = {
+        discountType: parsedDiscount.discountType,
+        value: Number(parsedDiscount.value),
+        startAt: parsedDiscount.startAt ? new Date(parsedDiscount.startAt) : undefined,
+        endAt: parsedDiscount.endAt ? new Date(parsedDiscount.endAt) : undefined,
+      };
+    } else {
+      discount = undefined;
+    }
+  } catch {
+    return badRequestHandler(c, {
+      message: "Invalid JSON in categories/tags/keyFeatures/specifications",
+    });
+  }
 
   // Get main images
-  const images = formData.getAll("images") as File[];
+  const images = formData.getAll("image") as File[];
 
   // Process variants
   const variants = [];
   let variantIndex = 0;
 
-  while (formData.get(`variants[${variantIndex}][size]`)) {
-    const variant = {
-      size: formData.get(`variants[${variantIndex}][size]`) as string,
-      stock: parseInt(
-        formData.get(`variants[${variantIndex}][stock]`) as string
-      ),
-      price: parseFloat(
-        formData.get(`variants[${variantIndex}][price]`) as string
-      ),
-      images: formData.getAll(`variants[${variantIndex}][images]`) as File[],
-    };
-    variants.push(variant);
+  while (formData.get(`variants[${variantIndex}][sku]`)) {
+    let rawAttributes: Array<{ key: string; value: string }>;
+    try {
+      rawAttributes = JSON.parse(
+        (formData.get(`variants[${variantIndex}][attributes]`) as string) ?? "[]",
+      );
+    } catch {
+      return badRequestHandler(c, {
+        message: `Invalid JSON in variants[${variantIndex}][attributes]`,
+      });
+    }
+
+    const attributes: Record<string, string> = Object.fromEntries(
+      (Array.isArray(rawAttributes) ? rawAttributes : []).map((attribute) => [
+        attribute.key,
+        attribute.value,
+      ]),
+    );
+
+    variants.push({
+      sku: formData.get(`variants[${variantIndex}][sku]`) as string,
+      attributes,
+      stock: parseInt(formData.get(`variants[${variantIndex}][stock]`) as string, 10),
+      price: parseFloat(formData.get(`variants[${variantIndex}][price]`) as string),
+      images: formData.getAll(`variants[${variantIndex}][image]`) as File[],
+    });
     variantIndex++;
   }
 
@@ -58,18 +102,12 @@ export const register = async (c: Context) => {
     categories,
     images,
     variants,
-    fabric,
-    valueAddition,
-    cutFit,
-    collarNeck,
-    sleeve,
-    length,
-    washCare,
-    sideCut,
     isFeatured,
     isActive,
     tags,
     keyFeatures,
+    specifications,
+    discount
   };
 
   // Call service
@@ -89,9 +127,9 @@ export const register = async (c: Context) => {
 };
 
 export const getProduct = async (c: Context) => {
-  const productId = c.req.param("productId");
+  const _id = c.req.param("_id") as string;
 
-  const response = await productService.getProduct(productId);
+  const response = await productService.getProduct(_id);
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -105,7 +143,7 @@ export const getProduct = async (c: Context) => {
 };
 
 export const getProductBySlug = async (c: Context) => {
-  const slug = c.req.param("slug");
+  const slug = c.req.param("slug") as string;
 
   const response = await productService.getProductBySlug(slug);
 
@@ -122,8 +160,8 @@ export const getProductBySlug = async (c: Context) => {
 
 // update general info
 export const updateGeneralInfo = async (c: Context) => {
-  const productId = c.req.param("productId");
-  if (!productId) {
+  const _id = c.req.param("_id");
+  if (!_id) {
     return badRequestHandler(c, { message: "Product ID is required" });
   }
 
@@ -160,7 +198,7 @@ export const updateGeneralInfo = async (c: Context) => {
     };
 
     const response = await productService.updateGeneralInfo({
-      productId,
+      _id,
       data,
     });
 
@@ -180,9 +218,9 @@ export const updateGeneralInfo = async (c: Context) => {
 
 // Update variant info
 export const updateVariantInfo = async (c: Context) => {
-  const productId = c.req.param("productId");
-  const variantId = c.req.param("variantId");
-  if (!productId || !variantId)
+  const _id = c.req.param("_id");
+  const vId = c.req.param("vId");
+  if (!_id || !vId)
     return badRequestHandler(c, {
       message: "Product & Variant ID is required",
     });
@@ -197,8 +235,8 @@ export const updateVariantInfo = async (c: Context) => {
   };
 
   const response = await productService.updateVariantInfo({
-    productId,
-    variantId,
+    _id,
+    vId,
     data: body,
   });
 
@@ -213,20 +251,20 @@ export const updateVariantInfo = async (c: Context) => {
 
 // Update main iamges
 export const updateMainImages = async (c: Context) => {
-  const productId = c.req.param("productId");
-  if (!productId) return c.json({ message: "Product ID is required" }, 400);
+  const  _id  = c.req.param("_id");
+  if (! _id) return c.json({ message: "Product ID is required" }, 400);
 
   const formData = await c.req.formData();
 
   // Main images
   const mainImages = (formData.getAll("images") as File[]).filter(
-    (f) => f && (f as File).name
+    (f) => f && (f as File).name,
   );
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
 
   const response = await productService.updateMainImages({
-    productId,
+    _id,
     data: { mainImages, deleteImageUrls },
   });
 
@@ -243,9 +281,9 @@ export const updateMainImages = async (c: Context) => {
 
 // Update variant iamges
 export const updateVImages = async (c: Context) => {
-  const productId = c.req.param("productId");
-  const variantId = c.req.param("variantId");
-  if (!productId || !variantId)
+  const  _id  = c.req.param("_id");
+  const vId = c.req.param("vId");
+  if (! _id || !vId)
     return badRequestHandler(c, {
       message: "Product & Variant ID is required",
     });
@@ -254,14 +292,14 @@ export const updateVImages = async (c: Context) => {
 
   // Main images
   const images = (formData.getAll("images") as File[]).filter(
-    (f) => f && (f as File).name
+    (f) => f && (f as File).name,
   );
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
 
   const response = await productService.updateVImages({
-    productId,
-    variantId,
+     _id,
+    vId,
     data: { images, deleteImageUrls },
   });
 
@@ -278,14 +316,14 @@ export const updateVImages = async (c: Context) => {
 
 // Delet variant
 export const deleteVariant = async (c: Context) => {
-  const productId = c.req.param("productId");
-  const variantId = c.req.param("variantId");
-  if (!productId || !variantId)
+  const  _id  = c.req.param("_id");
+  const vId = c.req.param("vId");
+  if (!  _id|| !vId)
     return badRequestHandler(c, {
       message: "Product & Variant ID is required",
     });
 
-  const response = await productService.deleteVariant({ productId, variantId });
+  const response = await productService.deleteVariant({ _id  , vId });
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -300,8 +338,8 @@ export const deleteVariant = async (c: Context) => {
 
 // Create new variant
 export const createVariant = async (c: Context) => {
-  const productId = c.req.param("productId");
-  if (!productId)
+  const  _id  = c.req.param("_id");
+  if (! _id)
     return badRequestHandler(c, {
       message: "Product ID is required",
     });
@@ -318,7 +356,7 @@ export const createVariant = async (c: Context) => {
   // Call service
   const response = await productService.createVariant({
     data: { images, size, stock, price },
-    productId,
+  _id
   });
 
   if (response.error) {
@@ -334,9 +372,9 @@ export const createVariant = async (c: Context) => {
 
 // // Delete product
 export const deleteProduct = async (c: Context) => {
-  const productId = c.req.param("productId");
+  const  _id  = c.req.param("_id") as string;
 
-  const response = await productService.deleteProduct(productId);
+  const response = await productService.deleteProduct( _id );
 
   if (response.error) {
     return badRequestHandler(c, response.error);

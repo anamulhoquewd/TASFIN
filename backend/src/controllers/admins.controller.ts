@@ -59,7 +59,7 @@ export const getAdmins = async (c: Context) => {
 };
 
 export const getAdmin = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string
 
   const response = await adminService.getUser(_id, { userType: "admin" });
 
@@ -171,7 +171,7 @@ export const refreshToken = async (c: Context) => {
     }
 
     // Verify refresh token
-    const token = await verify(rToken, JWT_REFRESH_SECRET);
+    const token = await verify(rToken, JWT_REFRESH_SECRET, {alg: "HS256"});
 
     if (!token) {
       return authenticationError(c);
@@ -288,7 +288,7 @@ export const changePassword = async (c: Context) => {
 
 // Delete admin
 export const deleteAdmin = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string
 
   const response = await adminService.deleteAdmins(_id);
 
@@ -323,7 +323,7 @@ export const forgotPassword = async (c: Context) => {
 // Reset Password
 export const resetPassword = async (c: Context) => {
   // Token come from param
-  const resetToken = c.req.param("resetToken");
+  const resetToken = c.req.param("resetToken") as string;
 
   // Password come from body
   const { password } = await c.req.json();

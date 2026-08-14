@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import type { ICoupon } from "./../interfaces/index.js";
 
-const CouponSchema = new Schema<ICoupon>(
+const couponSchema = new Schema<ICoupon>(
   {
     code: {
       type: String,
@@ -29,7 +29,7 @@ const CouponSchema = new Schema<ICoupon>(
   { versionKey: false },
 );
 
-CouponSchema.index({ code: 1 });
+couponSchema.index({ code: 1 });
 
-const Coupon = model<ICoupon>("Coupon", CouponSchema);
+const Coupon = model<ICoupon>("Coupon", couponSchema);
 export default Coupon;

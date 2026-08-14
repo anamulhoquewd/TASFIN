@@ -19,7 +19,7 @@ const ProductVariantSchema: mongoose.Schema<IProductVariant> =
     { _id: true }, // keep _id — still useful for cart line-item references
   );
 
-const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
+const productSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
   {
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, trim: true, unique: true },
@@ -73,10 +73,10 @@ const ProductSchema: mongoose.Schema<IProduct> = new mongoose.Schema(
 );
 
 // --- Virtual: computed effective price (not stored, always fresh) ---
-ProductSchema.virtual("effectiveMinPrice").get(function (this: any) {
+productSchema.virtual("effectiveMinPrice").get(function (this: any) {
   return computeDiscountedPrice(this.minPrice, this.discount);
 });
-ProductSchema.virtual("effectiveMaxPrice").get(function (this: any) {
+productSchema.virtual("effectiveMaxPrice").get(function (this: any) {
   return computeDiscountedPrice(this.maxPrice, this.discount);
 });
 
@@ -99,7 +99,7 @@ function computeDiscountedPrice(
 }
 
 // Make sure virtuals show up in API responses:
-ProductSchema.set("toJSON", { virtuals: true });
+productSchema.set("toJSON", { virtuals: true });
 
 // FIXED: pre("validate") instead of pre("save").
 // Mongoose runs required-field validation BEFORE pre("save") hooks fire.
@@ -108,23 +108,23 @@ ProductSchema.set("toJSON", { virtuals: true });
 // ("minPrice is required") before this hook ever gets a chance to run.
 // pre("validate") runs earlier in the chain, so the fields exist by the
 // time Mongoose checks `required`.
-ProductSchema.pre("validate", function (next) {
+productSchema.pre("validate", function (next: any) {
   if (this.isModified("variants") && this.variants.length > 0) {
-    const prices = this.variants.map((v) => v.price);
+    const prices = this.variants.map((v: any) => v.price);
     this.minPrice = Math.min(...prices);
     this.maxPrice = Math.max(...prices);
-    this.inStock = this.variants.some((v) => v.stock > 0);
+    this.inStock = this.variants.some((v: any) => v.stock > 0);
   }
   next();
 });
 
 // --- Indexes for actual query patterns (this is what fixes slow listing) ---
-ProductSchema.index({ isActive: 1, categories: 1, createdAt: -1 });
-ProductSchema.index({ isActive: 1, isFeatured: 1 });
-ProductSchema.index({ isActive: 1, minPrice: 1 });
-ProductSchema.index({ tags: 1 });
-ProductSchema.index({ title: "text", description: "text", tags: "text" });
+productSchema.index({ isActive: 1, categories: 1, createdAt: -1 });
+productSchema.index({ isActive: 1, isFeatured: 1 });
+productSchema.index({ isActive: 1, minPrice: 1 });
+productSchema.index({ tags: 1 });
+productSchema.index({ title: "text", description: "text", tags: "text" });
 // ------------------------------------------------------------------------
 
-const Product = mongoose.model("Product", ProductSchema);
+const Product = mongoose.model("Product", productSchema);
 export default Product;

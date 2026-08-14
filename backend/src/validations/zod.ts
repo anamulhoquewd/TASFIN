@@ -1,13 +1,23 @@
 // validation/admin.validation.ts
 import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import { string, z } from "zod";
+import {  z } from "zod";
 
 // Image validation (matches your ImageSchema)
 export const imageZ = z.object({
   alt: z.string().min(1, "Image alt text required").trim(),
   url: z.string().url("Invalid image URL").trim(),
 });
+
+const imagesSchema =  z
+    .array(
+      z.file()
+        .mime(["image/jpeg", "image/png", "image/webp"], {
+          message: "Only jpeg, png, or webp images are allowed",
+        })
+        .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" })
+    )
+    .nonempty({ message: "At least one file is required" })
 
 // Accept either a 24-char hex string or a real ObjectId instance
 export const objectIdSchemaZ = z.union([
@@ -17,16 +27,92 @@ export const objectIdSchemaZ = z.union([
   z.instanceof(mongoose.Types.ObjectId),
 ]);
 
-// IProductVariant schema
+const keyValueSchemaZ = z.object({
+  key: z.string().trim().min(1, "key is required"),
+  value: z.string().trim().min(1, "value is required"),
+});
+
+// helper: array of {key,value} -> plain object, rejects duplicate keys
+const keyValueArrayToRecord = (arr: { key: string; value: string }[]) => {
+  const record: Record<string, string> = {};
+  for (const { key, value } of arr) {
+    if (record[key] !== undefined) {
+      throw new Error(`Duplicate specification key: "${key}"`);
+    }
+    record[key] = value;
+  }
+  return record;
+};
+
 export const productVariantSchemaZ = z.object({
-  size: z.string().min(1),
-  stock: z.number().int().min(0, "stock must be >= 0"),
-  price: z.number().nonnegative("price must be >= 0"),
+  sku: z.string().min(1, "sku is required").trim(),
+  attributes: z
+    .array(keyValueSchemaZ)
+    .optional()
+    .default([])
+    .transform((arr, ctx) => {
+      try {
+        return keyValueArrayToRecord(arr);
+      } catch (e: any) {
+        ctx.addIssue({ code: "custom", message: e.message });
+        return z.NEVER;
+      }
+    }),
+  stock: z.coerce.number().int().min(0).default(0),
+  price: z.coerce.number().min(0, "price must be non-negative"),
   images: z.array(z.file()).optional(),
 });
 
+export const productSchemaZ = z.object({
+  title: z.string().min(1, "title is required"),
+  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+  description: z.string().max(1000).optional(),
+  keyFeatures: z.array(z.string().min(1)).optional(),
+
+  categories: z.array(objectIdSchemaZ).nonempty("At least 1 category is required"),
+
+  images: imagesSchema,
+  variants: z
+    .array(productVariantSchemaZ)
+    .nonempty("At least 1 variant is required")
+    .refine(
+      (variants) => new Set(variants.map((v) => v.sku)).size === variants.length,
+      { message: "Variant SKUs must be unique within the product" }
+    ),
+
+  specifications: z
+    .array(keyValueSchemaZ)
+    .optional()
+    .default([])
+    .transform((arr, ctx) => {
+      try {
+        return keyValueArrayToRecord(arr);
+      } catch (e: any) {
+        ctx.addIssue({ code: "custom", message: e.message });
+        return z.NEVER;
+      }
+    }),
+
+  isFeatured: z.boolean().optional().default(false),
+  isActive: z.boolean().default(true),
+  tags: z.array(z.string().min(1).max(10)).optional(),
+
+  discount: z
+    .object({
+      discountType: z.enum(["percentage", "fixed"]),
+      value: z.number().min(0),
+      startAt: z.coerce.date().optional(),
+      endAt: z.coerce.date().optional(),
+    })
+    .optional()
+    .refine((d) => !d?.startAt || !d?.endAt || d.startAt < d.endAt, {
+      message: "startAt must be before endAt",
+    }),
+});
+
+
 // If you want a separate update schema where fields can be optional:
-export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+export const productUpdateZ = productSchemaZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -34,38 +120,7 @@ export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// IProduct schema
-export const productSchemaZ = z.object({
-  title: z.string().min(1, "title is required"),
-  slug: z
-    .string()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().max(1000).optional(),
-  keyFeatures: z.array(z.string().min(1)).optional(),
-
-  categories: z.array(objectIdSchemaZ),
-
-  images: z.array(z.file()).nonempty("At least 1 image is required"),
-  variants: z
-    .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
-
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
-
-  isFeatured: z.boolean().optional(),
-  isActive: z.boolean().default(true),
-  tags: z.array(z.string().min(1).max(10)).optional(),
-});
-
-// If you want a separate update schema where fields can be optional:
-export const productUpdateZ = productSchemaZ.partial().refine(
+export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
@@ -245,6 +300,8 @@ export const categoryCreateZ = z.object({
     ),
   description: z.string().trim().optional().nullable(),
   image: imageZ.optional().nullable(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
 });
 
 // If you want a separate update schema where fields can be optional:

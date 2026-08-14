@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface CustomerSessionT extends mongoose.Document {
+export interface CustomerSessionT  {
   userId: mongoose.Types.ObjectId;
   tokenHash: string;
   expiresAt: Date;
@@ -13,7 +13,7 @@ export interface IImage {
   url: string;
 }
 
-export interface IProductVariant extends mongoose.Document {
+export interface IProductVariant  {
   _id: string;
   sku: string;
   attributes: Map<string, string>; // flexible attributes
@@ -22,7 +22,7 @@ export interface IProductVariant extends mongoose.Document {
   images?: IImage[];
 }
 
-export interface IProduct extends mongoose.Document {
+export interface IProduct  {
   _id: string;
   title: string;
   slug: string;
@@ -50,7 +50,7 @@ export interface IProduct extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface ICategory extends mongoose.Document {
+export interface ICategory  {
   _id: string;
   name: string;
   slug: string;
@@ -70,7 +70,7 @@ export interface IAddress {
   country: string;
 }
 
-export interface IAdmin extends mongoose.Document {
+export interface IAdmin  {
   _id: string;
   name: string;
   email: string;
@@ -96,7 +96,7 @@ export interface IAdmin extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface IUser extends mongoose.Document {
+export interface IUser  {
   _id: string;
   name: string;
   email: string;
@@ -125,7 +125,7 @@ export interface ISubscriber {
   blockedReason: string; // Added — admin note for why a user was blocked
 }
 
-export interface ICoupon extends mongoose.Document {
+export interface ICoupon  {
   code: string;
   type: "percent" | "fixed";
   value: number;
@@ -145,7 +145,7 @@ export interface ICoupon extends mongoose.Document {
   active: boolean;
 }
 
-export interface IOrderProduct extends mongoose.Document {
+export interface IOrderProduct  {
   productId: mongoose.Types.ObjectId;
   variantId: mongoose.Types.ObjectId;
   title: string;
@@ -156,7 +156,7 @@ export interface IOrderProduct extends mongoose.Document {
   size: string; // Added — was missing entirely; no way to show size without re-querying Product
 }
 
-export interface IOrder extends mongoose.Document {
+export interface IOrder  {
   _id: string;
   orderNumber: string;
   user: mongoose.Types.ObjectId;
@@ -187,7 +187,7 @@ export interface IOrder extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface IPayment extends mongoose.Document {
+export interface IPayment  {
   _id: string;
   orderId: mongoose.Types.ObjectId;
   method: "cod" | "bkash" | "nagad" | "card";
@@ -202,7 +202,7 @@ export interface IPayment extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface IReview extends mongoose.Document {
+export interface IReview  {
   _id: string;
   productId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -214,7 +214,7 @@ export interface IReview extends mongoose.Document {
   updatedAt: Date;
 }
 
-export interface IOffers extends mongoose.Document {
+export interface IOffers  {
   name: string;
   message: string;
   image: IImage;
@@ -223,7 +223,7 @@ export interface IOffers extends mongoose.Document {
   isActive: boolean;
 }
 
-export interface IDiscount extends mongoose.Document {
+export interface IDiscount  {
   _id: string;
   title: string;
   description?: string;
@@ -250,7 +250,7 @@ export interface IPagination {
   prevPage?: number;
 }
 
-export interface ISettings extends mongoose.Document {
+export interface ISettings  {
   siteName: string;
   siteDescription: string;
   logo: IImage;

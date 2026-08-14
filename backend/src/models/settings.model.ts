@@ -2,7 +2,7 @@ import type { ISettings } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 import { AddressSchema, ImageSchema } from "./admins.model.js";
 
-const SettingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
+const settingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
   {
     // FIXED: fixed, known _id instead of letting Mongo auto-generate one.
     // This makes "only one settings document" an atomic guarantee from
@@ -32,7 +32,7 @@ const SettingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
 // resulting in two documents). The fixed _id above makes this impossible
 // at the database level instead.
 
-const Settings = mongoose.model<ISettings>("Settings", SettingsSchema);
+const Settings = mongoose.model<ISettings>("Settings", settingsSchema);
 export default Settings;
 
 // Usage in your service/controller layer — always use findOneAndUpdate

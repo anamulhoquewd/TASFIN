@@ -1,7 +1,19 @@
-import { schemaValidationError } from "./../error/index.js";
-import Admin from "./../models/admins.model.js";
-import { stringGenerator } from "./../utils/string-generator.js";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
+import z from "zod";
+import { transporter } from "./../config/email.js";
+import s3 from "./../config/s3.js";
+import { schemaValidationError } from "./../error/index.js";
+import type { IAdmin } from "./../interfaces/index.js";
+import Admin from "./../models/admins.model.js";
+import User from "./../models/users.model.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  uploadAvatar,
+} from "./../utils/index.js";
+import pagination from "./../utils/pagination.js";
+import { stringGenerator } from "./../utils/string-generator.js";
 import {
   adminCreateZ,
   adminUpdateZ,
@@ -13,26 +25,6 @@ import {
   type AdminCreateInput,
   type AdminUpdateInput,
 } from "./../validations/zod.js";
-import { transporter } from "./../config/email.js";
-import z from "zod";
-import pagination from "./../utils/pagination.js";
-import type { IAdmin } from "./../interfaces/index.js";
-import s3 from "./../config/s3.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  uploadAvatar,
-} from "./../utils/index.js";
-import User from "./../models/users.model.js";
-import mongoose from "mongoose";
-dotenv.config();
-
-// Get environment variables
-const NAME = process.env.ADMIN_NAME;
-const EMAIL = process.env.ADMIN_EMAIL;
-const PHONE = process.env.ADMIN_PHONE;
-const PASSWORD = process.env.ADMIN_PASSWORD;
-const NID = process.env.ADMIN_NID;
 
 export const register = async (body: AdminCreateInput) => {
   // Safe Parse for better error handling
@@ -98,7 +90,7 @@ export const register = async (body: AdminCreateInput) => {
     };
 
     // Send Email
-    await transporter.sendMail(mailOptions);
+    // await transporter.sendMail(mailOptions);
 
     return {
       success: {
@@ -112,63 +104,6 @@ export const register = async (body: AdminCreateInput) => {
     return {
       serverError: {
         success: false,
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
-
-export const registerSuperAdmin = async () => {
-  // Safe Parse for better error handling
-  const validData = adminCreateZ.safeParse({
-    name: NAME,
-    email: EMAIL,
-    phone: PHONE,
-    nid: NID,
-  });
-
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body"),
-    };
-  }
-  try {
-    // Check if super admin already exists
-    const existingSuperAdmin = await Admin.findOne({ role: "super_admin" });
-
-    if (existingSuperAdmin) {
-      return {
-        success: false,
-        error: {
-          message: "Super Admin already exists",
-        },
-      };
-    }
-
-    // Create Super Admin
-    const admin = new Admin({
-      name: validData.data.name,
-      email: validData.data.email,
-      phone: validData.data.phone,
-      nid: validData.data.nid,
-      password: PASSWORD,
-      role: "super_admin",
-    });
-
-    // Save Super Admin
-    const docs = await admin.save();
-
-    // Response
-    return {
-      message: "Super Admin created successfully!",
-      success: true,
-      data: docs,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
@@ -216,7 +151,7 @@ export const getAdmins = async (queryParams: {
     }
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "email"].includes(
-      queryParams.sortBy
+      queryParams.sortBy,
     )
       ? queryParams.sortBy
       : "createdAt";
@@ -229,7 +164,9 @@ export const getAdmins = async (queryParams: {
         .sort({ [sortField]: sortDirection })
         .skip((queryParams.page - 1) * queryParams.limit)
         .limit(queryParams.limit)
+        .lean()
         .exec(),
+
       Admin.countDocuments(query),
     ]);
 
@@ -259,9 +196,10 @@ export const getAdmins = async (queryParams: {
   }
 };
 
+// shared function to get user by ID, can be used for both admin and user (customer)
 export const getUser = async (
   _id: string,
-  { userType }: { userType: "user" | "admin" }
+  { userType }: { userType: "user" | "admin" },
 ) => {
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id });

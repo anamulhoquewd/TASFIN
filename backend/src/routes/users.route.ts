@@ -9,7 +9,7 @@ const userRoutes = new Hono();
 
 userRoutes.post("/register", (c) => userController.register(c));
 
-userRoutes.post("/upload-avatar", authenticatedAdmin, (c) =>
+userRoutes.post("/upload-avatar", authenticatedUser, (c) =>
   userController.changeAvatar(c)
 );
 

@@ -52,7 +52,7 @@ export const getUsers = async (c: Context) => {
 };
 
 export const getUser = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await adminService.getUser(_id, { userType: "user" });
 
@@ -137,10 +137,10 @@ export const updateMe = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Update user
+// Update user by admin
 export const updateUser = async (c: Context) => {
   const body = await c.req.json();
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await userService.updateUser({ body, _id });
 
@@ -155,9 +155,9 @@ export const updateUser = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
-// Delete user
+// Delete user by admin
 export const deleteUser = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await userService.deleteUsers(_id);
 
@@ -204,7 +204,7 @@ export const changeAvatar = async (c: Context) => {
     const response = await adminService.uploadSingleFile({
       body: { avatar: file },
       filename,
-      folder: "users",
+      folder: "user-avatars",
     });
 
     if (response.error) {

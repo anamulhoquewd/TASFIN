@@ -116,6 +116,7 @@ export const getCategories = async (queryParams: {
         .sort({ [sortField]: sortDirection })
         .skip((queryParams.page - 1) * queryParams.limit)
         .limit(queryParams.limit)
+        .lean()
         .exec(),
       Category.countDocuments(query),
     ]);

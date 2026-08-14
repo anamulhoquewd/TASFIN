@@ -96,24 +96,18 @@ amdinSchema.methods.matchPassword = async function (assword: string) {
 };
 
 // Hash password
-amdinSchema.pre("save", async function (next) {
+amdinSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    // FIXED: was missing `return` here. Without it, execution fell
-    // through to the code below and re-hashed an already-hashed
-    // password on every unrelated update (name, phone, address, etc.),
-    // silently corrupting the admin's password and calling next()
-    // a second time.
-    return next();
+    return;
   }
 
   if (!this.password) {
-    return next(new Error("Password is required"));
+    throw new Error("Password is required");
   }
 
   // Use bcrypt to hash the password
   const salt = await bcrypt.genSalt(10); // Adjust salt rounds as needed
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 const Admin = mongoose.model<IAdmin>("Admin", amdinSchema);
