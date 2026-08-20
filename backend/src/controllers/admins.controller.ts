@@ -1,3 +1,7 @@
+import axios from "axios";
+import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 import {
   authenticationError,
   authorizationError,
@@ -6,11 +10,7 @@ import {
 } from "./../error/index.js";
 import Admin from "./../models/admins.model.js";
 import { adminService } from "./../services/index.js";
-import { generateAccessToken } from "./../utils/index.js";
-import axios from "axios";
-import type { Context } from "hono";
-import { getCookie } from "hono/cookie";
-import { verify } from "hono/jwt";
+import { generateAccessToken, setAuthCookie } from "./../utils/index.js";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
@@ -59,7 +59,7 @@ export const getAdmins = async (c: Context) => {
 };
 
 export const getAdmin = async (c: Context) => {
-  const _id = c.req.param("_id") as string
+  const _id = c.req.param("_id") as string;
 
   const response = await adminService.getUser(_id, { userType: "admin" });
 
@@ -106,7 +106,7 @@ export const getMe = async (c: Context) => {
         message: "Admin fetched successfully",
         data: me,
       },
-      200
+      200,
     );
   } catch (error: any) {
     return c.json(
@@ -115,7 +115,7 @@ export const getMe = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -158,6 +158,19 @@ export const login = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
+  await setAuthCookie(
+    c,
+    "accessToken",
+    response.success.tokens.accessToken,
+    60 * 60 * 24,
+  ); // 1 day
+  await setAuthCookie(
+    c,
+    "refreshToken",
+    response.success.tokens.refreshToken,
+    60 * 60 * 24 * 30,
+  ); // 30 days
+
   return c.json(response.success, 200);
 };
 
@@ -171,7 +184,7 @@ export const refreshToken = async (c: Context) => {
     }
 
     // Verify refresh token
-    const token = await verify(rToken, JWT_REFRESH_SECRET, {alg: "HS256"});
+    const token = await verify(rToken, JWT_REFRESH_SECRET, { alg: "HS256" });
 
     if (!token) {
       return authenticationError(c);
@@ -193,7 +206,7 @@ export const refreshToken = async (c: Context) => {
       });
     }
 
-    // await setAuthCookie(c, "accessToken", accessToken, 60 * 60 * 24); // 1 day
+    await setAuthCookie(c, "accessToken", accessToken, 60 * 60 * 24); // 1 day
 
     // Response
     return c.json(
@@ -204,14 +217,14 @@ export const refreshToken = async (c: Context) => {
           accessToken,
         },
       },
-      200
+      200,
     );
   } catch (error: any) {
     console.log("Error during token refresh:", error);
     if (error.name === "JwtTokenExpired") {
       return authorizationError(
         c,
-        "Refresh token expired. Please login again."
+        "Refresh token expired. Please login again.",
       );
     }
 
@@ -221,7 +234,7 @@ export const refreshToken = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -243,7 +256,7 @@ export const logout = async (c: Context) => {
         success: true,
         message: "Logout successful",
       },
-      200
+      200,
     );
   } catch (error: any) {
     return c.json(
@@ -252,7 +265,7 @@ export const logout = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -288,7 +301,7 @@ export const changePassword = async (c: Context) => {
 
 // Delete admin
 export const deleteAdmin = async (c: Context) => {
-  const _id = c.req.param("_id") as string
+  const _id = c.req.param("_id") as string;
 
   const response = await adminService.deleteAdmins(_id);
 
@@ -403,7 +416,7 @@ export const changeAvatar = async (c: Context) => {
         message: "Avatar upload failed",
         error: error.message,
       },
-      500
+      500,
     );
   }
 };

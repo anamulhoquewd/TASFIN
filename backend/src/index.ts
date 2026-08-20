@@ -1,20 +1,18 @@
 import { serve } from "@hono/node-server";
+import dotenv from "dotenv";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { prettyJSON } from "hono/pretty-json";
 import connectDB from "./config/db.js";
-import adminRoutes from "./routes/admins.route.js";
 import { notFound } from "./error/index.js";
-import userRoutes from "./routes/users.route.js";
-import { adminService, settingsService } from "./services/index.js";
+import adminRoutes from "./routes/admins.route.js";
 import categoryRoutes from "./routes/categorise.route.js";
-import productRoutes from "./routes/products.route.js";
 import orderRoutes from "./routes/orders.route.js";
+import productRoutes from "./routes/products.route.js";
 import settingsRoutes from "./routes/settings.route.js";
-import dotenv from "dotenv";
 import subscriberRoutes from "./routes/subscribers.controller.js";
-import { getConnInfo } from "hono/cloudflare-workers";
+import userRoutes from "./routes/users.route.js";
 
 dotenv.config();
 
@@ -24,25 +22,6 @@ const app = new Hono().basePath("/api/v1");
 
 // Config MongoDB
 connectDB()
-  .then(async () => {
-    // Call the Super Admin Service function after connecting to MongoDB
-    const [settingsResult, adminResult] = await Promise.all([
-      settingsService.register(),
-      adminService.registerSuperAdmin(),
-    ]);
-
-    if (settingsResult.success) {
-      console.log(settingsResult.message || "Settings created successfully!");
-    }
-    if (adminResult.success) {
-      console.log(
-        adminResult.message || "Super admin initialized successfully!"
-      );
-    }
-  })
-  .catch((error) => {
-    console.error("Failed to initialize super admin:", error);
-  });
 
 app.use(
   logger(),

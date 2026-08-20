@@ -181,7 +181,7 @@ export const register = async (body: OrderInput) => {
     const { phone, address, products, name, shippingCost, email } =
       validData.data;
 
-    // 🔹 Step 1: Find or Create User
+    // Step 1: Find or Create User
     let user = await User.findOne({ phone });
 
     if (!user) {
@@ -194,7 +194,7 @@ export const register = async (body: OrderInput) => {
       user = await newUser.save();
     }
 
-    // 🔹 Step 2: Validate Products & Calculate total
+    // Step 2: Validate Products & Calculate total
     const orderProducts: any[] = [];
     let totalAmount = 0;
 
@@ -208,7 +208,7 @@ export const register = async (body: OrderInput) => {
       }
 
       const variant = product.variants.find(
-        (v) => v._id.toString() === item.variantId
+        (v) => v._id.toString() === item.variantId,
       );
       if (!variant) {
         return { error: { message: "Variant not found." } };
@@ -239,7 +239,7 @@ export const register = async (body: OrderInput) => {
       await product.save();
     }
 
-    // 🔹 Step 3: Create Order
+    // Step 3: Create Order
     const order = await Order.create({
       user: user._id,
       orderDate: new Date(),

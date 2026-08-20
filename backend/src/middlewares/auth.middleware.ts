@@ -1,12 +1,14 @@
-import type { Context, Next } from "hono";
-import { verify } from "hono/jwt";
 import { config } from "dotenv";
+import type { Context, Next } from "hono";
+import { getSignedCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 import { authenticationError, authorizationError } from "./../error/index.js";
 import Admin from "./../models/admins.model.js";
 import User from "./../models/users.model.js";
 config();
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
+const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 export const authenticatedAnyUser = async (c: Context, next: Next) => {
   const phone = c.req.header("X-User-ID");
@@ -24,7 +26,7 @@ export const authenticatedAnyUser = async (c: Context, next: Next) => {
 
     // যদি token থাকে → admin / super_admin
     if (token) {
-      const decoded = await verify(token, JWT_ACCESS_SECRET);
+      const decoded = await verify(token, JWT_ACCESS_SECRET, { alg: "HS256" });
       if (!decoded || typeof decoded !== "object" || !("_id" in decoded)) {
         return authenticationError(c);
       }
@@ -65,14 +67,14 @@ export const authenticatedUser = async (c: Context, next: Next) => {
 
 //  Check if admin is authenticated
 export const authenticatedAdmin = async (c: Context, next: Next) => {
-  const token = c.req.header("Authorization")?.replace("Bearer ", "");
+  const token = await getSignedCookie(c, COOKIE_SECRET, "accessToken") || c.req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
     return authenticationError(c);
   }
 
   try {
-    const decoded = await verify(token, JWT_ACCESS_SECRET);
+    const decoded = await verify(token, JWT_ACCESS_SECRET, { alg: "HS256" });
     if (!decoded || typeof decoded !== "object" || !decoded._id) {
       return authenticationError(c);
     }

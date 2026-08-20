@@ -9,15 +9,23 @@ export const imageZ = z.object({
   url: z.string().url("Invalid image URL").trim(),
 });
 
-const imagesSchema =  z
-    .array(
-      z.file()
+export const imagesSchema = z
+  .array(
+    z.object({
+      file: z
+        .file()
         .mime(["image/jpeg", "image/png", "image/webp"], {
           message: "Only jpeg, png, or webp images are allowed",
         })
-        .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" })
-    )
-    .nonempty({ message: "At least one file is required" })
+        .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" }),
+      position: z
+        .number()
+        .int()
+        .min(0, "Position must be a non-negative integer"),
+      alt: z.string().min(1, "Image alt text required").trim(),
+    }),
+  )
+  .nonempty({ message: "At least one file is required" });
 
 // Accept either a 24-char hex string or a real ObjectId instance
 export const objectIdSchemaZ = z.union([
@@ -27,13 +35,15 @@ export const objectIdSchemaZ = z.union([
   z.instanceof(mongoose.Types.ObjectId),
 ]);
 
-const keyValueSchemaZ = z.object({
+export const keyValueSchemaZ = z.object({
   key: z.string().trim().min(1, "key is required"),
   value: z.string().trim().min(1, "value is required"),
 });
 
 // helper: array of {key,value} -> plain object, rejects duplicate keys
-const keyValueArrayToRecord = (arr: { key: string; value: string }[]) => {
+export const keyValueArrayToRecord = (
+  arr: { key: string; value: string }[],
+) => {
   const record: Record<string, string> = {};
   for (const { key, value } of arr) {
     if (record[key] !== undefined) {
@@ -60,7 +70,7 @@ export const productVariantSchemaZ = z.object({
     }),
   stock: z.coerce.number().int().min(0).default(0),
   price: z.coerce.number().min(0, "price must be non-negative"),
-  images: z.array(z.file()).optional(),
+  images: imagesSchema.optional().default([]),
 });
 
 export const productSchemaZ = z.object({

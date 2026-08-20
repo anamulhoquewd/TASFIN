@@ -2,7 +2,11 @@ import { config } from "dotenv";
 import { schemaValidationError } from "../src/error/index.js";
 import Admin from "../src/models/admins.model.js";
 import { adminCreateZ } from "../src/validations/zod.js";
+import connectDB from "../src/config/db.js";
 config();
+
+// Config MongoDB
+connectDB()
 
 // Get environment variables
 const NAME = process.env.ADMIN_NAME;
