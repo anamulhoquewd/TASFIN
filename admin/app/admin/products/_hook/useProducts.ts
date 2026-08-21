@@ -20,15 +20,8 @@ function useProducts() {
       keyFeatures: [],
       categories: [],
       images: [],
-      variants: [{ size: "", stock: 0, price: 0, images: [] }],
-      fabric: "",
-      valueAddition: "",
-      cutFit: "",
-      collarNeck: "",
-      sleeve: "",
-      length: "",
-      washCare: "",
-      sideCut: "",
+      variants: [{ sku: "", attributes: [], stock: 0, price: 0, images: [] }],
+      specifications: [],
       isFeatured: false,
       isActive: true,
       tags: [],
@@ -180,14 +173,7 @@ function useProducts() {
       formData.append("slug", data.slug);
       formData.append("description", data.description ?? "");
       formData.append("keyFeatures", JSON.stringify(data.keyFeatures));
-      formData.append("fabric", data.fabric ?? "");
-      formData.append("valueAddition", data.valueAddition ?? "");
-      formData.append("cutFit", data.cutFit ?? "");
-      formData.append("collarNeck", data.collarNeck ?? "");
-      formData.append("sleeve", data.sleeve ?? "");
-      formData.append("length", data.length ?? "");
-      formData.append("washCare", data.washCare ?? "");
-      formData.append("sideCut", data.sideCut ?? "");
+      formData.append("specifications", JSON.stringify(data.specifications ?? []));
       formData.append("isFeatured", data.isFeatured.toString());
       formData.append("isActive", data.isActive.toString());
 
@@ -196,19 +182,22 @@ function useProducts() {
       formData.append("tags", JSON.stringify(data.tags));
 
       // Append main product images
-      data.images.forEach((image) => {
-        formData.append("images", image);
+      data.images.forEach((image, position) => {
+        formData.append("image", image);
+        formData.append(`images[${position}][position]`, String(position));
       });
 
       // Append variants
       data.variants.forEach((variant, index) => {
-        formData.append(`variants[${index}][size]`, variant.size);
+        formData.append(`variants[${index}][sku]`, variant.sku);
+        formData.append(`variants[${index}][attributes]`, JSON.stringify(variant.attributes ?? []));
         formData.append(`variants[${index}][stock]`, variant.stock.toString());
         formData.append(`variants[${index}][price]`, variant.price.toString());
 
         // Append variant images
-        variant.images?.forEach((image) => {
-          formData.append(`variants[${index}][images]`, image);
+        variant.images?.forEach((image, position) => {
+          formData.append(`variants[${index}][image]`, image);
+          formData.append(`variants[${index}][images][${position}][position]`, String(position));
         });
       });
 
@@ -234,14 +223,7 @@ function useProducts() {
         slug: "",
         description: "",
         keyFeatures: [],
-        fabric: "",
-        valueAddition: "",
-        cutFit: "",
-        collarNeck: "",
-        sleeve: "",
-        length: "",
-        washCare: "",
-        sideCut: "",
+        specifications: [],
         isFeatured: false,
         isActive: false,
         categories: [],
@@ -404,14 +386,7 @@ function useProducts() {
         slug: "",
         description: "",
         keyFeatures: [],
-        fabric: "",
-        valueAddition: "",
-        cutFit: "",
-        collarNeck: "",
-        sleeve: "",
-        length: "",
-        washCare: "",
-        sideCut: "",
+        specifications: [],
         isFeatured: false,
         isActive: false,
         categories: [],

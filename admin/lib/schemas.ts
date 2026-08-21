@@ -11,11 +11,11 @@ export const BDPhoneRegex = /^01[3-9]\d{8}$/;
 
 const fileSchema = z
   .instanceof(File)
-  .refine((file) => file.size <= 2 * 1024 * 1024, {
-    message: "File size must be <= 2MB",
+  .refine((file) => file.size <= 5 * 1024 * 1024, {
+    message: "File size must be <= 5MB",
   })
-  .refine((file) => ["image/jpeg", "image/png"].includes(file.type), {
-    message: "Only JPEG/PNG allowed",
+  .refine((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type), {
+    message: "Only JPEG, PNG, or WebP images are allowed",
   });
 
 // Zod schema for ICategory
@@ -73,7 +73,13 @@ export const productSchema = z.object({
 
 // IProductVariant schema
 export const productVariantSchemaZ = z.object({
-  size: z.string().min(1),
+  // Kept optional only so legacy edit dialogs can render old records during migration.
+  size: z.string().optional(),
+  sku: z.string().trim().min(1, "SKU is required"),
+  attributes: z
+    .array(z.object({ key: z.string().trim().min(1, "Attribute name is required"), value: z.string().trim().min(1, "Attribute value is required") }))
+    .optional()
+    .refine((items) => !items || new Set(items.map((item) => item.key.toLowerCase())).size === items.length, "Attribute names must be unique"),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(fileSchema).optional(),
@@ -103,10 +109,15 @@ export const productSchemaZ = z.object({
   categories: z.array(z.string()),
 
   images: z.array(fileSchema).nonempty("At least 1 image is required"),
-  variants: z
-    .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
+  variants: z.array(productVariantSchemaZ).nonempty("At least 1 variant is required")
+    .refine((items) => new Set(items.map((item) => item.sku.toLowerCase())).size === items.length, "Variant SKUs must be unique"),
 
+  specifications: z
+    .array(z.object({ key: z.string().trim().min(1, "Specification name is required"), value: z.string().trim().min(1, "Specification value is required") }))
+    .optional()
+    .refine((items) => !items || new Set(items.map((item) => item.key.toLowerCase())).size === items.length, "Specification names must be unique"),
+
+  // Legacy fields are read-only compatibility fields. New products use specifications.
   fabric: z.string().optional(),
   valueAddition: z.string().optional(),
   cutFit: z.string().optional(),

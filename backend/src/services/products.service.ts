@@ -25,8 +25,8 @@ export const register = async ({
   body,
 }: {
   body: ProductCreateInput & {
-    images: File[];
-    variants: { images: { file: File; position: number }[] }[];
+    images: { file: File; position: number; alt: string }[];
+    variants: { images: { file: File; position: number; alt: string }[] }[];
   };
 }) => {
   let rootImages: {
@@ -111,7 +111,7 @@ export const register = async ({
 
         return {
           ...variant,
-          images: urls.map((url) => ({ alt: `${variant.sku}`, url })),
+          images: urls.map((image) => ({ ...image, alt: `${variant.sku}` })),
         };
       }),
     );

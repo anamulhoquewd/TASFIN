@@ -335,7 +335,8 @@ export function CreateProductForm({
                     size="sm"
                     onClick={() =>
                       append({
-                        size: "",
+                        sku: "",
+                        attributes: [],
                         stock: 0,
                         price: 0,
                         images: [],
@@ -371,12 +372,12 @@ export function CreateProductForm({
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <FormField
                           control={form.control}
-                          name={`variants.${index}.size`}
+                          name={`variants.${index}.sku`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Size</FormLabel>
+                              <FormLabel>SKU</FormLabel>
                               <FormControl>
-                                <Input placeholder="S, M, L, XL" {...field} />
+                                <Input placeholder="TSHIRT-BLACK-M" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -428,6 +429,33 @@ export function CreateProductForm({
                             </FormItem>
                           )}
                         />
+                      </div>
+
+                      <div className="mb-4 rounded-lg border border-border p-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <FormLabel>Variant attributes</FormLabel>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const attributes = form.getValues(`variants.${index}.attributes`) || [];
+                              form.setValue(`variants.${index}.attributes`, [...attributes, { key: "", value: "" }]);
+                            }}
+                          >
+                            <Plus className="mr-1 h-3 w-3" /> Add attribute
+                          </Button>
+                        </div>
+                        {(form.watch(`variants.${index}.attributes`) || []).map((_: unknown, attributeIndex: number) => (
+                          <div key={attributeIndex} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                            <FormField control={form.control} name={`variants.${index}.attributes.${attributeIndex}.key`} render={({ field }) => <FormItem><FormControl><Input placeholder="Color" {...field} /></FormControl><FormMessage /></FormItem>} />
+                            <FormField control={form.control} name={`variants.${index}.attributes.${attributeIndex}.value`} render={({ field }) => <FormItem><FormControl><Input placeholder="Black" {...field} /></FormControl><FormMessage /></FormItem>} />
+                            <Button type="button" variant="ghost" size="icon" aria-label="Remove attribute" onClick={() => {
+                              const attributes = form.getValues(`variants.${index}.attributes`) || [];
+                              form.setValue(`variants.${index}.attributes`, attributes.filter((_: unknown, i: number) => i !== attributeIndex));
+                            }}><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                        ))}
                       </div>
 
                       <div className="space-y-4">
@@ -489,134 +517,23 @@ export function CreateProductForm({
             {/* Product Details */}
             <Card>
               <CardHeader>
-                <CardTitle>Product Details</CardTitle>
+                <CardTitle>Specifications</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="fabric"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fabric</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Cotton, Polyester, etc."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="valueAddition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Value Addition</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Special features" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cutFit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cut & Fit</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Slim, Regular, Loose"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="collarNeck"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Collar/Neck</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Round neck, V-neck, etc."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sleeve"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sleeve</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Short, Long, 3/4" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="length"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Length</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Short, Medium, Long" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="washCare"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Wash Care</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Machine wash, Hand wash"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sideCut"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Side Cut</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Side cut details" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+              <CardContent className="space-y-3">
+                <FormDescription>Add any product-specific key/value pairs, such as Fabric, Fit, or Wash Care.</FormDescription>
+                {(form.watch("specifications") || []).map((_: unknown, specificationIndex: number) => (
+                  <div key={specificationIndex} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                    <FormField control={form.control} name={`specifications.${specificationIndex}.key`} render={({ field }) => <FormItem><FormControl><Input placeholder="Fabric" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <FormField control={form.control} name={`specifications.${specificationIndex}.value`} render={({ field }) => <FormItem><FormControl><Input placeholder="100% Cotton" {...field} /></FormControl><FormMessage /></FormItem>} />
+                    <Button type="button" variant="ghost" size="icon" aria-label="Remove specification" onClick={() => {
+                      const specifications = form.getValues("specifications") || [];
+                      form.setValue("specifications", specifications.filter((_: unknown, i: number) => i !== specificationIndex));
+                    }}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={() => form.setValue("specifications", [...(form.getValues("specifications") || []), { key: "", value: "" }])}>
+                  <Plus className="mr-1 h-3 w-3" /> Add specification
+                </Button>
               </CardContent>
             </Card>
           </div>

@@ -59,7 +59,11 @@ export const register = async (c: Context) => {
   }
 
   // Get main images
-  const images = formData.getAll("image") as File[];
+  const images = (formData.getAll("image") as File[]).map((file, index) => ({
+    file,
+    position: Number(formData.get(`images[${index}][position]`) ?? index),
+    alt: (formData.get(`images[${index}][alt]`) as string) || title,
+  }));
 
   // Process variants
   const variants = [];
@@ -89,7 +93,17 @@ export const register = async (c: Context) => {
       attributes,
       stock: parseInt(formData.get(`variants[${variantIndex}][stock]`) as string, 10),
       price: parseFloat(formData.get(`variants[${variantIndex}][price]`) as string),
-      images: formData.getAll(`variants[${variantIndex}][image]`) as File[],
+      images: (formData.getAll(`variants[${variantIndex}][image]`) as File[]).map(
+        (file, index) => ({
+          file,
+          position: Number(
+            formData.get(`variants[${variantIndex}][images][${index}][position]`) ?? index,
+          ),
+          alt:
+            (formData.get(`variants[${variantIndex}][images][${index}][alt]`) as string) ||
+            (formData.get(`variants[${variantIndex}][sku]`) as string),
+        }),
+      ),
     });
     variantIndex++;
   }

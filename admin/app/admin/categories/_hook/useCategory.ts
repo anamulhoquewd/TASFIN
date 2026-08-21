@@ -11,6 +11,7 @@ import { z } from "zod";
 const categoryFormSchema = z.object({
   slug: z.string().min(3).max(100),
   name: z.string().min(3).max(100),
+  sortOrder: z.coerce.number().int().min(0).max(1000).optional(),
   description: z.string().min(10).max(1000).optional(),
 });
 
@@ -34,6 +35,7 @@ function useCategory() {
     defaultValues: {
       name: "",
       slug: "",
+      sortOrder: 0,
       description: "",
     },
   });
@@ -189,7 +191,7 @@ function useCategory() {
           headers: {
             "Content-Type": "multipart/form-data",
           },
-        }
+        },
       );
 
       if (!response.data.success) {

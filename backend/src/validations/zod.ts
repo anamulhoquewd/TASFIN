@@ -179,6 +179,15 @@ export const adminCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
+// ৩. NID এবং Role ছাড়া আপডেট স্কিমা
+export const adminUpdateLimitedZ = z.object(adminCreateZ.shape)
+  .omit({ nid: true, role: true }) // প্রথমে ফিল্ড বাদ দিন
+  .partial()                       // তারপর অপশনাল করুন
+  .refine(                         // সবশেষে রিফাইনমেন্ট যোগ করুন
+    (data) => Object.keys(data).length > 0,
+    { message: "At least one field must be provided for update" }
+  );
+
 // If you want a separate update schema where fields can be optional:
 export const adminUpdateZ = adminCreateZ.partial().refine(
   (data) => {

@@ -1,3 +1,4 @@
+import type { Context } from "hono";
 import {
   badRequestHandler,
   schemaValidationError,
@@ -6,7 +7,6 @@ import {
 import Category from "./../models/categorise.model.js";
 import { adminService, categoryService } from "./../services/index.js";
 import { idSchemaZ } from "./../validations/zod.js";
-import type { Context } from "hono";
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -115,7 +115,7 @@ export const changeAvatar = async (c: Context) => {
   if (!idValidation.success) {
     return badRequestHandler(
       c,
-      schemaValidationError(idValidation.error, "Invalid ID")
+      schemaValidationError(idValidation.error, "Invalid ID"),
     );
   }
 
@@ -145,10 +145,9 @@ export const changeAvatar = async (c: Context) => {
       });
     }
 
-    const response = await adminService.uploadSingleFile({
+    const response = await adminService.uploadSingleFileService({
       body: { avatar: file },
-      filename,
-      folder: "admins",
+      folder: "categories",
     });
 
     if (response.error) {
@@ -162,7 +161,9 @@ export const changeAvatar = async (c: Context) => {
     // Update category.avatar.url and save
     category.image = {
       alt: filename,
-      url: response.success.data,
+      url: response.success.data.url,
+      key: response.success.data.key,
+      position: 0, // Default position
     };
 
     await category.save();
@@ -175,7 +176,7 @@ export const changeAvatar = async (c: Context) => {
         message: "Avatar upload failed",
         error: error.message,
       },
-      500
+      500,
     );
   }
 };

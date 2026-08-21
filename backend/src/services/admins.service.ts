@@ -1,22 +1,17 @@
-import dotenv from "dotenv";
 import mongoose from "mongoose";
 import z from "zod";
+import { uploadSingleFile } from "../utils/r2-utils.js";
 import { transporter } from "./../config/email.js";
-import s3 from "./../config/s3.js";
 import { schemaValidationError } from "./../error/index.js";
 import type { IAdmin } from "./../interfaces/index.js";
 import Admin from "./../models/admins.model.js";
 import User from "./../models/users.model.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  uploadAvatar,
-} from "./../utils/index.js";
+import { generateAccessToken, generateRefreshToken } from "./../utils/index.js";
 import pagination from "./../utils/pagination.js";
 import { stringGenerator } from "./../utils/string-generator.js";
 import {
   adminCreateZ,
-  adminUpdateZ,
+  adminUpdateLimitedZ,
   avatarSchemaZ,
   changePasswordZ,
   idSchemaZ,
@@ -251,9 +246,7 @@ export const updateProfile = async ({
   body: AdminUpdateInput;
 }) => {
   // Validation without NID for update
-  const validData = adminUpdateZ
-    .omit({ nid: true, role: true })
-    .safeParse(body);
+  const validData = adminUpdateLimitedZ.safeParse(body);
 
   if (!validData.success) {
     return {
@@ -543,30 +536,15 @@ export const resetPassword = async ({
   }
 };
 
-export const uploadSingleFile = async ({
-  filename,
+export const uploadSingleFileService = async ({
   body,
   folder,
 }: {
-  filename: string;
   folder: string;
   body: {
     avatar: File;
   };
 }) => {
-  if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_BUCKET_NAME
-  ) {
-    return {
-      error: {
-        message:
-          "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is missing in env variables",
-      },
-    };
-  }
-
   const file = body.avatar;
 
   if (!file) {
@@ -583,22 +561,25 @@ export const uploadSingleFile = async ({
   }
 
   try {
-    // Upload to S3 (uploadAvatar function assumed async - যদি না হয়, তাহলে await বাদ দিবে)
-    await uploadAvatar({
-      s3,
-      file: validData.data.avatar,
-      key: `uploads/${folder}/${filename}`,
-      fileType: validData.data.avatar.type,
-      bucketName: process.env.AWS_BUCKET_NAME,
-    });
+    const response = await uploadSingleFile(file, folder);
 
-    const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${folder}/${filename}`;
+    if (response.error) {
+      return {
+        error: response.error,
+      };
+    } else if (response.serverError) {
+      return {
+        serverError: response.serverError,
+      };
+    }
+
+    const data = response.success.data;
 
     return {
       success: {
         success: true,
         message: "Avatar updated successfully",
-        data: url,
+        data,
       },
     };
   } catch (error: any) {

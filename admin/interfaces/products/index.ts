@@ -1,6 +1,8 @@
 export interface IImage {
   alt: string;
   url: string;
+  position?: number;
+  key: string;
 }
 
 export interface IProductVariant {

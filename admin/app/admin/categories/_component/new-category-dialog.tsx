@@ -95,6 +95,26 @@ export default function NewCategory({
             />
             <FormField
               control={form.control}
+              name="sortOrder"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="cursor-pointer">Sort Order</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Type sort order"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The order in which the category appears in listings
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
