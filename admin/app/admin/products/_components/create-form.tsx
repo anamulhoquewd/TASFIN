@@ -1,11 +1,12 @@
 "use client";
 
-import type React from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
+import { ChipInput } from "@/components/chip-input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -14,6 +15,30 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   ArrowDown,
   ArrowUp,
@@ -24,27 +49,10 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import useCategory from "@/app/admin/categories/_hook/useCategory";
-import { toast } from "sonner";
-import { Textarea } from "@/components/ui/textarea";
-import { ChipInput } from "@/components/chip-input";
-import type { UseProductsReturn } from "../_hook/useProducts";
 import Image from "next/image";
+import type React from "react";
+import { toast } from "sonner";
+import type { UseProductsReturn } from "../_hook/useProducts";
 
 type ProductsForm = UseProductsReturn["form"];
 
@@ -60,7 +68,7 @@ interface CreateProductFormProps {
   variantImagePreviews: string[][];
   handleVariantImageUpload: (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => void;
   removeVariantImage: (index: number, variantIndex: number) => void;
 }
@@ -635,6 +643,201 @@ export function CreateProductForm({
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Discount</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="discount"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={Boolean(field.value)}
+                          onCheckedChange={(checked) =>
+                            field.onChange(
+                              checked
+                                ? {
+                                    discountType: "percentage",
+                                    value: 0,
+                                  }
+                                : undefined,
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Apply a discount</FormLabel>
+                        <FormDescription>
+                          Set an optional percentage or fixed amount off.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch("discount") && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="discount.discountType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount Type</FormLabel>
+                          <FormControl>
+                            <Select
+                              name={field.name}
+                              value={field.value}
+                              onValueChange={field.onChange}
+                            >
+                              <SelectTrigger id="form-rhf-select-language">
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent position="item-aligned">
+                                <SelectItem value={"percentage"}>
+                                  Percentage (%)
+                                </SelectItem>
+                                <SelectItem value={"fixed"}>
+                                  Fixed amount
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="discount.value"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Discount Value</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.1"
+                              {...field}
+                              onChange={(event) =>
+                                field.onChange(
+                                  Number.parseFloat(event.target.value) || 0,
+                                )
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      {/* Start Date */}
+                      <FormField
+                        control={form.control}
+                        name="discount.startAt"
+                        render={({ field }) => {
+                          const date = field.value
+                            ? new Date(field.value)
+                            : undefined;
+
+                          return (
+                            <FormItem>
+                              <FormLabel>Start Date</FormLabel>
+
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start font-normal"
+                                    >
+                                      {date
+                                        ? date.toLocaleDateString()
+                                        : "Select start date"}
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+
+                                <PopoverContent
+                                  className="w-auto overflow-hidden p-0"
+                                  align="start"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    defaultMonth={date}
+                                    captionLayout="dropdown"
+                                    onSelect={(selectedDate) => {
+                                      field.onChange(selectedDate);
+                                    }}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+
+                      {/* End Date */}
+                      <FormField
+                        control={form.control}
+                        name="discount.endAt"
+                        render={({ field }) => {
+                          const date = field.value
+                            ? new Date(field.value)
+                            : undefined;
+
+                          return (
+                            <FormItem>
+                              <FormLabel>End Date</FormLabel>
+
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <FormControl>
+                                    <Button
+                                      variant="outline"
+                                      className="w-full justify-start font-normal"
+                                    >
+                                      {date
+                                        ? date.toLocaleDateString()
+                                        : "Select end date"}
+                                    </Button>
+                                  </FormControl>
+                                </PopoverTrigger>
+
+                                <PopoverContent
+                                  className="w-auto overflow-hidden p-0"
+                                  align="start"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={date}
+                                    defaultMonth={date}
+                                    captionLayout="dropdown"
+                                    onSelect={(selectedDate) => {
+                                      field.onChange(selectedDate);
+                                    }}
+                                  />
+                                </PopoverContent>
+                              </Popover>
+
+                              <FormMessage />
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Status</CardTitle>

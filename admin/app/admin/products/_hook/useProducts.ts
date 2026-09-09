@@ -25,6 +25,7 @@ function useProducts() {
       isFeatured: false,
       isActive: true,
       tags: [],
+      discount: undefined,
     },
   });
 
@@ -199,6 +200,9 @@ function useProducts() {
       // Append arrays as JSON strings
       formData.append("categories", JSON.stringify(data.categories));
       formData.append("tags", JSON.stringify(data.tags ?? []));
+      if (data.discount) {
+        formData.append("discount", JSON.stringify(data.discount));
+      }
 
       // Append main product images
       // FIX: file field key "image" থেকে "images" করা হলো, যাতে
@@ -266,6 +270,7 @@ function useProducts() {
         isActive: false,
         categories: [],
         tags: [],
+        discount: undefined,
         images: [],
         variants: [],
       });

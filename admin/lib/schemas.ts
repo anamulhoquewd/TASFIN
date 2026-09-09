@@ -130,6 +130,25 @@ export const productSchemaZ = z.object({
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
   tags: z.array(z.string().min(1)).optional(),
+
+  discount: z
+    .object({
+      discountType: z.enum(["percentage", "fixed"]),
+      value: z.number().min(0, "Discount value must be non-negative"),
+      startAt: z.coerce.date().optional(),
+      endAt: z.coerce.date().optional(),
+    })
+    .optional()
+    .refine(
+      (discount) =>
+        !discount?.startAt ||
+        !discount?.endAt ||
+        discount.startAt < discount.endAt,
+      {
+        message: "Discount start date must be before the end date",
+        path: ["endAt"],
+      },
+    ),
 });
 
 // If you want a separate update schema where fields can be optional:
