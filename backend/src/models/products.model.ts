@@ -108,14 +108,13 @@ productSchema.set("toJSON", { virtuals: true });
 // ("minPrice is required") before this hook ever gets a chance to run.
 // pre("validate") runs earlier in the chain, so the fields exist by the
 // time Mongoose checks `required`.
-productSchema.pre("validate", function (next: any) {
+productSchema.pre("validate", function () {
   if (this.isModified("variants") && this.variants.length > 0) {
     const prices = this.variants.map((v: any) => v.price);
     this.minPrice = Math.min(...prices);
     this.maxPrice = Math.max(...prices);
     this.inStock = this.variants.some((v: any) => v.stock > 0);
   }
-  next();
 });
 
 // --- Indexes for actual query patterns (this is what fixes slow listing) ---

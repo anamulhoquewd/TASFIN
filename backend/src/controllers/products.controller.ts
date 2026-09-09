@@ -14,7 +14,10 @@ export const register = async (c: Context) => {
   const isActive = formData.get("isActive") === "true";
 
   let categories: string[], tags: string[], keyFeatures: string[];
-  let specifications: Record<string, string>;
+  let specifications: Array<{
+    key: string;
+    value: string;
+  }>;
   let discount:
     | {
         discountType: "percentage" | "fixed";
@@ -29,25 +32,27 @@ export const register = async (c: Context) => {
     tags = JSON.parse((formData.get("tags") as string) ?? "[]");
     keyFeatures = JSON.parse((formData.get("keyFeatures") as string) ?? "[]");
 
-    const parsedSpecifications = JSON.parse(
+    specifications = JSON.parse(
       (formData.get("specifications") as string) ?? "[]",
-    ) as Array<{ key: string; value: string }>;
-
-    specifications = Object.fromEntries(
-      (Array.isArray(parsedSpecifications) ? parsedSpecifications : []).map(
-        ({ key, value }) => [String(key).trim(), String(value).trim()],
-      ),
     );
 
     const rawDiscount = formData.get("discount") as string | null;
     const parsedDiscount = rawDiscount ? JSON.parse(rawDiscount) : undefined;
 
-    if (parsedDiscount && parsedDiscount.discountType && typeof parsedDiscount.value === "number") {
+    if (
+      parsedDiscount &&
+      parsedDiscount.discountType &&
+      typeof parsedDiscount.value === "number"
+    ) {
       discount = {
         discountType: parsedDiscount.discountType,
         value: Number(parsedDiscount.value),
-        startAt: parsedDiscount.startAt ? new Date(parsedDiscount.startAt) : undefined,
-        endAt: parsedDiscount.endAt ? new Date(parsedDiscount.endAt) : undefined,
+        startAt: parsedDiscount.startAt
+          ? new Date(parsedDiscount.startAt)
+          : undefined,
+        endAt: parsedDiscount.endAt
+          ? new Date(parsedDiscount.endAt)
+          : undefined,
       };
     } else {
       discount = undefined;
@@ -59,7 +64,7 @@ export const register = async (c: Context) => {
   }
 
   // Get main images
-  const images = (formData.getAll("image") as File[]).map((file, index) => ({
+  const images = (formData.getAll("images") as File[]).map((file, index) => ({
     file,
     position: Number(formData.get(`images[${index}][position]`) ?? index),
     alt: (formData.get(`images[${index}][alt]`) as string) || title,
@@ -73,7 +78,8 @@ export const register = async (c: Context) => {
     let rawAttributes: Array<{ key: string; value: string }>;
     try {
       rawAttributes = JSON.parse(
-        (formData.get(`variants[${variantIndex}][attributes]`) as string) ?? "[]",
+        (formData.get(`variants[${variantIndex}][attributes]`) as string) ??
+          "[]",
       );
     } catch {
       return badRequestHandler(c, {
@@ -81,33 +87,34 @@ export const register = async (c: Context) => {
       });
     }
 
-    const attributes: Record<string, string> = Object.fromEntries(
-      (Array.isArray(rawAttributes) ? rawAttributes : []).map((attribute) => [
-        attribute.key,
-        attribute.value,
-      ]),
-    );
-
     variants.push({
       sku: formData.get(`variants[${variantIndex}][sku]`) as string,
-      attributes,
-      stock: parseInt(formData.get(`variants[${variantIndex}][stock]`) as string, 10),
-      price: parseFloat(formData.get(`variants[${variantIndex}][price]`) as string),
-      images: (formData.getAll(`variants[${variantIndex}][image]`) as File[]).map(
-        (file, index) => ({
-          file,
-          position: Number(
-            formData.get(`variants[${variantIndex}][images][${index}][position]`) ?? index,
-          ),
-          alt:
-            (formData.get(`variants[${variantIndex}][images][${index}][alt]`) as string) ||
-            (formData.get(`variants[${variantIndex}][sku]`) as string),
-        }),
+      attributes: rawAttributes,
+      stock: parseInt(
+        formData.get(`variants[${variantIndex}][stock]`) as string,
+        10,
       ),
+      price: parseFloat(
+        formData.get(`variants[${variantIndex}][price]`) as string,
+      ),
+      images: (
+        formData.getAll(`variants[${variantIndex}][images]`) as File[]
+      ).map((file, index) => ({
+        file,
+        position: Number(
+          formData.get(
+            `variants[${variantIndex}][images][${index}][position]`,
+          ) ?? index,
+        ),
+        alt:
+          (formData.get(
+            `variants[${variantIndex}][images][${index}][alt]`,
+          ) as string) ||
+          (formData.get(`variants[${variantIndex}][sku]`) as string),
+      })),
     });
     variantIndex++;
   }
-
   // Prepare body for service
   const body = {
     title,
@@ -121,8 +128,10 @@ export const register = async (c: Context) => {
     tags,
     keyFeatures,
     specifications,
-    discount
+    discount,
   };
+
+  console.log("Body: ", body);
 
   // Call service
   const response = await productService.register({
@@ -265,21 +274,25 @@ export const updateVariantInfo = async (c: Context) => {
 
 // Update main iamges
 export const updateMainImages = async (c: Context) => {
-  const  _id  = c.req.param("_id");
-  if (! _id) return c.json({ message: "Product ID is required" }, 400);
+  const _id = c.req.param("_id");
+  if (!_id) return c.json({ message: "Product ID is required" }, 400);
 
   const formData = await c.req.formData();
 
   // Main images
-  const mainImages = (formData.getAll("images") as File[]).filter(
+  const images = (formData.getAll("images") as File[]).filter(
     (f) => f && (f as File).name,
   );
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+  const reorderedImageUrlsRaw = formData.get("reorderedImageUrls");
+  const reorderedImageUrls = reorderedImageUrlsRaw
+    ? JSON.parse(String(reorderedImageUrlsRaw))
+    : [];
 
   const response = await productService.updateMainImages({
     _id,
-    data: { mainImages, deleteImageUrls },
+    data: { images, deleteImageUrls, reorderedImageUrls },
   });
 
   if (response.error) {
@@ -295,9 +308,9 @@ export const updateMainImages = async (c: Context) => {
 
 // Update variant iamges
 export const updateVImages = async (c: Context) => {
-  const  _id  = c.req.param("_id");
+  const _id = c.req.param("_id");
   const vId = c.req.param("vId");
-  if (! _id || !vId)
+  if (!_id || !vId)
     return badRequestHandler(c, {
       message: "Product & Variant ID is required",
     });
@@ -310,11 +323,15 @@ export const updateVImages = async (c: Context) => {
   );
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
+  const reorderedImageUrlsRaw = formData.get("reorderedImageUrls");
+  const reorderedImageUrls = reorderedImageUrlsRaw
+    ? JSON.parse(String(reorderedImageUrlsRaw))
+    : [];
 
   const response = await productService.updateVImages({
-     _id,
+    _id,
     vId,
-    data: { images, deleteImageUrls },
+    data: { images, deleteImageUrls, reorderedImageUrls },
   });
 
   if (response.error) {

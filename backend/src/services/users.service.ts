@@ -159,7 +159,7 @@ export const updateProfile = async ({
   user,
   body,
 }: {
-  user: IUser;
+  user: mongoose.HydratedDocument<IUser>;
   body: UserUpdateInput;
 }) => {
   // Validation without NID for update

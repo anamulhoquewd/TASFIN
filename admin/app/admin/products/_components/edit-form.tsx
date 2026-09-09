@@ -1,8 +1,6 @@
 "use client";
 
 import type React from "react";
-
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,6 +43,7 @@ import { type ProductUpdateInput } from "@/lib/schemas";
 import type { IProduct } from "@/interfaces/products";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { Textarea } from "@/components/ui/textarea";
+import { ChipInput } from "@/components/chip-input";
 import { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
 
@@ -183,37 +182,24 @@ export function EditProductForm({
                 <FormField
                   control={form.control}
                   name="keyFeatures"
-                  render={({ field }) => {
-                    const [inputValue, setInputValue] = useState(
-                      field.value?.join(", ") || ""
-                    );
-
-                    useEffect(() => {
-                      setInputValue(field.value?.join(", ") || "");
-                    }, [field.value]);
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Key Features</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Enter key features (star-*-separated)"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onBlur={() => {
-                              const tags = inputValue
-
-                                .split("*")
-                                .map((tag: string) => tag.trim())
-                                .filter((tag: string) => tag.length > 0);
-                              field.onChange(tags);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Key Features</FormLabel>
+                      <FormControl>
+                        <ChipInput
+                          variant="feature"
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          placeholder="Type a feature and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Highlight what makes this product special — add one
+                        feature at a time
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </CardContent>
             </Card>
@@ -1087,40 +1073,24 @@ export function EditProductForm({
                 <FormField
                   control={form.control}
                   name="tags"
-                  render={({ field }) => {
-                    const [inputValue, setInputValue] = useState(
-                      field.value?.join(", ") || ""
-                    );
-
-                    useEffect(() => {
-                      setInputValue(field.value?.join(", ") || "");
-                    }, [field.value]);
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter tags (star-*-separated)"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onBlur={() => {
-                              const tags = inputValue
-                                .split("*")
-                                .map((tag: string) => tag.trim())
-                                .filter((tag: string) => tag.length > 0);
-                              field.onChange(tags);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Add tags to help customers find your product
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags</FormLabel>
+                      <FormControl>
+                        <ChipInput
+                          variant="tag"
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          placeholder="Type a tag and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Help customers discover this product in search and
+                        filters
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </CardContent>
             </Card>

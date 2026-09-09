@@ -21,8 +21,6 @@ import {
   AlertTriangle,
   ChevronsUpDown,
   CheckCheck,
-  ArrowUp,
-  ArrowDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
@@ -73,6 +71,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { ChipInput } from "@/components/chip-input";
+import {
+  FileSortableImageGrid,
+  UrlSortableImageGrid,
+} from "@/components/sortable-image-grid";
 import Image from "next/image";
 import useProducts from "../_hook/useProducts";
 
@@ -305,36 +308,24 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
             <FormField
               control={form.control}
               name="keyFeatures"
-              render={({ field }) => {
-                const [inputValue, setInputValue] = useState(
-                  field.value?.join("* ") || ""
-                );
-
-                useEffect(() => {
-                  setInputValue(field.value?.join("* ") || "");
-                }, [field.value]);
-
-                return (
-                  <FormItem>
-                    <FormLabel>Key Features</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter key features (star-*-separated)"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onBlur={() => {
-                          const teatures = inputValue
-                            .split("*")
-                            .map((teature: string) => teature.trim())
-                            .filter((teature: string) => teature.length > 0);
-                          field.onChange(teatures);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Key Features</FormLabel>
+                  <FormControl>
+                    <ChipInput
+                      variant="feature"
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      placeholder="Type a feature and press Enter"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Highlight what makes this product special — add one feature
+                    at a time
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </CardContent>
         </Card>
@@ -552,7 +543,7 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                                       e.stopPropagation();
                                       const newCategories =
                                         field.value?.filter(
-                                          (id: string) => id !== categoryId
+                                          (id: string) => id !== categoryId,
                                         ) || [];
                                       field.onChange(newCategories);
                                     }}
@@ -590,8 +581,8 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                                     if (isSelected) {
                                       field.onChange(
                                         currentCategories.filter(
-                                          (id: string) => id !== category._id
-                                        )
+                                          (id: string) => id !== category._id,
+                                        ),
                                       );
                                     } else {
                                       field.onChange([
@@ -606,12 +597,12 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
                                       "mr-2 h-4 w-4",
                                       field.value?.includes(category._id)
                                         ? "opacity-100"
-                                        : "opacity-0"
+                                        : "opacity-0",
                                     )}
                                   />
                                   {category.name}
                                 </CommandItem>
-                              )
+                              ),
                             )}
                           </CommandGroup>
                         </CommandList>
@@ -629,36 +620,23 @@ function GeneralInfoForm({ product, onClose }: FormProps) {
             <FormField
               control={form.control}
               name="tags"
-              render={({ field }) => {
-                const [inputValue, setInputValue] = useState(
-                  field.value?.join("* ") || ""
-                );
-
-                useEffect(() => {
-                  setInputValue(field.value?.join("* ") || "");
-                }, [field.value]);
-
-                return (
-                  <FormItem>
-                    <FormLabel>Tags</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter tags (star-*-separated)"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onBlur={() => {
-                          const tags = inputValue
-                            .split("*")
-                            .map((tag: string) => tag.trim())
-                            .filter((tag: string) => tag.length > 0);
-                          field.onChange(tags);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <ChipInput
+                      variant="tag"
+                      value={field.value ?? []}
+                      onChange={field.onChange}
+                      placeholder="Type a tag and press Enter"
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Help customers discover this product in search and filters
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
           </CardContent>
         </Card>
@@ -706,6 +684,11 @@ export function MainImagesForm({ product, onClose }: FormProps) {
       (data.images || []).forEach((file: File) => {
         formData.append("images", file);
       });
+
+      formData.append(
+        "reorderedImageUrls",
+        JSON.stringify(existingImagesToKeep.map((img) => img.url)),
+      );
 
       // compute deleted urls
       const originalUrls = product.images.map((img: any) => img.url);
@@ -773,6 +756,10 @@ export function MainImagesForm({ product, onClose }: FormProps) {
     setExistingImagesToKeep((prev) => [...prev, image]);
   };
 
+  const handleMainImageReorder = (orderedImages: any[]) => {
+    setExistingImagesToKeep(orderedImages);
+  };
+
   return (
     <Form {...form}>
       <form
@@ -798,70 +785,25 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                     Hover to see options
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
-                  {existingImagesToKeep.map((image: any, index: number) => {
-                    const imageUrl = image.url;
-
-                    return (
-                      <div
-                        key={imageUrl}
-                        className="relative group cursor-pointer"
-                      >
-                        <Image
-                          width={1000}
-                          height={1000}
-                          src={imageUrl}
-                          alt={`Current ${index + 1}`}
-                          className="w-full h-24 object-cover rounded-lg"
-                        />
-
-                        <button
-                          type="button"
-                          onClick={() => handleMainImageRemove(imageUrl)}
-                          className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-
-                        <div className="absolute bottom-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            type="button"
-                            disabled={index === 0}
-                            onClick={() => {
-                              if (index > 0) {
-                                const newArray = [...existingImagesToKeep];
-                                [newArray[index - 1], newArray[index]] = [
-                                  newArray[index],
-                                  newArray[index - 1],
-                                ];
-                                setExistingImagesToKeep(newArray);
-                              }
-                            }}
-                            className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            type="button"
-                            disabled={index === existingImagesToKeep.length - 1}
-                            onClick={() => {
-                              if (index < existingImagesToKeep.length - 1) {
-                                const newArray = [...existingImagesToKeep];
-                                [newArray[index + 1], newArray[index]] = [
-                                  newArray[index],
-                                  newArray[index + 1],
-                                ];
-                                setExistingImagesToKeep(newArray);
-                              }
-                            }}
-                            className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="mb-4">
+                  <UrlSortableImageGrid
+                    images={existingImagesToKeep.map((image) => ({
+                      url: image.url,
+                      alt: image.alt || "Product image",
+                    }))}
+                    onReorder={(orderedImages) =>
+                      handleMainImageReorder(
+                        orderedImages.map((image) => {
+                          const current = existingImagesToKeep.find(
+                            (item) => item.url === image.url,
+                          );
+                          return current ?? image;
+                        }),
+                      )
+                    }
+                    onRemove={(imageUrl) => handleMainImageRemove(imageUrl)}
+                    helperText="Drag images to reorder the primary image sequence."
+                  />
                 </div>
 
                 {existingImagesToKeep.length < product.images.length && (
@@ -880,8 +822,8 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                         .filter(
                           (image: any) =>
                             !existingImagesToKeep.some(
-                              (img: any) => img.url === image.url
-                            )
+                              (img: any) => img.url === image.url,
+                            ),
                         )
                         .map((image: any, index: number) => {
                           const imageUrl = image.url;
@@ -946,8 +888,8 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                               (f: File) =>
                                 f.name === file.name &&
                                 f.size === file.size &&
-                                f.lastModified === file.lastModified
-                            )
+                                f.lastModified === file.lastModified,
+                            ),
                         );
                         field.onChange([...existing, ...filtered]);
                       }}
@@ -970,72 +912,12 @@ export function MainImagesForm({ product, onClose }: FormProps) {
                   </label>
 
                   {(field.value || []).length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-                      {(field.value || []).map((file: File, index: number) => (
-                        <div key={index} className="relative group">
-                          <Image
-                            width={1000}
-                            height={1000}
-                            src={
-                              URL.createObjectURL(file) || "/placeholder.svg"
-                            }
-                            alt={`New ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-lg"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              field.onChange(
-                                (field.value || []).filter(
-                                  (_: any, i: number) => i !== index
-                                )
-                              )
-                            }
-                            className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-
-                          <div className="absolute bottom-0 right-0 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                              type="button"
-                              disabled={index === 0}
-                              onClick={() => {
-                                if (index > 0) {
-                                  const newArray = [...(field.value || [])];
-                                  [newArray[index - 1], newArray[index]] = [
-                                    newArray[index],
-                                    newArray[index - 1],
-                                  ];
-                                  field.onChange(newArray);
-                                }
-                              }}
-                              className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
-                            >
-                              <ArrowUp className="w-3 h-3" />
-                            </button>
-                            <button
-                              type="button"
-                              disabled={
-                                index === (field.value || []).length - 1
-                              }
-                              onClick={() => {
-                                if (index < (field.value || []).length - 1) {
-                                  const newArray = [...(field.value || [])];
-                                  [newArray[index + 1], newArray[index]] = [
-                                    newArray[index],
-                                    newArray[index + 1],
-                                  ];
-                                  field.onChange(newArray);
-                                }
-                              }}
-                              className="bg-secondary text-secondary-foreground rounded p-1 disabled:opacity-50"
-                            >
-                              <ArrowDown className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="mt-4">
+                      <FileSortableImageGrid
+                        files={field.value || []}
+                        onChange={field.onChange}
+                        helperText="Drag newly uploaded images to place them in the correct order."
+                      />
                     </div>
                   )}
 
@@ -1267,6 +1149,7 @@ function VariantImagesForm({
   const [existingImagesToDelete, setExistingImagesToDelete] = useState<
     string[]
   >([]);
+  const [variantImages, setVariantImages] = useState<any[]>([]);
 
   const form = useForm<ProductUpdateInput>({
     resolver: zodResolver(productUpdateZ),
@@ -1277,6 +1160,11 @@ function VariantImagesForm({
     (v) => v._id === selectedVariant
   );
 
+  useEffect(() => {
+    setVariantImages(selectedVariantData?.images || []);
+    setExistingImagesToDelete([]);
+  }, [selectedVariant, selectedVariantData?._id]);
+
   // Handlers
   const handleRemove = (url: string) => {
     setExistingImagesToDelete((prev) => [...prev, url]);
@@ -1284,6 +1172,24 @@ function VariantImagesForm({
 
   const handleRestore = (url: string) => {
     setExistingImagesToDelete((prev) => prev.filter((u) => u !== url));
+  };
+
+  const handleVariantImageReorder = (orderedImages: any[]) => {
+    if (!selectedVariantData) return;
+
+    const kept = (variantImages || []).filter(
+      (image: any) => !existingImagesToDelete.includes(image.url),
+    );
+    const lookup = new Map(kept.map((image) => [image.url, image]));
+    const reordered = orderedImages
+      .map((image) => lookup.get(image.url))
+      .filter((image): image is any => !!image);
+
+    const restored = (variantImages || []).filter((image: any) =>
+      existingImagesToDelete.includes(image.url),
+    );
+
+    setVariantImages([...reordered, ...restored]);
   };
 
   // Submit
@@ -1300,6 +1206,14 @@ function VariantImagesForm({
       (data.images || []).forEach((file: File) => {
         formData.append("images", file);
       });
+
+      const keptVariantImages = (variantImages || []).filter(
+        (image: any) => !existingImagesToDelete.includes(image.url),
+      );
+      formData.append(
+        "reorderedImageUrls",
+        JSON.stringify(keptVariantImages.map((image: any) => image.url)),
+      );
 
       // append delete image urls
       existingImagesToDelete.forEach((url) => {
@@ -1402,57 +1316,24 @@ function VariantImagesForm({
                         Hover to see options
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-4">
-                      {selectedVariantData.images.map(
-                        (image: any, index: number) => {
-                          const imageUrl = image.url;
-                          const isRemoved =
-                            existingImagesToDelete.includes(imageUrl);
-
-                          return (
-                            <div
-                              key={index}
-                              className={`relative group cursor-pointer ${
-                                isRemoved ? "opacity-50" : ""
-                              }`}
-                              onClick={() => {
-                                if (isRemoved) {
-                                  handleRestore(imageUrl);
-                                } else {
-                                  handleRemove(imageUrl);
-                                }
-                              }}
-                            >
-                              <Image
-                                width={1000}
-                                height={1000}
-                                src={imageUrl}
-                                alt={image.alt}
-                                className="w-full h-24 object-cover rounded-lg"
-                              />
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                <span className="text-white flex flex-col items-center justify-center">
-                                  {isRemoved ? (
-                                    <>
-                                      <span>Removed</span>
-                                      <span className="text-xs">
-                                        Click to restore
-                                      </span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span>Current</span>
-                                      <span className="text-xs">
-                                        Click to remove
-                                      </span>
-                                    </>
-                                  )}
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
+                    <div className="mb-4">
+                      <UrlSortableImageGrid
+                        images={(variantImages || []).map((image: any) => ({
+                          url: image.url,
+                          alt: image.alt || "Variant image",
+                        }))}
+                        onReorder={(orderedImages) => {
+                          handleVariantImageReorder(orderedImages);
+                        }}
+                        onRemove={(imageUrl) => {
+                          if (existingImagesToDelete.includes(imageUrl)) {
+                            handleRestore(imageUrl);
+                          } else {
+                            handleRemove(imageUrl);
+                          }
+                        }}
+                        helperText="Drag variant images to reorder their display order."
+                      />
                     </div>
                     {existingImagesToDelete.length ===
                       selectedVariantData.images.length && (
@@ -1486,8 +1367,8 @@ function VariantImagesForm({
                                 (f: File) =>
                                   f.name === file.name &&
                                   f.size === file.size &&
-                                  f.lastModified === file.lastModified
-                              )
+                                  f.lastModified === file.lastModified,
+                              ),
                           );
                           field.onChange([...existing, ...filtered]);
                         }}
@@ -1510,36 +1391,12 @@ function VariantImagesForm({
                     </label>
 
                     {(field.value || []).length > 0 && (
-                      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-4">
-                        {(field.value || []).map(
-                          (file: File, index: number) => (
-                            <div key={index} className="relative group">
-                              <Image
-                                width={1000}
-                                height={1000}
-                                src={
-                                  URL.createObjectURL(file) ||
-                                  "/placeholder.svg"
-                                }
-                                alt={`New ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg"
-                              />
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  field.onChange(
-                                    (field.value || []).filter(
-                                      (_: any, i: number) => i !== index
-                                    )
-                                  )
-                                }
-                                className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          )
-                        )}
+                      <div className="mt-4">
+                        <FileSortableImageGrid
+                          files={field.value || []}
+                          onChange={field.onChange}
+                          helperText="Drag newly uploaded variant images to place them in the correct order."
+                        />
                       </div>
                     )}
 

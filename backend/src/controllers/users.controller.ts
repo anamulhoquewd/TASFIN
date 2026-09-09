@@ -201,9 +201,8 @@ export const changeAvatar = async (c: Context) => {
     const fileN = c.req.query("filename") || "avatar";
     const filename = `${fileN}-${Date.now()}.webp`;
 
-    const response = await adminService.uploadSingleFile({
+    const response = await adminService.uploadSingleFileService({
       body: { avatar: file },
-      filename,
       folder: "user-avatars",
     });
 

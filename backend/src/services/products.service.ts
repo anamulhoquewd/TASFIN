@@ -1,14 +1,10 @@
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import mongoose from "mongoose";
 import z from "zod";
 import { deleteMultipleFiles, uploadMultipleFiles } from "../utils/r2-utils.js";
-import s3 from "./../config/s3.js";
 import { schemaValidationError } from "./../error/index.js";
 import Product from "./../models/products.model.js";
-import { uploadAvatar } from "./../utils/index.js";
 import pagination from "./../utils/pagination.js";
 import {
-  avatarSchemaZ,
   idSchemaZ,
   imagesSchema,
   keyValueArrayToRecord,
@@ -140,6 +136,8 @@ export const register = async ({
       images: imageObjects,
       variants: variantsWithUrls,
     });
+
+    console.log("Valid data: ", validData, imageObjects, variantsWithUrls);
 
     const docs = await product.save();
 
@@ -293,7 +291,7 @@ export const updateVariantInfo = async ({
   vId,
   data,
 }: {
-  // _id: string;
+  _id: string;
   vId: string;
   data: any;
 }) => {
@@ -363,7 +361,11 @@ export const updateMainImages = async ({
   data,
 }: {
   _id: string;
-  data: { images: File[]; deleteKeys: string[] };
+  data: {
+    images: File[];
+    deleteImageUrls: string[];
+    reorderedImageUrls?: string[];
+  };
 }) => {
   const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
@@ -373,7 +375,7 @@ export const updateMainImages = async ({
   const validData = z
     .object({
       images: imagesSchema.optional().default([]),
-      deleteKeys: z.array(z.string()),
+      deleteImageUrls: z.array(z.string()),
     })
     .safeParse(data);
 
@@ -389,15 +391,15 @@ export const updateMainImages = async ({
     if (!product) return { error: { message: "Product not found!" } };
 
     /** Delete old images */
-    if (validData.data.deleteKeys.length) {
-      const deleteUrls = validData.data.deleteKeys.filter((key) =>
-        product.images.some((img: { key: string }) => img.key === key),
+    if (validData.data.deleteImageUrls.length) {
+      const imagesToDelete = product.images.filter((img) =>
+        validData.data.deleteImageUrls.includes(img.url),
       );
 
-      if (deleteUrls.length) {
-        await deleteMultipleFiles(deleteUrls);
+      if (imagesToDelete.length) {
+        await deleteMultipleFiles(imagesToDelete.map((img) => img.key));
         product.images = product.images.filter(
-          (img: { key: string }) => !deleteUrls.includes(img.key),
+          (img) => !validData.data.deleteImageUrls.includes(img.url),
         );
       }
     }
@@ -424,6 +426,25 @@ export const updateMainImages = async ({
       product.images.push(
         ...uniqueNewImages.map((img) => ({ ...img, alt: product.title })),
       );
+    }
+
+    const reorderedUrls = Array.isArray(data.reorderedImageUrls)
+      ? data.reorderedImageUrls.filter(Boolean)
+      : [];
+
+    if (reorderedUrls.length > 0 || product.images.length > 0) {
+      const orderSet = new Set(reorderedUrls);
+      const remaining = product.images.filter((img) => !orderSet.has(img.url));
+      const ordered = reorderedUrls
+        .map((url) => product.images.find((img) => img.url === url))
+        .filter((img): img is (typeof product.images)[number] => Boolean(img))
+        .concat(remaining)
+        .map((img, index) => ({
+          ...img,
+          position: index + 1,
+        }));
+
+      product.images = ordered;
     }
 
     // Save changes
@@ -460,7 +481,11 @@ export const updateVImages = async ({
 }: {
   _id: string;
   vId: string;
-  data: { images: File[]; deleteImageUrls: string[] };
+  data: {
+    images: File[];
+    deleteImageUrls: string[];
+    reorderedImageUrls?: string[];
+  };
 }) => {
   // product id
   const idValidation = idSchemaZ.safeParse({ _id });
@@ -473,7 +498,7 @@ export const updateVImages = async ({
   const validData = z
     .object({
       images: imagesSchema.optional().default([]),
-      deleteKeys: z.array(z.string()),
+      deleteImageUrls: z.array(z.string()),
     })
     .safeParse(data);
 
@@ -497,15 +522,15 @@ export const updateVImages = async ({
     const variant = product.variants[variantIndex];
 
     /** Delete old images if needed */
-    if (validData.data.deleteKeys.length) {
-      const deleteUrls = validData.data.deleteKeys.filter((key) =>
-        variant.images?.some((img: { key: string }) => img.key === key),
+    if (validData.data.deleteImageUrls.length) {
+      const imagesToDelete = (variant.images || []).filter((img) =>
+        validData.data.deleteImageUrls.includes(img.url),
       );
 
-      if (deleteUrls.length) {
-        deleteMultipleFiles(deleteUrls);
+      if (imagesToDelete.length) {
+        await deleteMultipleFiles(imagesToDelete.map((img) => img.key));
         variant.images = (variant.images || []).filter(
-          (img: { key: string }) => !deleteUrls.includes(img.key),
+          (img) => !validData.data.deleteImageUrls.includes(img.url),
         );
       }
     }
@@ -540,6 +565,28 @@ export const updateVImages = async ({
           position: img.position,
         })),
       );
+    }
+
+    const reorderedUrls = Array.isArray(data.reorderedImageUrls)
+      ? data.reorderedImageUrls.filter(Boolean)
+      : [];
+
+    if (reorderedUrls.length > 0 || (variant.images || []).length > 0) {
+      const currentImages = variant.images || [];
+      const orderSet = new Set(reorderedUrls);
+      const remaining = currentImages.filter((img) => !orderSet.has(img.url));
+      const ordered = reorderedUrls
+        .map((url) => currentImages.find((img) => img.url === url))
+        .filter(
+          (img): img is (typeof currentImages)[number] => img !== undefined,
+        )
+        .concat(remaining)
+        .map((img, index) => ({
+          ...img,
+          position: index + 1,
+        }));
+
+      variant.images = ordered;
     }
 
     /** Save product */
@@ -706,7 +753,9 @@ export const deleteVariant = async ({
       variant.images = [];
     }
 
-    variant.deleteOne();
+    product.variants = product.variants.filter(
+      (v) => v._id.toString() !== variant._id.toString(),
+    );
     const updated = await product.save();
 
     return {

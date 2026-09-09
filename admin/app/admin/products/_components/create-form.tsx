@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useState } from "react";
 import {
   Popover,
   PopoverContent,
@@ -43,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import useCategory from "@/app/admin/categories/_hook/useCategory";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { ChipInput } from "@/components/chip-input";
 import type { UseProductsReturn } from "../_hook/useProducts";
 import Image from "next/image";
 
@@ -152,37 +152,24 @@ export function CreateProductForm({
                 <FormField
                   control={form.control}
                   name="keyFeatures"
-                  render={({ field }) => {
-                    const [inputValue, setInputValue] = useState(
-                      field.value?.join("* ") || ""
-                    );
-
-                    useEffect(() => {
-                      setInputValue(field.value?.join("* ") || "");
-                    }, [field.value]);
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Key Features</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Enter key features (star-*-separated)"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onBlur={() => {
-                              const tags = inputValue
-
-                                .split("*")
-                                .map((tag: string) => tag.trim())
-                                .filter((tag: string) => tag.length > 0);
-                              field.onChange(tags);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Key Features</FormLabel>
+                      <FormControl>
+                        <ChipInput
+                          variant="feature"
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          placeholder="Type a feature and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Highlight what makes this product special — add one
+                        feature at a time
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </CardContent>
             </Card>
@@ -213,7 +200,7 @@ export function CreateProductForm({
                               accept="image/*"
                               onChange={(e) => {
                                 const newFiles = Array.from(
-                                  e.target.files || []
+                                  e.target.files || [],
                                 );
                                 const existing = field.value || [];
                                 // Duplicate check (name + size + lastModified)
@@ -223,8 +210,8 @@ export function CreateProductForm({
                                       (f: File) =>
                                         f.name === file.name &&
                                         f.size === file.size &&
-                                        f.lastModified === file.lastModified
-                                    )
+                                        f.lastModified === file.lastModified,
+                                    ),
                                 );
                                 if (
                                   filtered.length === 0 &&
@@ -260,8 +247,8 @@ export function CreateProductForm({
                                     onClick={() =>
                                       field.onChange(
                                         field.value.filter(
-                                          (_: any, i: number) => i !== index
-                                        )
+                                          (_: any, i: number) => i !== index,
+                                        ),
                                       )
                                     }
                                     className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -377,7 +364,10 @@ export function CreateProductForm({
                             <FormItem>
                               <FormLabel>SKU</FormLabel>
                               <FormControl>
-                                <Input placeholder="TSHIRT-BLACK-M" {...field} />
+                                <Input
+                                  placeholder="TSHIRT-BLACK-M"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -397,7 +387,7 @@ export function CreateProductForm({
                                   {...field}
                                   onChange={(e) =>
                                     field.onChange(
-                                      Number.parseInt(e.target.value) || 0
+                                      Number.parseInt(e.target.value) || 0,
                                     )
                                   }
                                 />
@@ -420,7 +410,7 @@ export function CreateProductForm({
                                   {...field}
                                   onChange={(e) =>
                                     field.onChange(
-                                      Number.parseFloat(e.target.value) || 0
+                                      Number.parseFloat(e.target.value) || 0,
                                     )
                                   }
                                 />
@@ -439,23 +429,73 @@ export function CreateProductForm({
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                              const attributes = form.getValues(`variants.${index}.attributes`) || [];
-                              form.setValue(`variants.${index}.attributes`, [...attributes, { key: "", value: "" }]);
+                              const attributes =
+                                form.getValues(
+                                  `variants.${index}.attributes`,
+                                ) || [];
+                              form.setValue(`variants.${index}.attributes`, [
+                                ...attributes,
+                                { key: "", value: "" },
+                              ]);
                             }}
                           >
                             <Plus className="mr-1 h-3 w-3" /> Add attribute
                           </Button>
                         </div>
-                        {(form.watch(`variants.${index}.attributes`) || []).map((_: unknown, attributeIndex: number) => (
-                          <div key={attributeIndex} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                            <FormField control={form.control} name={`variants.${index}.attributes.${attributeIndex}.key`} render={({ field }) => <FormItem><FormControl><Input placeholder="Color" {...field} /></FormControl><FormMessage /></FormItem>} />
-                            <FormField control={form.control} name={`variants.${index}.attributes.${attributeIndex}.value`} render={({ field }) => <FormItem><FormControl><Input placeholder="Black" {...field} /></FormControl><FormMessage /></FormItem>} />
-                            <Button type="button" variant="ghost" size="icon" aria-label="Remove attribute" onClick={() => {
-                              const attributes = form.getValues(`variants.${index}.attributes`) || [];
-                              form.setValue(`variants.${index}.attributes`, attributes.filter((_: unknown, i: number) => i !== attributeIndex));
-                            }}><Trash2 className="h-4 w-4" /></Button>
-                          </div>
-                        ))}
+                        {(form.watch(`variants.${index}.attributes`) || []).map(
+                          (_: unknown, attributeIndex: number) => (
+                            <div
+                              key={attributeIndex}
+                              className="grid grid-cols-[1fr_1fr_auto] gap-2"
+                            >
+                              <FormField
+                                control={form.control}
+                                name={`variants.${index}.attributes.${attributeIndex}.key`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input placeholder="Color" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name={`variants.${index}.attributes.${attributeIndex}.value`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormControl>
+                                      <Input placeholder="Black" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                aria-label="Remove attribute"
+                                onClick={() => {
+                                  const attributes =
+                                    form.getValues(
+                                      `variants.${index}.attributes`,
+                                    ) || [];
+                                  form.setValue(
+                                    `variants.${index}.attributes`,
+                                    attributes.filter(
+                                      (_: unknown, i: number) =>
+                                        i !== attributeIndex,
+                                    ),
+                                  );
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ),
+                        )}
                       </div>
 
                       <div className="space-y-4">
@@ -504,7 +544,7 @@ export function CreateProductForm({
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           )}
@@ -520,18 +560,73 @@ export function CreateProductForm({
                 <CardTitle>Specifications</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <FormDescription>Add any product-specific key/value pairs, such as Fabric, Fit, or Wash Care.</FormDescription>
-                {(form.watch("specifications") || []).map((_: unknown, specificationIndex: number) => (
-                  <div key={specificationIndex} className="grid grid-cols-[1fr_1fr_auto] gap-2">
-                    <FormField control={form.control} name={`specifications.${specificationIndex}.key`} render={({ field }) => <FormItem><FormControl><Input placeholder="Fabric" {...field} /></FormControl><FormMessage /></FormItem>} />
-                    <FormField control={form.control} name={`specifications.${specificationIndex}.value`} render={({ field }) => <FormItem><FormControl><Input placeholder="100% Cotton" {...field} /></FormControl><FormMessage /></FormItem>} />
-                    <Button type="button" variant="ghost" size="icon" aria-label="Remove specification" onClick={() => {
-                      const specifications = form.getValues("specifications") || [];
-                      form.setValue("specifications", specifications.filter((_: unknown, i: number) => i !== specificationIndex));
-                    }}><Trash2 className="h-4 w-4" /></Button>
-                  </div>
-                ))}
-                <Button type="button" variant="outline" size="sm" onClick={() => form.setValue("specifications", [...(form.getValues("specifications") || []), { key: "", value: "" }])}>
+                <FormDescription>
+                  Add any product-specific key/value pairs, such as Fabric, Fit,
+                  or Wash Care.
+                </FormDescription>
+                {(form.watch("specifications") || []).map(
+                  (_: unknown, specificationIndex: number) => (
+                    <div
+                      key={specificationIndex}
+                      className="grid grid-cols-[1fr_1fr_auto] gap-2"
+                    >
+                      <FormField
+                        control={form.control}
+                        name={`specifications.${specificationIndex}.key`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="Fabric" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name={`specifications.${specificationIndex}.value`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input placeholder="100% Cotton" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Remove specification"
+                        onClick={() => {
+                          const specifications =
+                            form.getValues("specifications") || [];
+                          form.setValue(
+                            "specifications",
+                            specifications.filter(
+                              (_: unknown, i: number) =>
+                                i !== specificationIndex,
+                            ),
+                          );
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ),
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    form.setValue("specifications", [
+                      ...(form.getValues("specifications") || []),
+                      { key: "", value: "" },
+                    ])
+                  }
+                >
                   <Plus className="mr-1 h-3 w-3" /> Add specification
                 </Button>
               </CardContent>
@@ -631,7 +726,7 @@ export function CreateProductForm({
                                           e.stopPropagation();
                                           const newCategories =
                                             field.value?.filter(
-                                              (id: string) => id !== categoryId
+                                              (id: string) => id !== categoryId,
                                             ) || [];
                                           field.onChange(newCategories);
                                         }}
@@ -666,15 +761,15 @@ export function CreateProductForm({
                                           field.value || [];
                                         const isSelected =
                                           currentCategories.includes(
-                                            category._id
+                                            category._id,
                                           );
 
                                         if (isSelected) {
                                           field.onChange(
                                             currentCategories.filter(
                                               (id: string) =>
-                                                id !== category._id
-                                            )
+                                                id !== category._id,
+                                            ),
                                           );
                                         } else {
                                           field.onChange([
@@ -689,12 +784,12 @@ export function CreateProductForm({
                                           "mr-2 h-4 w-4",
                                           field.value?.includes(category._id)
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       {category.name}
                                     </CommandItem>
-                                  )
+                                  ),
                                 )}
                               </CommandGroup>
                             </CommandList>
@@ -712,40 +807,24 @@ export function CreateProductForm({
                 <FormField
                   control={form.control}
                   name="tags"
-                  render={({ field }) => {
-                    const [inputValue, setInputValue] = useState(
-                      field.value?.join("*") || ""
-                    );
-
-                    useEffect(() => {
-                      setInputValue(field.value?.join("*") || "");
-                    }, [field.value]);
-
-                    return (
-                      <FormItem>
-                        <FormLabel>Tags</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="text"
-                            placeholder="Enter tags (star-*-separated)"
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onBlur={() => {
-                              const tags = inputValue
-                                .split("*")
-                                .map((tag: string) => tag.trim())
-                                .filter((tag: string) => tag.length > 0);
-                              field.onChange(tags);
-                            }}
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Add tags to help customers find your product
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    );
-                  }}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tags</FormLabel>
+                      <FormControl>
+                        <ChipInput
+                          variant="tag"
+                          value={field.value ?? []}
+                          onChange={field.onChange}
+                          placeholder="Type a tag and press Enter"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Help customers discover this product in search and
+                        filters
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
               </CardContent>
             </Card>

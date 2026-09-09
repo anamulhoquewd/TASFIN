@@ -9,23 +9,25 @@ export const imageZ = z.object({
   url: z.string().url("Invalid image URL").trim(),
 });
 
+const imageFileSchema = z.object({
+  file: z
+    .file()
+    .mime(["image/jpeg", "image/png", "image/webp"], {
+      message: "Only jpeg, png, or webp images are allowed",
+    })
+    .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" }),
+  position: z.number().int().min(0, "Position must be a non-negative integer"),
+  alt: z.string().min(1, "Image alt text required").trim(),
+});
+
 export const imagesSchema = z
-  .array(
-    z.object({
-      file: z
-        .file()
-        .mime(["image/jpeg", "image/png", "image/webp"], {
-          message: "Only jpeg, png, or webp images are allowed",
-        })
-        .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" }),
-      position: z
-        .number()
-        .int()
-        .min(0, "Position must be a non-negative integer"),
-      alt: z.string().min(1, "Image alt text required").trim(),
-    }),
-  )
+  .array(imageFileSchema)
   .nonempty({ message: "At least one file is required" });
+
+export const optionalImagesSchema = z
+  .array(imageFileSchema)
+  .optional()
+  .default([]);
 
 // Accept either a 24-char hex string or a real ObjectId instance
 export const objectIdSchemaZ = z.union([
@@ -70,7 +72,7 @@ export const productVariantSchemaZ = z.object({
     }),
   stock: z.coerce.number().int().min(0).default(0),
   price: z.coerce.number().min(0, "price must be non-negative"),
-  images: imagesSchema.optional().default([]),
+  images: optionalImagesSchema,
 });
 
 export const productSchemaZ = z.object({
@@ -138,8 +140,9 @@ export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
   { message: "At least one field must be provided for update" }
 );
 
-// Types + helpers
-export type ProductCreateInput = z.infer<typeof productSchemaZ>;
+// Product creation accepts pre-transform key-value arrays and produces records.
+export type ProductCreateInput = z.input<typeof productSchemaZ>;
+export type ProductCreateOutput = z.output<typeof productSchemaZ>;
 export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
 
 export type ProductUpdateInput = z.infer<typeof productUpdateZ>;

@@ -242,7 +242,7 @@ export const updateProfile = async ({
   admin,
   body,
 }: {
-  admin: IAdmin;
+  admin: mongoose.HydratedDocument<IAdmin>;
   body: AdminUpdateInput;
 }) => {
   // Validation without NID for update
@@ -329,7 +329,7 @@ export const changePassword = async ({
   collection,
   body,
 }: {
-  collection: IAdmin;
+  collection: mongoose.HydratedDocument<IAdmin>;
   body: {
     currentPassword: string;
     newPassword: string;

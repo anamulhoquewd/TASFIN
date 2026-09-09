@@ -54,7 +54,7 @@ function useProducts() {
   // Handle variant image upload
   const handleVariantImageUpload = (
     variantIndex: number,
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
@@ -62,7 +62,7 @@ function useProducts() {
     // Validate file types
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     const invalidFiles = files.filter(
-      (file) => !validTypes.includes(file.type)
+      (file) => !validTypes.includes(file.type),
     );
 
     if (invalidFiles.length > 0) {
@@ -80,8 +80,8 @@ function useProducts() {
     const newFiles = files.filter(
       (file) =>
         !currentImages.some(
-          (img: File) => img.name === file.name && img.size === file.size
-        )
+          (img: File) => img.name === file.name && img.size === file.size,
+        ),
     );
 
     if (newFiles.length === 0) {
@@ -122,7 +122,7 @@ function useProducts() {
     setVariantImagePreviews((prev) => ({
       ...prev,
       [variantIndex]: (prev[variantIndex] || []).filter(
-        (_, i) => i !== imageIndex
+        (_, i) => i !== imageIndex,
       ),
     }));
   };
@@ -163,6 +163,19 @@ function useProducts() {
     }
   };
 
+  // Helper: key-value editor থেকে আসা object কে backend-expected
+  // [{ key, value }] array shape এ convert করে। যদি already array হয়, as-is রাখে.
+  const objectToKeyValueArray = (
+    obj?: Record<string, string> | Array<{ key: string; value: string }>,
+  ) => {
+    if (!obj) return [];
+    if (Array.isArray(obj)) return obj;
+    return Object.entries(obj).map(([key, value]) => ({
+      key,
+      value: String(value ?? ""),
+    }));
+  };
+
   // SUBMIT HANDLER
   const onSubmit = async (data: ProductCreateInput) => {
     try {
@@ -172,34 +185,58 @@ function useProducts() {
       formData.append("title", data.title);
       formData.append("slug", data.slug);
       formData.append("description", data.description ?? "");
-      formData.append("keyFeatures", JSON.stringify(data.keyFeatures));
-      formData.append("specifications", JSON.stringify(data.specifications ?? []));
+      formData.append("keyFeatures", JSON.stringify(data.keyFeatures ?? []));
+
+      // FIX: specifications কে array shape এ convert করে পাঠানো হচ্ছে
+      formData.append(
+        "specifications",
+        JSON.stringify(objectToKeyValueArray(data.specifications)),
+      );
+
       formData.append("isFeatured", data.isFeatured.toString());
       formData.append("isActive", data.isActive.toString());
 
       // Append arrays as JSON strings
       formData.append("categories", JSON.stringify(data.categories));
-      formData.append("tags", JSON.stringify(data.tags));
+      formData.append("tags", JSON.stringify(data.tags ?? []));
 
       // Append main product images
+      // FIX: file field key "image" থেকে "images" করা হলো, যাতে
+      // metadata key `images[position][position]` এর সাথে মিলে
       data.images.forEach((image, position) => {
-        formData.append("image", image);
+        formData.append("images", image);
         formData.append(`images[${position}][position]`, String(position));
       });
 
       // Append variants
       data.variants.forEach((variant, index) => {
         formData.append(`variants[${index}][sku]`, variant.sku);
-        formData.append(`variants[${index}][attributes]`, JSON.stringify(variant.attributes ?? []));
+
+        // FIX: attributes কেও array shape এ convert করে পাঠানো হচ্ছে
+        formData.append(
+          `variants[${index}][attributes]`,
+          JSON.stringify(objectToKeyValueArray(variant.attributes)),
+        );
+
         formData.append(`variants[${index}][stock]`, variant.stock.toString());
         formData.append(`variants[${index}][price]`, variant.price.toString());
 
-        // Append variant images
+        // Variant images optional — না থাকলে কিছুই append হবে না,
+        // তাই backend এ কোনো field-ই যাবে না এই variant এর জন্য
+        // FIX: file field key "image" থেকে "images" করা হলো
         variant.images?.forEach((image, position) => {
-          formData.append(`variants[${index}][image]`, image);
-          formData.append(`variants[${index}][images][${position}][position]`, String(position));
+          formData.append(`variants[${index}][images]`, image);
+          formData.append(
+            `variants[${index}][images][${position}][position]`,
+            String(position),
+          );
         });
       });
+
+      // Log the FormData entries for debugging
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       // Send to backend
       const response = await api.post("/products/register", formData, {
@@ -211,10 +248,11 @@ function useProducts() {
       if (!response.data.success) {
         console.log("Failed to create product:", response.data.error);
         toast.error(response.data.error.message || "Failed to create product.");
+        return; // FIX: fail হলে নিচের success flow (reset, toast.success) চলবে না
       }
 
       toast.success(
-        response.data.success.message || "Product created successfully."
+        response.data.success.message || "Product created successfully.",
       );
 
       // Reset form after successful submission
@@ -241,8 +279,9 @@ function useProducts() {
       });
     } catch (error: any) {
       console.error("Error creating product:", error);
-      if (error.response.data.success === false) {
-        error.response.data.fields.forEach((field: any) => {
+      // FIX: optional chaining, নাহলে network error এ error.response undefined হলে crash করবে
+      if (error.response?.data?.success === false) {
+        error.response.data.fields?.forEach((field: any) => {
           form.setError(field.name, {
             message: field.message,
           });
@@ -327,7 +366,7 @@ function useProducts() {
     ) {
       formData.append(
         "deleteImageUrls",
-        JSON.stringify(updateData.deleteImageUrls)
+        JSON.stringify(updateData.deleteImageUrls),
       );
     }
 
@@ -353,7 +392,7 @@ function useProducts() {
       ) {
         formData.append(
           `variants[${index}][deleteImageUrls]`,
-          JSON.stringify(variant.deleteImageUrls)
+          JSON.stringify(variant.deleteImageUrls),
         );
       }
     });
@@ -377,7 +416,7 @@ function useProducts() {
       }
 
       toast.success(
-        response.data.success.message || "Product updated successfully."
+        response.data.success.message || "Product updated successfully.",
       );
 
       // Reset form after successful submission
