@@ -50,7 +50,7 @@ import { z } from "zod";
 import useProducts from "../../hooks/products/useProducts";
 
 type KeyValue = { key: string; value: string };
-type ProductImage = Pick<IImage, "url" | "alt">;
+type ProductImage = Pick<IImage, "url"> & { alt?: string };
 type FormProps = { product: IProduct; onClose: () => void };
 type DialogProps = FormProps & { type: string; product?: IProduct };
 
@@ -67,24 +67,26 @@ const generalZ = z.object({
     .trim()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be kebab-case"),
   description: z.string().max(1000).optional(),
-  keyFeatures: z.array(z.string()).default([]),
-  specifications: keyValuesZ.default([]),
+  keyFeatures: z.array(z.string()),
+  specifications: keyValuesZ,
   categories: z.array(z.string()).min(1, "Select at least one category"),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(z.string()),
   isFeatured: z.boolean(),
   isActive: z.boolean(),
 });
 const variantZ = z.object({
   sku: z.string().trim().min(1, "SKU is required"),
-  attributes: keyValuesZ.default([]),
+  attributes: keyValuesZ,
   stock: z.coerce.number().int().min(0),
   price: z.coerce.number().min(0),
 });
-const imagesZ = z.object({ images: z.array(z.instanceof(File)).default([]) });
-type GeneralValues = z.infer<typeof generalZ>;
+const imagesZ = z.object({ images: z.array(z.instanceof(File)) });
+type GeneralValues = z.output<typeof generalZ>;
 type GeneralInput = z.input<typeof generalZ>;
-type VariantValues = z.infer<typeof variantZ>;
-type ImageValues = z.infer<typeof imagesZ>;
+type VariantValues = z.output<typeof variantZ>;
+type VariantInput = z.input<typeof variantZ>;
+type ImageInput = z.input<typeof imagesZ>;
+type ImageValues = z.output<typeof imagesZ>;
 
 const toKeyValues = (
   value?: Map<string, string> | Record<string, string>,
@@ -452,9 +454,9 @@ function ImageEditor({
 }: FormProps & { variant?: IProductVariant }) {
   const [loading, setLoading] = useState(false);
   const [kept, setKept] = useState<ProductImage[]>([
-    ...(variant?.images ?? product.images),
+    ...(variant?.images ?? product.images ?? []),
   ]);
-  const form = useForm<ImageValues>({
+  const form = useForm<ImageInput, any, ImageValues>({
     resolver: zodResolver(imagesZ),
     defaultValues: { images: [] },
   });
@@ -462,7 +464,14 @@ function ImageEditor({
     setLoading(true);
     try {
       const body = new FormData();
-      images.forEach((file) => body.append("images", file));
+      images.forEach((file, index) => {
+        body.append("images", file);
+        body.append(`images[${index}][position]`, String(index));
+        body.append(
+          `images[${index}][alt]`,
+          variant ? `${product.title}-${variant.sku}` : product.title,
+        );
+      });
       const originals = variant?.images ?? product.images;
       originals
         .filter((image) => !kept.some((current) => current.url === image.url))
@@ -515,7 +524,7 @@ function ImageEditor({
                       accept="image/jpeg,image/png,image/webp"
                       onChange={(event) =>
                         field.onChange([
-                          ...field.value,
+                          ...(field.value ?? []),
                           ...Array.from(event.target.files ?? []),
                         ])
                       }
@@ -525,9 +534,9 @@ function ImageEditor({
                 </FormItem>
               )}
             />
-            {form.watch("images").length > 0 && (
+            {(form.watch("images") ?? []).length > 0 && (
               <FileSortableImageGrid
-                files={form.watch("images")}
+                files={form.watch("images") ?? []}
                 onChange={(files) => form.setValue("images", files)}
                 helperText="Drag new images to set their order."
               />
@@ -608,11 +617,12 @@ function VariantFields({ form }: { form: any }) {
     </Card>
   );
 }
+
 function VariantInfoForm({ product, onClose }: FormProps) {
   const [id, setId] = useState("");
   const [loading, setLoading] = useState(false);
   const selected = product.variants.find((variant) => variant._id === id);
-  const form = useForm<VariantValues>({
+  const form = useForm<VariantInput, any, VariantValues>({
     resolver: zodResolver(variantZ),
     defaultValues: { sku: "", attributes: [], stock: 0, price: 0 },
   });
@@ -671,6 +681,7 @@ function VariantInfoForm({ product, onClose }: FormProps) {
     </Form>
   );
 }
+
 function VariantSelect({
   variants,
   value,
@@ -681,12 +692,14 @@ function VariantSelect({
   onChange: (value: string) => void;
 }) {
   return (
-    <FormItem>
-      <FormLabel>Select variant</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium">Select variant</label>
+
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder="Select a variant" />
         </SelectTrigger>
+
         <SelectContent>
           {variants.map((variant) => (
             <SelectItem key={variant._id} value={variant._id}>
@@ -695,9 +708,10 @@ function VariantSelect({
           ))}
         </SelectContent>
       </Select>
-    </FormItem>
+    </div>
   );
 }
+
 function VariantImagesForm({ product, onClose }: FormProps) {
   const [id, setId] = useState("");
   const variant = product.variants.find((item) => item._id === id);
@@ -722,9 +736,13 @@ function VariantImagesForm({ product, onClose }: FormProps) {
 
 function CreateVariantForm({ product, onClose }: FormProps) {
   const [loading, setLoading] = useState(false);
-  const form = useForm<VariantValues & ImageValues>({
+  const form = useForm<
+    VariantInput & ImageInput,
+    any,
+    VariantValues & ImageValues
+  >({
     resolver: zodResolver(
-      variantZ.extend({ images: z.array(z.instanceof(File)).default([]) }),
+      variantZ.extend({ images: z.array(z.instanceof(File)) }),
     ),
     defaultValues: { sku: "", attributes: [], stock: 0, price: 0, images: [] },
   });
@@ -784,6 +802,7 @@ function CreateVariantForm({ product, onClose }: FormProps) {
     </Form>
   );
 }
+
 function Actions({
   onClose,
   loading,
@@ -807,7 +826,7 @@ function Actions({
   );
 }
 
-export default function DeleteVariantForm({ product, onClose }: FormProps) {
+function DeleteVariantForm({ product, onClose }: FormProps) {
   const [id, setId] = useState("");
   const [loading, setLoading] = useState(false);
   const selected = product.variants.find((variant) => variant._id === id);

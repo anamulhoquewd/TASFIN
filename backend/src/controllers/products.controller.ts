@@ -282,10 +282,13 @@ export const updateMainImages = async (c: Context) => {
 
   const formData = await c.req.formData();
 
-  // Main images
-  const images = (formData.getAll("images") as File[]).filter(
-    (f) => f && (f as File).name,
-  );
+  const images = (formData.getAll("images") as File[])
+    .filter((file) => file && file.name)
+    .map((file, index) => ({
+      file,
+      position: Number(formData.get(`images[${index}][position]`) ?? index),
+      alt: (formData.get(`images[${index}][alt]`) as string) || "product-image",
+    }));
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
   const reorderedImageUrlsRaw = formData.get("reorderedImageUrls");
@@ -320,10 +323,13 @@ export const updateVImages = async (c: Context) => {
 
   const formData = await c.req.formData();
 
-  // Main images
-  const images = (formData.getAll("images") as File[]).filter(
-    (f) => f && (f as File).name,
-  );
+  const images = (formData.getAll("images") as File[])
+    .filter((file) => file && file.name)
+    .map((file, index) => ({
+      file,
+      position: Number(formData.get(`images[${index}][position]`) ?? index),
+      alt: (formData.get(`images[${index}][alt]`) as string) || "product-image",
+    }));
 
   const deleteImageUrls = parseDeleteUrls(formData, "deleteImageUrl");
   const reorderedImageUrlsRaw = formData.get("reorderedImageUrls");
@@ -350,14 +356,14 @@ export const updateVImages = async (c: Context) => {
 
 // Delet variant
 export const deleteVariant = async (c: Context) => {
-  const  _id  = c.req.param("productId");
+  const _id = c.req.param("productId");
   const vId = c.req.param("variantId");
-  if (!  _id|| !vId)
+  if (!_id || !vId)
     return badRequestHandler(c, {
       message: "Product & Variant ID is required",
     });
 
-  const response = await productService.deleteVariant({ _id  , vId });
+  const response = await productService.deleteVariant({ _id, vId });
 
   if (response.error) {
     return badRequestHandler(c, response.error);
@@ -372,16 +378,19 @@ export const deleteVariant = async (c: Context) => {
 
 // Create new variant
 export const createVariant = async (c: Context) => {
-  const  _id  = c.req.param("productId");
-  if (! _id)
+  const _id = c.req.param("productId");
+  if (!_id)
     return badRequestHandler(c, {
       message: "Product ID is required",
     });
 
   const formData = await c.req.formData();
 
-  // Get main images
-  const images = formData.getAll("images") as File[];
+  const images = (formData.getAll("images") as File[]).map((file, index) => ({
+    file,
+    position: Number(formData.get(`images[${index}][position]`) ?? index),
+    alt: (formData.get(`images[${index}][alt]`) as string) || "product-image",
+  }));
 
   let attributes: Array<{ key: string; value: string }>;
   try {
@@ -393,10 +402,12 @@ export const createVariant = async (c: Context) => {
   const stock = parseInt(formData.get("stock") as string, 10);
   const price = parseFloat(formData.get("price") as string);
 
+  console.log("Images: ", images);
+
   // Call service
   const response = await productService.createVariant({
     data: { images, sku, attributes, stock, price },
-  _id
+    _id,
   });
 
   if (response.error) {
@@ -412,9 +423,9 @@ export const createVariant = async (c: Context) => {
 
 // // Delete product
 export const deleteProduct = async (c: Context) => {
-  const  _id  = c.req.param("_id") as string;
+  const _id = c.req.param("_id") as string;
 
-  const response = await productService.deleteProduct( _id );
+  const response = await productService.deleteProduct(_id);
 
   if (response.error) {
     return badRequestHandler(c, response.error);

@@ -9,7 +9,7 @@ export const imageZ = z.object({
   url: z.string().url("Invalid image URL").trim(),
 });
 
-const imageFileSchema = z.object({
+export const imageFileSchema = z.object({
   file: z
     .file()
     .mime(["image/jpeg", "image/png", "image/webp"], {
@@ -28,6 +28,12 @@ export const optionalImagesSchema = z
   .array(imageFileSchema)
   .optional()
   .default([]);
+
+export const updateProductImagesZ = z.object({
+  images: optionalImagesSchema,
+  deleteImageUrls: z.array(z.string()).optional().default([]),
+  reorderedImageUrls: z.array(z.string()).optional().default([]),
+});
 
 // Accept either a 24-char hex string or a real ObjectId instance
 export const objectIdSchemaZ = z.union([

@@ -6,7 +6,6 @@ import Product from "./../models/products.model.js";
 import pagination from "./../utils/pagination.js";
 import {
   idSchemaZ,
-  imagesSchema,
   keyValueArrayToRecord,
   keyValueSchemaZ,
   objectIdSchemaZ,
@@ -14,7 +13,47 @@ import {
   productSchemaZ,
   productVariantSchemaZ,
   productVariantUpdateZ,
+  updateProductImagesZ,
 } from "./../validations/zod.js";
+
+function toPlainImage(image: {
+  url: string;
+  key: string;
+  alt?: string;
+  position?: number;
+  toObject?: () => Record<string, unknown>;
+}) {
+  const plain =
+    typeof image.toObject === "function"
+      ? (image.toObject() as {
+          url: string;
+          key: string;
+          alt?: string;
+        })
+      : image;
+
+  return {
+    url: plain.url,
+    key: plain.key,
+    alt: plain.alt ?? "",
+  };
+}
+
+function orderImages<
+  T extends { url: string; key: string; alt?: string; position?: number },
+>(images: T[], reorderedUrls: string[]) {
+  const orderSet = new Set(reorderedUrls);
+  const remaining = images.filter((image) => !orderSet.has(image.url));
+
+  return reorderedUrls
+    .map((url) => images.find((image) => image.url === url))
+    .filter((image): image is T => Boolean(image))
+    .concat(remaining)
+    .map((image, index) => ({
+      ...toPlainImage(image),
+      position: index + 1,
+    }));
+}
 
 // Register new product
 export const register = async ({
@@ -361,23 +400,14 @@ export const updateMainImages = async ({
   data,
 }: {
   _id: string;
-  data: {
-    images: File[];
-    deleteImageUrls: string[];
-    reorderedImageUrls?: string[];
-  };
+  data: z.input<typeof updateProductImagesZ>;
 }) => {
   const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
-  const validData = z
-    .object({
-      images: imagesSchema.optional().default([]),
-      deleteImageUrls: z.array(z.string()),
-    })
-    .safeParse(data);
+  const validData = updateProductImagesZ.safeParse(data);
 
   if (!validData.success) {
     return {
@@ -428,26 +458,16 @@ export const updateMainImages = async ({
       );
     }
 
-    const reorderedUrls = Array.isArray(data.reorderedImageUrls)
-      ? data.reorderedImageUrls.filter(Boolean)
-      : [];
+    const reorderedUrls = validData.data.reorderedImageUrls.filter(Boolean);
 
     if (reorderedUrls.length > 0 || product.images.length > 0) {
-      const orderSet = new Set(reorderedUrls);
-      const remaining = product.images.filter((img) => !orderSet.has(img.url));
-      const ordered = reorderedUrls
-        .map((url) => product.images.find((img) => img.url === url))
-        .filter((img): img is (typeof product.images)[number] => Boolean(img))
-        .concat(remaining)
-        .map((img, index) => ({
-          ...img,
-          position: index + 1,
-        }));
-
-      product.images = ordered;
+      product.images = orderImages(
+        product.images,
+        reorderedUrls,
+      ) as typeof product.images;
     }
 
-    // Save changes
+    product.markModified("images");
     const updated = await product.save();
 
     return {
@@ -481,11 +501,7 @@ export const updateVImages = async ({
 }: {
   _id: string;
   vId: string;
-  data: {
-    images: File[];
-    deleteImageUrls: string[];
-    reorderedImageUrls?: string[];
-  };
+  data: z.input<typeof updateProductImagesZ>;
 }) => {
   // product id
   const idValidation = idSchemaZ.safeParse({ _id });
@@ -495,12 +511,7 @@ export const updateVImages = async ({
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
-  const validData = z
-    .object({
-      images: imagesSchema.optional().default([]),
-      deleteImageUrls: z.array(z.string()),
-    })
-    .safeParse(data);
+  const validData = updateProductImagesZ.safeParse(data);
 
   if (!validData.success) {
     return {
@@ -567,26 +578,13 @@ export const updateVImages = async ({
       );
     }
 
-    const reorderedUrls = Array.isArray(data.reorderedImageUrls)
-      ? data.reorderedImageUrls.filter(Boolean)
-      : [];
+    const reorderedUrls = validData.data.reorderedImageUrls.filter(Boolean);
 
     if (reorderedUrls.length > 0 || (variant.images || []).length > 0) {
-      const currentImages = variant.images || [];
-      const orderSet = new Set(reorderedUrls);
-      const remaining = currentImages.filter((img) => !orderSet.has(img.url));
-      const ordered = reorderedUrls
-        .map((url) => currentImages.find((img) => img.url === url))
-        .filter(
-          (img): img is (typeof currentImages)[number] => img !== undefined,
-        )
-        .concat(remaining)
-        .map((img, index) => ({
-          ...img,
-          position: index + 1,
-        }));
-
-      variant.images = ordered;
+      variant.images = orderImages(
+        variant.images || [],
+        reorderedUrls,
+      ) as typeof variant.images;
     }
 
     /** Save product */
@@ -630,6 +628,8 @@ export const createVariant = async ({
     alt: string;
   }[] = [];
 
+  console.log("Data: ", data);
+
   const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
@@ -637,6 +637,8 @@ export const createVariant = async ({
 
   // Step 1: validate fields (skip file validation here)
   const validData = productVariantSchemaZ.safeParse(data);
+
+  console.log("Valid data: ", validData.error);
 
   if (!validData.success) {
     return {

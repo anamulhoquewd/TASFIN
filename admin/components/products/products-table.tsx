@@ -68,8 +68,9 @@ import {
   KPICard,
   ProductAnalyticsModal,
   useProductAnalyticsModal,
-} from "./product-analytics-modal";
-import { ProductEditDialogs } from "./product-edit-dialogs";
+} from "./product-analytics";
+import { ProductEditDialogs } from "./product-edit";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 export function ProductsTable() {
   const { isOpen, selectedProductId, openModal, closeModal } =
@@ -345,9 +346,7 @@ export function ProductsTable() {
                       (acc, variant) => acc + variant.stock,
                       0,
                     );
-                    const firstPositionImage = product.images.find(
-                      (img) => img.position === 0,
-                    );
+                    const firstPositionImage = product.images[0];
 
                     return (
                       <TableRow key={product._id}>
@@ -355,10 +354,7 @@ export function ProductsTable() {
                           <Image
                             width={1000}
                             height={1000}
-                            src={
-                              firstPositionImage?.url ||
-                              "/placeholder.svg?height=50&width=50&query=product"
-                            }
+                            src={firstPositionImage?.url as string}
                             alt={firstPositionImage?.alt || product.title}
                             className="w-12 h-12 object-cover rounded-md"
                           />
@@ -454,7 +450,10 @@ export function ProductsTable() {
                                   "dd MMM",
                                 )}{" "}
                                 — End:{" "}
-                                {format(new Date(product.discount.endAt), "dd MMM")}
+                                {format(
+                                  new Date(product.discount.endAt),
+                                  "dd MMM",
+                                )}
                               </div>
                             </>
                           ) : (
@@ -583,6 +582,7 @@ export function ProductsTable() {
 
       {/* Edit Dialog */}
       <Dialog open={editModal.open} onOpenChange={closeEditModal}>
+        <DialogTitle></DialogTitle>
         <DialogContent className="w-[80vh] max-h-[90vh] overflow-y-auto">
           {/* Content Part (Dynamic Render) */}
           <div className="mt-4">

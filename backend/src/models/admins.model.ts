@@ -18,6 +18,7 @@ export const ImageSchema: mongoose.Schema<IImage> = new mongoose.Schema(
   {
     alt: { type: String, required: true, trim: true },
     url: { type: String, required: true, trim: true },
+    key: { type: String, required: false, trim: true },
     position: { type: Number, required: false, min: 0, default: 0 },
   },
   { _id: false },
