@@ -182,6 +182,37 @@ export const getProductBySlug = async (c: Context) => {
 };
 
 // update general info
+export const updateDiscount = async (c: Context) => {
+  const _id = c.req.param("productId");
+  const body = await c.req.json();
+
+  if (!_id) {
+    return badRequestHandler(c, { message: "Product ID is required" });
+  }
+
+  console.log("Discount body: ", body)
+
+  try {
+    const response = await productService.updateDiscount({
+      _id,
+      data: body,
+    });
+
+    if (response.error) {
+      return badRequestHandler(c, response.error);
+    }
+    if (response.serverError) {
+      return serverErrorHandler(c, response.serverError);
+    }
+
+    return c.json({ success: true, data: response.success }, 200);
+  } catch (err: any) {
+    console.error("Update General Info Error:", err);
+    return serverErrorHandler(c, { message: err.message || "Server error" });
+  }
+};
+
+// update general info
 export const updateGeneralInfo = async (c: Context) => {
   const _id = c.req.param("productId");
   if (!_id) {

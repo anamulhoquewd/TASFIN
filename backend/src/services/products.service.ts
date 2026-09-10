@@ -221,6 +221,75 @@ export const register = async ({
 };
 
 // Update general info (non-images)
+export const updateDiscount = async ({
+  _id,
+  data,
+}: {
+  _id: string;
+  data: any;
+}) => {
+  // Validate ID
+  const idValidation = idSchemaZ.safeParse({ _id });
+  if (!idValidation.success) {
+    return { error: schemaValidationError(idValidation.error, "Invalid ID") };
+  }
+  // Validate body
+  const validData = z
+    .object({
+      discount: z
+        .object({
+          discountType: z.enum(["percentage", "fixed"]),
+          value: z.number().min(0),
+          startAt: z.coerce.date().optional(),
+          endAt: z.coerce.date().optional(),
+        })
+        .optional()
+        .refine((d) => !d?.startAt || !d?.endAt || d.startAt < d.endAt, {
+          message: "startAt must be before endAt",
+        }),
+    })
+    .safeParse(data);
+
+  if (!validData.success) {
+    return {
+      error: schemaValidationError(validData.error, "Invalid request body"),
+    };
+  }
+
+  try {
+    // Validate product existence and slug uniqueness
+    const product = await Product.findById(idValidation.data._id);
+    if (!product) {
+      return {
+        error: {
+          message: `Product not found!`,
+        },
+      };
+    }
+
+    // Update fields
+    Object.assign(product, validData.data);
+
+    const updated = await product.save();
+    return {
+      success: {
+        success: true,
+        message: "Product discount updated successfully!",
+        data: updated,
+      },
+    };
+  } catch (error: any) {
+    return {
+      serverError: {
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === "production" ? null : error.stack,
+      },
+    };
+  }
+};
+
+// Update general info (non-images)
 export const updateGeneralInfo = async ({
   _id,
   data,

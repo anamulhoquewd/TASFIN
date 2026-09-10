@@ -498,6 +498,13 @@ export function ProductsTable() {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() =>
+                                    openEditModal("discount", product)
+                                  }
+                                >
+                                  Discount %
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
                                     openEditModal("images", product)
                                   }
                                 >
@@ -582,7 +589,6 @@ export function ProductsTable() {
 
       {/* Edit Dialog */}
       <Dialog open={editModal.open} onOpenChange={closeEditModal}>
-        <DialogTitle></DialogTitle>
         <DialogContent className="w-[80vh] max-h-[90vh] overflow-y-auto">
           {/* Content Part (Dynamic Render) */}
           <div className="mt-4">
