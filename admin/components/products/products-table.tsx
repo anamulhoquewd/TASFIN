@@ -1,53 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Eye, Edit, Trash2, Search, ExternalLink } from "lucide-react";
-import {
-  ProductAnalyticsModal,
-  useProductAnalyticsModal,
-} from "./product-analytics-modal";
-import useProducts from "../_hook/useProducts";
-import Paginations from "@/components/pagination";
-import Link from "next/link";
-import { IProduct } from "@/interfaces/products";
-import { defaultPagination } from "@/utils/details";
-import { IPagination } from "@/interfaces/global";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ProductEditDialogs } from "./product-edit-dialogs";
-import { toast } from "sonner";
+import Paginations from "@/components/pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +12,64 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { IPagination } from "@/interfaces/global";
+import { IProduct } from "@/interfaces/products";
+import { defaultPagination } from "@/utils/details";
+import { format } from "date-fns";
+import {
+  Edit,
+  ExternalLink,
+  Eye,
+  Package,
+  Search,
+  ShoppingCart,
+  Star,
+  Trash2,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import useProducts from "../../hooks/products/useProducts";
+import {
+  KPICard,
+  ProductAnalyticsModal,
+  useProductAnalyticsModal,
+} from "./product-analytics-modal";
+import { ProductEditDialogs } from "./product-edit-dialogs";
 
 export function ProductsTable() {
   const { isOpen, selectedProductId, openModal, closeModal } =
@@ -136,30 +147,27 @@ export function ProductsTable() {
   ]);
 
   // Calculate analytics data
-  // const analytics = useMemo(() => {
-  //   const activeProducts = products.filter((p) => p.isActive).length;
-  //   const featuredProducts = products.filter((p) => p.isFeatured).length;
-  //   const totalStock = products.reduce(
-  //     (acc, product) =>
-  //       acc +
-  //       product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
-  //     0
-  //   );
-  //   const totalVariants = products.reduce(
-  //     (acc, product) => acc + product.variants.length,
-  //     0
-  //   );
+  const analytics = useMemo(() => {
+    const activeProducts = products.filter((p) => p.isActive).length;
+    const featuredProducts = products.filter((p) => p.isFeatured).length;
+    const totalStock = products.reduce(
+      (acc, product) =>
+        acc +
+        product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
+      0,
+    );
+    const totalVariants = products.reduce(
+      (acc, product) => acc + product.variants.length,
+      0,
+    );
 
-  //   return {
-  //     activeProducts,
-  //     featuredProducts,
-  //     totalStock,
-  //     totalVariants,
-  //   };
-  // }, [products]);
-
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString();
+    return {
+      activeProducts,
+      featuredProducts,
+      totalStock,
+      totalVariants,
+    };
+  }, [products]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -180,7 +188,7 @@ export function ProductsTable() {
       await onDelete(deletedProductId);
       setDeletedProductId(null);
 
-      // ✅ remove product locally
+      // remove product locally
       setProducts((prev) => prev.filter((p) => p._id !== deletedProductId));
     } catch (error) {
       console.error("Error deleting product:", error);
@@ -233,7 +241,7 @@ export function ProductsTable() {
     <>
       <div className="space-y-6">
         {/* Analytics Cards */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <KPICard
             title="Total Products"
             value={pagination.total.toString()}
@@ -268,7 +276,7 @@ export function ProductsTable() {
             description="Only on this page"
             icon={<Package className="h-4 w-4" />}
           />
-        </div> */}
+        </div>
 
         {/* Filters and Search */}
         <Card>
@@ -324,7 +332,8 @@ export function ProductsTable() {
                     <TableHead>Variants</TableHead>
                     <TableHead>Total Stock</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Tags</TableHead>
+                    <TableHead>Sales</TableHead>
+                    <TableHead>Discount</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -334,7 +343,10 @@ export function ProductsTable() {
                   {products.map((product) => {
                     const totalStock = product.variants.reduce(
                       (acc, variant) => acc + variant.stock,
-                      0
+                      0,
+                    );
+                    const firstPositionImage = product.images.find(
+                      (img) => img.position === 0,
                     );
 
                     return (
@@ -344,10 +356,10 @@ export function ProductsTable() {
                             width={1000}
                             height={1000}
                             src={
-                              product.images[0]?.url ||
+                              firstPositionImage?.url ||
                               "/placeholder.svg?height=50&width=50&query=product"
                             }
-                            alt={product.images[0]?.alt || product.title}
+                            alt={firstPositionImage?.alt || product.title}
                             className="w-12 h-12 object-cover rounded-md"
                           />
                         </TableCell>
@@ -361,11 +373,9 @@ export function ProductsTable() {
                           >
                             /{product.slug} <ExternalLink className="h-4 w-4" />
                           </Link>
-                          {product.fabric && (
-                            <div className="text-xs text-muted-foreground">
-                              Fabric: {product.fabric}
-                            </div>
-                          )}
+                          <div className="text-xs text-muted-foreground">
+                            We can write somthing on there
+                          </div>
                         </TableCell>
 
                         <TableCell>
@@ -373,9 +383,12 @@ export function ProductsTable() {
                             {product.variants
                               .slice(0, 2)
                               .map((variant, index) => (
-                                <div key={index} className="text-sm">
+                                <div
+                                  key={index}
+                                  className="text-sm flex gap-1 flex-col"
+                                >
                                   <span className="font-medium">
-                                    {variant.size}
+                                    {variant.sku}
                                   </span>
                                   <span className="text-muted-foreground ml-2">
                                     ({variant.stock} in stock)
@@ -389,14 +402,15 @@ export function ProductsTable() {
                             )}
                           </div>
                         </TableCell>
+
                         <TableCell>
                           <span
                             className={`font-medium ${
                               totalStock < 10
                                 ? "text-red-600"
                                 : totalStock < 20
-                                ? "text-yellow-600"
-                                : "text-green-600"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
                             }`}
                           >
                             {totalStock}
@@ -423,40 +437,46 @@ export function ProductsTable() {
                           </div>
                         </TableCell>
 
+                        <TableCell>Mock : 09</TableCell>
                         <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {product.tags?.slice(0, 2).map((tag, index) => (
-                              <Badge
-                                key={index}
-                                variant="outline"
-                                className="text-xs"
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
-                            {product.tags && product.tags.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{product.tags?.length - 2}
-                              </Badge>
-                            )}
-                          </div>
+                          {product?.discount ? (
+                            <>
+                              <div className="font-medium ">
+                                {product.discount.value} -{" "}
+                                {product.discount.discountType === "fixed"
+                                  ? "TK"
+                                  : "%"}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Start:{" "}
+                                {format(
+                                  new Date(product.discount.startAt),
+                                  "dd MMM",
+                                )}{" "}
+                                — End:{" "}
+                                {format(new Date(product.discount.endAt), "dd MMM")}
+                              </div>
+                            </>
+                          ) : (
+                            "00"
+                          )}
                         </TableCell>
 
                         <TableCell>
-                          {formatDate(product.createdAt.toString())}
+                          {format(new Date(product.createdAt), "PP")}
                         </TableCell>
 
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             {/* View Button */}
-                            <Button
+                            {/* <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => openModal(product._id)}
                               className="cursor-pointer"
                             >
                               <Eye className="h-4 w-4" />
-                            </Button>
+                            </Button> */}
 
                             {/* Edit Dropdown */}
                             <DropdownMenu>

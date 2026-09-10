@@ -1,25 +1,11 @@
 "use client";
 
-import type React from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
+import { ChipInput } from "@/components/chip-input";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Command,
   CommandEmpty,
@@ -29,30 +15,44 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Upload,
-  X,
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Textarea } from "@/components/ui/textarea";
+import type { IProduct } from "@/interfaces/products";
+import { type ProductUpdateInput } from "@/lib/schemas";
+import { cn } from "@/lib/utils";
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCheck,
+  ChevronsUpDown,
   Plus,
   Trash2,
-  ChevronsUpDown,
-  CheckCheck,
-  ArrowUp,
-  ArrowDown,
+  Upload,
+  X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { type ProductUpdateInput } from "@/lib/schemas";
-import type { IProduct } from "@/interfaces/products";
-import useCategory from "@/app/admin/categories/_hook/useCategory";
-import { Textarea } from "@/components/ui/textarea";
-import { ChipInput } from "@/components/chip-input";
-import { UseFormReturn } from "react-hook-form";
 import Image from "next/image";
+import type React from "react";
+import { UseFormReturn } from "react-hook-form";
 
 interface EditProductFormProps {
   form: UseFormReturn<ProductUpdateInput>;
   product: IProduct;
   onSubmit: (
     data: ProductUpdateInput,
-    existingImagesToKeep: { alt: string; url: string }[]
+    existingImagesToKeep: { alt: string; url: string }[],
   ) => Promise<void>;
   isLoading: boolean;
   handleTitleChange: (title: string) => void;
@@ -64,7 +64,7 @@ interface EditProductFormProps {
   variantImagePreviews: Record<string, string[]>;
   handleVariantImageUpload: (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => void;
   removeVariantImage: (index: number, variantIndex: number) => void;
   setExistingImagesToKeep: React.Dispatch<
@@ -99,11 +99,7 @@ export function EditProductForm({
   handleMainImageRemove,
   handleMainImageRestore,
 }: EditProductFormProps) {
-  const { categories } = useCategory();
-
-  const getCategoryName = (categoryId: string) => {
-    return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
-  };
+  const { categories, getCategoryName } = useCategory();
 
   return (
     <Form {...form}>
@@ -307,8 +303,8 @@ export function EditProductForm({
                             .filter(
                               (image: any) =>
                                 !existingImagesToKeep.some(
-                                  (img: any) => img.url === image.url
-                                )
+                                  (img: any) => img.url === image.url,
+                                ),
                             )
                             .map((image: any, index: number) => {
                               const imageUrl = image.url;
@@ -373,8 +369,8 @@ export function EditProductForm({
                                   (f: File) =>
                                     f.name === file.name &&
                                     f.size === file.size &&
-                                    f.lastModified === file.lastModified
-                                )
+                                    f.lastModified === file.lastModified,
+                                ),
                             );
                             field.onChange([...existing, ...filtered]);
                           }}
@@ -417,8 +413,8 @@ export function EditProductForm({
                                   onClick={() =>
                                     field.onChange(
                                       (field.value || []).filter(
-                                        (_: any, i: number) => i !== index
-                                      )
+                                        (_: any, i: number) => i !== index,
+                                      ),
                                     )
                                   }
                                   className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -474,7 +470,7 @@ export function EditProductForm({
                                   </button>
                                 </div>
                               </div>
-                            )
+                            ),
                           )}
                         </div>
                       )}
@@ -582,7 +578,7 @@ export function EditProductForm({
                                     {...field}
                                     onChange={(e) =>
                                       field.onChange(
-                                        Number.parseInt(e.target.value) || 0
+                                        Number.parseInt(e.target.value) || 0,
                                       )
                                     }
                                   />
@@ -605,7 +601,7 @@ export function EditProductForm({
                                     {...field}
                                     onChange={(e) =>
                                       field.onChange(
-                                        Number.parseFloat(e.target.value) || 0
+                                        Number.parseFloat(e.target.value) || 0,
                                       )
                                     }
                                   />
@@ -649,7 +645,7 @@ export function EditProductForm({
                                     (url: string, imgIndex: number) => {
                                       const isRemoved = isVariantImageRemoved(
                                         index,
-                                        url
+                                        url,
                                       );
 
                                       return (
@@ -662,12 +658,12 @@ export function EditProductForm({
                                             if (isRemoved) {
                                               handleVariantImageRestore(
                                                 index,
-                                                url
+                                                url,
                                               );
                                             } else {
                                               handleVariantImageRemove(
                                                 index,
-                                                url
+                                                url,
                                               );
                                             }
                                           }}
@@ -702,7 +698,7 @@ export function EditProductForm({
                                           </div>
                                         </div>
                                       );
-                                    }
+                                    },
                                   )}
                                 </div>
                               </div>
@@ -741,7 +737,7 @@ export function EditProductForm({
                                             onClick={() =>
                                               removeVariantImage(
                                                 index,
-                                                imageIndex
+                                                imageIndex,
                                               )
                                             }
                                             className="cursor-pointer absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -749,7 +745,7 @@ export function EditProductForm({
                                             <X className="w-3 h-3" />
                                           </button>
                                         </div>
-                                      )
+                                      ),
                                     )}
                                   </div>
                                 </div>
@@ -992,7 +988,7 @@ export function EditProductForm({
                                           e.stopPropagation();
                                           const newCategories =
                                             field.value?.filter(
-                                              (id: string) => id !== categoryId
+                                              (id: string) => id !== categoryId,
                                             ) || [];
                                           field.onChange(newCategories);
                                         }}
@@ -1027,15 +1023,15 @@ export function EditProductForm({
                                           field.value || [];
                                         const isSelected =
                                           currentCategories.includes(
-                                            category._id
+                                            category._id,
                                           );
 
                                         if (isSelected) {
                                           field.onChange(
                                             currentCategories.filter(
                                               (id: string) =>
-                                                id !== category._id
-                                            )
+                                                id !== category._id,
+                                            ),
                                           );
                                         } else {
                                           field.onChange([
@@ -1050,12 +1046,12 @@ export function EditProductForm({
                                           "mr-2 h-4 w-4",
                                           field.value?.includes(category._id)
                                             ? "opacity-100"
-                                            : "opacity-0"
+                                            : "opacity-0",
                                         )}
                                       />
                                       {category.name}
                                     </CommandItem>
-                                  )
+                                  ),
                                 )}
                               </CommandGroup>
                             </CommandList>

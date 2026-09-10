@@ -225,6 +225,10 @@ function useCategory() {
     }
   };
 
+  const getCategoryName = (categoryId: string) => {
+    return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(search);
@@ -277,6 +281,7 @@ function useCategory() {
     setIsAvatarOpen,
     uploadHandler,
     handleNameChange,
+    getCategoryName,
   };
 }
 

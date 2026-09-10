@@ -7,7 +7,8 @@ export interface IImage {
 
 export interface IProductVariant {
   _id: string;
-  size: string;
+  sku: string;
+  attributes: Map<string, string>; // flexible attributes
   stock: number;
   price: number;
   images?: IImage[];
@@ -17,27 +18,26 @@ export interface IProduct {
   _id: string;
   title: string;
   slug: string;
-  description: string;
+  description?: string;
   keyFeatures?: string[];
   categories: string[];
-
   images: IImage[];
   variants: IProductVariant[];
-
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
-
+  specifications?: Map<string, string>;
+  minPrice: number;
+  maxPrice: number;
+  inStock: boolean;
+  avgRating: number;
+  reviewCount: number;
   isFeatured?: boolean;
-
   isActive: boolean;
-
   tags?: string[];
+  discount?: {
+    discountType: "percentage" | "fixed";
+    value: number;
+    startAt: Date;
+    endAt: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,21 +46,9 @@ export interface IProduct {
 export interface IProductUpdateData {
   title?: string;
   slug?: string;
-  description?: {
-    html: string;
-    json: any;
-  };
   categories?: string[];
   images?: File[];
   variants?: IProductVariantUpdate[];
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
   isFeatured?: boolean;
   isActive?: boolean;
   tags?: string[];

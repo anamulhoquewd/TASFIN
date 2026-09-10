@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { IImage, IProduct } from "@/interfaces/products";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
-import useProducts from "../../_hook/useProducts";
-import { EditProductForm } from "../../_components/edit-form";
+import useProducts from "../../../../../hooks/products/useProducts";
+import { EditProductForm } from "../../../../../components/products/edit-form";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 

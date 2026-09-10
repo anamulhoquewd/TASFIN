@@ -52,7 +52,7 @@ import {
 import Image from "next/image";
 import type React from "react";
 import { toast } from "sonner";
-import type { UseProductsReturn } from "../_hook/useProducts";
+import type { UseProductsReturn } from "../../hooks/products/useProducts";
 
 type ProductsForm = UseProductsReturn["form"];
 
@@ -86,10 +86,7 @@ export function CreateProductForm({
   handleVariantImageUpload,
   removeVariantImage,
 }: CreateProductFormProps) {
-  const { categories } = useCategory();
-  const getCategoryName = (categoryId: string) => {
-    return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
-  };
+  const { categories, getCategoryName } = useCategory();
 
   return (
     <Form {...form}>

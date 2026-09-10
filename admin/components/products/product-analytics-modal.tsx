@@ -2,18 +2,23 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import useCategory from "@/app/admin/categories/_hook/useCategory";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
@@ -23,41 +28,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  X,
-  RefreshCw,
-  Download,
-  Printer,
-  Share2,
-  ExternalLink,
-  TrendingUp,
-  TrendingDown,
-  MoreHorizontal,
-  Calendar,
-  Users,
-  AlertTriangle,
-  MapPin,
-  Copy,
-} from "lucide-react";
-import Link from "next/link";
-import { toast } from "sonner";
 import { IProduct } from "@/interfaces/products";
 import { formatPrice } from "@/lib/utils";
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import {
+  AlertTriangle,
+  Calendar,
+  Copy,
+  Download,
+  ExternalLink,
+  MapPin,
+  MoreHorizontal,
+  Printer,
+  RefreshCw,
+  Share2,
+  TrendingDown,
+  TrendingUp,
+  Users,
+  X,
+} from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Types
 interface Analytics {
@@ -260,10 +260,7 @@ export function ProductAnalyticsModal({
   const searchParams = useSearchParams();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
-  const { categories } = useCategory();
-  const getCategoryName = (categoryId: string) => {
-    return categories.find((cat) => cat._id === categoryId)?.name || categoryId;
-  };
+  const { categories, getCategoryName } = useCategory();
 
   // Generate analytics data when product changes
   useEffect(() => {
@@ -407,8 +404,8 @@ export function ProductAnalyticsModal({
                         totalStock > 20
                           ? "default"
                           : totalStock > 0
-                          ? "secondary"
-                          : "destructive"
+                            ? "secondary"
+                            : "destructive"
                       }
                     >
                       {totalStock > 0
@@ -726,8 +723,8 @@ export function ProductAnalyticsModal({
                               <TableCell className="font-medium">
                                 {formatPrice(
                                   product.variants.find(
-                                    (v) => v._id === variant._id
-                                  )?.price || 0
+                                    (v) => v._id === variant._id,
+                                  )?.price || 0,
                                 )}
                               </TableCell>
                               <TableCell>
@@ -736,8 +733,8 @@ export function ProductAnalyticsModal({
                                     variant.stock < 10
                                       ? "text-red-600"
                                       : variant.stock < 20
-                                      ? "text-yellow-600"
-                                      : "text-green-600"
+                                        ? "text-yellow-600"
+                                        : "text-green-600"
                                   }
                                 >
                                   {variant.stock}
@@ -786,15 +783,15 @@ export function ProductAnalyticsModal({
                                     order.status === "paid"
                                       ? "default"
                                       : order.status === "pending"
-                                      ? "secondary"
-                                      : "destructive"
+                                        ? "secondary"
+                                        : "destructive"
                                   }
                                 >
                                   {order.status === "paid"
                                     ? "পেইড"
                                     : order.status === "pending"
-                                    ? "পেন্ডিং"
-                                    : "রিফান্ড"}
+                                      ? "পেন্ডিং"
+                                      : "রিফান্ড"}
                                 </Badge>
                               </TableCell>
                             </TableRow>
@@ -984,7 +981,7 @@ export function useProductAnalyticsModal() {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    null
+    null,
   );
 
   const openModal = (productId: string) => {

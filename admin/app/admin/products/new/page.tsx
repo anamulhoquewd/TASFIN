@@ -3,8 +3,8 @@
 import type React from "react";
 import { ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CreateProductForm } from "../_components/create-form";
-import useProducts from "../_hook/useProducts";
+import { CreateProductForm } from "../../../../components/products/create-form";
+import useProducts from "../../../../hooks/products/useProducts";
 import { useState } from "react";
 import { ProductCreateInput } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
