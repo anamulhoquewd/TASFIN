@@ -20,7 +20,7 @@ interface IFilter {
 }
 interface ILoadOrder {
   search: {
-    orderId: string;
+    global: string;
     userId: string;
     variantId: string;
   };
@@ -28,7 +28,7 @@ interface ILoadOrder {
   page: number;
 }
 interface ISearch {
-  orderId: string;
+  global: string;
   userId: string;
   variantId: string;
 }
@@ -46,11 +46,11 @@ function useOrder() {
 
   // Search
   const [search, setSearch] = useState<ISearch>({
-    orderId: "",
+    global: "",
     userId: "",
     variantId: "",
   });
-  const [debouncedOrderId, setDebouncedOrderId] = useState<string>("");
+  const [debouncedGlobal, setDebouncedGlobal] = useState<string>("");
   const [debouncedUserId, setdebouncedUserId] = useState<string>("");
   const [debouncedVariantId, setdebouncedVariantId] = useState<string>("");
   const [debouncedAmountRange] = useState<[number, number]>([0, 10000]);
@@ -68,7 +68,7 @@ function useOrder() {
     try {
       const response = await api.get("/orders", {
         params: {
-          search: search?.orderId || undefined,
+          search: search?.global || undefined,
           status: filters?.status === "all" ? undefined : filters?.status,
           paymentStatus:
             filters?.paymentStatus === "all"
@@ -120,7 +120,7 @@ function useOrder() {
       // Update the local state with the new order data
       loadOrders({
         search: {
-          orderId: debouncedOrderId,
+          global: debouncedGlobal,
           userId: debouncedUserId,
           variantId: debouncedVariantId,
         },
@@ -149,7 +149,7 @@ function useOrder() {
       // Reload orders after deletion
       loadOrders({
         search: {
-          orderId: debouncedOrderId,
+          global: debouncedGlobal,
           userId: debouncedUserId,
           variantId: debouncedVariantId,
         },
@@ -175,7 +175,7 @@ function useOrder() {
       singleDate: undefined,
     });
     setSearch({
-      orderId: "",
+      global: "",
       userId: "",
       variantId: "",
     });
@@ -187,7 +187,7 @@ function useOrder() {
     if (filterBy.paymentStatus !== "all") count++;
     if (filterBy.dateRange?.from && filterBy.dateRange?.to) count++;
     if (filterBy.singleDate) count++;
-    if (debouncedOrderId) count++;
+    if (debouncedGlobal) count++;
     if (debouncedUserId) count++;
     if (debouncedVariantId) count++;
 
@@ -196,7 +196,7 @@ function useOrder() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedOrderId(search.orderId);
+      setDebouncedGlobal(search.global);
       setdebouncedUserId(search.userId);
       setdebouncedVariantId(search.variantId);
       setPagination((prev) => ({ ...prev, page: 1 }));
@@ -205,13 +205,13 @@ function useOrder() {
     return () => {
       clearTimeout(timer);
     };
-  }, [search.userId, search.orderId, search.variantId]);
+  }, [search.userId, search.global, search.variantId]);
 
   // Fetch orders on initial load
   useEffect(() => {
     loadOrders({
       search: {
-        orderId: debouncedOrderId,
+        global: debouncedGlobal,
         userId: debouncedUserId,
         variantId: debouncedVariantId,
       },
@@ -219,7 +219,7 @@ function useOrder() {
       page: pagination.page,
     });
   }, [
-    debouncedOrderId,
+    debouncedGlobal,
     debouncedUserId,
     debouncedVariantId,
     filterBy.status,

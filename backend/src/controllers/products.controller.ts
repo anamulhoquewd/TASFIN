@@ -190,7 +190,7 @@ export const updateDiscount = async (c: Context) => {
     return badRequestHandler(c, { message: "Product ID is required" });
   }
 
-  console.log("Discount body: ", body)
+  console.log("Discount body: ", body);
 
   try {
     const response = await productService.updateDiscount({
@@ -454,7 +454,7 @@ export const createVariant = async (c: Context) => {
 
 // // Delete product
 export const deleteProduct = async (c: Context) => {
-  const _id = c.req.param("_id") as string;
+  const _id = c.req.param("productId") as string;
 
   const response = await productService.deleteProduct(_id);
 

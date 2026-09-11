@@ -381,14 +381,8 @@ export const changeAvatar = async (c: Context) => {
         ],
       });
     }
-
-    // Generate filename
-    const fileN = c.req.query("filename") || "avatar";
-    const filename = `${fileN}-${Date.now()}.webp`;
-
-    const response = await adminService.uploadSingleFile({
+    const response = await adminService.uploadSingleFileService({
       body: { avatar: file },
-      filename,
       folder: "admins",
     });
 
@@ -402,8 +396,8 @@ export const changeAvatar = async (c: Context) => {
 
     // Update admin.avatar.url and save
     admin.avatar = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.key,
+      url: response.success.data.url,
     };
 
     await admin.save();

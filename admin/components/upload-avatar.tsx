@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { useEffect, useRef, useState } from "react";
+import { ICategory } from "@/interfaces/categories";
 
 interface Props {
   collection: { name: string; avatar: string };
@@ -10,6 +11,7 @@ interface Props {
   setError: (error: string) => void;
   isAvatarOpen: boolean;
   setIsAvatarOpen: (isAvatarOpen: boolean) => void;
+  setSelectedItem: (selectedItem: ICategory | null) => void;
   uploadHandler: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -20,6 +22,7 @@ export function UploadAvatar({
   isAvatarOpen,
   setIsAvatarOpen,
   uploadHandler,
+  setSelectedItem,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -66,6 +69,7 @@ export function UploadAvatar({
         onOpenChange={(open: boolean) => {
           setIsAvatarOpen(open);
           setError("");
+          if (!open) setSelectedItem(null);
         }}
       >
         <DialogContent className="w-[90vw] sm:max-w-[425px] bg-secondary text-secondary-foreground rounded-lg">

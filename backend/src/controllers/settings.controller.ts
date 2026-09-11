@@ -48,10 +48,6 @@ export const changeLogo = async (c: Context) => {
     });
   }
 
-  // Generate filename
-  const fileN = c.req.query("filename") || "avatar";
-  const filename = `${fileN}-${Date.now()}.webp`;
-
   try {
     const settings = await Settings.findOne();
 
@@ -61,9 +57,8 @@ export const changeLogo = async (c: Context) => {
       });
     }
 
-    const response = await adminService.uploadSingleFile({
+    const response = await adminService.uploadSingleFileService({
       body: { avatar: file },
-      filename,
       folder: "settings",
     });
 
@@ -77,8 +72,10 @@ export const changeLogo = async (c: Context) => {
 
     // Update settings.logo.url and save
     settings.logo = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.key,
+      url: response.success.data.url,
+      key: response.success.data.key,
+      position: 1,
     };
 
     await settings.save();

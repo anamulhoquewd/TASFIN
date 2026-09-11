@@ -1,17 +1,21 @@
 "use client";
 
 import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Trash2,
   ListIcon as Category,
-  ImageIcon,
   Copy,
+  ImageIcon,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Trash2,
 } from "lucide-react";
 
+import NewCategory from "@/components/categorise/new-category";
+import UpdateDialog from "@/components/categorise/update";
+import { DeleteConfirmation } from "@/components/delete-confirmation";
+import Paginations from "@/components/pagination";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
@@ -27,6 +31,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -35,19 +40,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Paginations from "@/components/pagination";
-import UpdateDialog from "./_component/update-dialog";
-import NewCategory from "./_component/new-category-dialog";
-import useCategory from "./_hook/useCategory";
-import { UploadAvatar } from "@/components/upload-avatar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DeleteConfirmation } from "@/components/delete-confirmation";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { UploadAvatar } from "@/components/upload-avatar";
+import useCategory from "@/hooks/categorise/useCategory";
 import { copyToClipboard } from "@/lib/utils";
 
 export default function Categories() {
@@ -269,9 +269,10 @@ export default function Categories() {
 
       <UploadAvatar
         collection={{
-          name: selectedItem?.name ?? "John Doe",
+          name: selectedItem?.name ?? "Somthing new",
           avatar: selectedItem?.image?.url ?? "",
         }}
+        setSelectedItem={setSelectedItem}
         error={error}
         setError={setError}
         uploadHandler={uploadHandler}

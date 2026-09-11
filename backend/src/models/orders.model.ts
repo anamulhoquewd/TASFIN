@@ -20,7 +20,7 @@ const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema(
     sku: { type: String, required: true }, // Added — needed for support/logistics
     title: { type: String, required: true },
     image: { type: ImageSchema, required: true },
-    size: { type: String, required: true }, // Added — was missing entirely; no way to show size without re-querying Product
+    // size: { type: String, required: true }, // Added — was missing entirely; no way to show size without re-querying Product
     price: { type: Number, required: true, min: 0 },
     quantity: { type: Number, required: true, min: 1 },
   },
@@ -39,7 +39,7 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
     // --- Pricing breakdown ---
     // Added: previously only totalAmount + shippingCost existed, with
     // zero record of subtotal or any discount applied. That meant no
-    // way to show "you saved ৳X" on an invoice, and no audit trail once
+    // way to show "you saved $X" on an invoice, and no audit trail once
     // the discount/coupon feature ships.
     subtotal: { type: Number, required: true, min: 0 },
     productDiscountTotal: { type: Number, default: 0, min: 0 },
@@ -86,7 +86,21 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
     // ("customer says they cancelled 2 days ago, did we confirm that?").
     statusHistory: [
       {
-        status: { type: String, required: true },
+        status: {
+          type: String,
+          enum: [
+            "pending",
+            "confirmed",
+            "processing",
+            "shipped",
+            "delivered",
+            "cancelled",
+            "returned",
+            "archived",
+            "archived",
+          ],
+          required: true,
+        },
         note: { type: String },
         at: { type: Date, default: Date.now },
       },

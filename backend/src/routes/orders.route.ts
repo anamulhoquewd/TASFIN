@@ -19,8 +19,8 @@ orderRoutes.patch("/:_id", authenticatedAdmin, (c) =>
   orderController.updateOrder(c)
 );
 
-orderRoutes.delete("/:orderId", authenticatedAdmin, (c) =>
-  orderController.deleteOrder(c)
+orderRoutes.patch("/:orderId", authenticatedAdmin, (c) =>
+  orderController.deleteOrder(c),
 );
 
 export default orderRoutes;

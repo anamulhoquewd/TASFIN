@@ -1,6 +1,6 @@
 "use client";
 
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import useCategory from "@/hooks/categorise/useCategory";
 import { ChipInput } from "@/components/chip-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

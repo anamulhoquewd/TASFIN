@@ -85,7 +85,7 @@ export const register = async (body: AdminCreateInput) => {
     };
 
     // Send Email
-    // await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
     return {
       success: {
@@ -280,7 +280,8 @@ export const updateProfile = async ({
 
 export const deleteAdmins = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = idSchemaZ.safeParse({ _id });
+
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }

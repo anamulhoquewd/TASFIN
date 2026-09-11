@@ -1,6 +1,4 @@
-"use client";
-
-import { ListIcon as Category } from "lucide-react";
+import { ListIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../_hook/useCategory";
-import { ICategory } from "@/interfaces/categories";
+import { FormValues } from "../../hooks/categorise/useCategory";
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -32,37 +29,27 @@ interface Props {
   isLoading: boolean;
   open: boolean;
   changeOpen: (open: boolean) => void;
-  selectedItem: ICategory;
-  setSelectedItem: (selectedItem: ICategory | null) => void;
+  handleNameChange: (value: string) => void;
 }
 
-export default function UpdateDialog({
+export default function NewCategory({
   form,
   onSubmit,
   isLoading,
   open,
   changeOpen,
-  selectedItem,
-  setSelectedItem,
+  handleNameChange,
 }: Props) {
-  console.log(selectedItem);
+  console.log("Form valuse: ", form.getValues())
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        changeOpen(isOpen);
-        if (!isOpen) setSelectedItem(null);
-      }}
-    >
+    <Dialog open={open} onOpenChange={changeOpen}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Category className="h-5 w-5" />
-            Update Category
+            <ListIcon className="h-5 w-5" />
+            New Category
           </DialogTitle>
-          <DialogDescription>
-            Change the category for {selectedItem?.name}.
-          </DialogDescription>
+          <DialogDescription>Create a new category.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -72,13 +59,56 @@ export default function UpdateDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="cursor-pointer">
-                    Category Name
+                    category Name
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Type name" {...field} />
+                    {/* <Input placeholder="Type name" {...field} /> */}
+                    <Input
+                      placeholder="Enter product title"
+                      {...field}
+                      onChange={(e) => handleNameChange(e.target.value)}
+                    />
                   </FormControl>
                   <FormDescription>
-                    The name displayed in categroy listings
+                    The name displayed in category listings
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="slug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="cursor-pointer">
+                    Category Slug
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Type slug" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The unique identifier for the category
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="sortOrder"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="cursor-pointer">Sort Order</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Type sort order"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    The order in which the category appears in listings
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -111,15 +141,12 @@ export default function UpdateDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  changeOpen(false);
-                  setSelectedItem(null);
-                }}
+                onClick={() => changeOpen(false)}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update"}
+                {isLoading ? "Creating..." : "Create Category"}
               </Button>
             </DialogFooter>
           </form>

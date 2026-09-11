@@ -1,4 +1,6 @@
-import { ListIcon } from "lucide-react";
+"use client";
+
+import { ListIcon as Category } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +23,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
-import { FormValues } from "../_hook/useCategory";
+import { FormValues } from "../../hooks/categorise/useCategory";
+import { ICategory } from "@/interfaces/categories";
 
 interface Props {
   form: UseFormReturn<FormValues>;
@@ -29,26 +32,37 @@ interface Props {
   isLoading: boolean;
   open: boolean;
   changeOpen: (open: boolean) => void;
-  handleNameChange: (value: string) => void;
+  selectedItem: ICategory;
+  setSelectedItem: (selectedItem: ICategory | null) => void;
 }
 
-export default function NewCategory({
+export default function UpdateDialog({
   form,
   onSubmit,
   isLoading,
   open,
   changeOpen,
-  handleNameChange,
+  selectedItem,
+  setSelectedItem,
 }: Props) {
+  console.log(selectedItem);
   return (
-    <Dialog open={open} onOpenChange={changeOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        changeOpen(isOpen);
+        if (!isOpen) setSelectedItem(null);
+      }}
+    >
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ListIcon className="h-5 w-5" />
-            New Category
+            <Category className="h-5 w-5" />
+            Update Category
           </DialogTitle>
-          <DialogDescription>Create a new category.</DialogDescription>
+          <DialogDescription>
+            Change the category for {selectedItem?.name}.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -58,56 +72,13 @@ export default function NewCategory({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="cursor-pointer">
-                    category Name
+                    Category Name
                   </FormLabel>
                   <FormControl>
-                    {/* <Input placeholder="Type name" {...field} /> */}
-                    <Input
-                      placeholder="Enter product title"
-                      {...field}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                    />
+                    <Input placeholder="Type name" {...field} />
                   </FormControl>
                   <FormDescription>
-                    The name displayed in category listings
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="cursor-pointer">
-                    Category Slug
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Type slug" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The unique identifier for the category
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="sortOrder"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="cursor-pointer">Sort Order</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Type sort order"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    The order in which the category appears in listings
+                    The name displayed in categroy listings
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -140,12 +111,15 @@ export default function NewCategory({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => changeOpen(false)}
+                onClick={() => {
+                  changeOpen(false);
+                  setSelectedItem(null);
+                }}
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Category"}
+                {isLoading ? "Updating..." : "Update"}
               </Button>
             </DialogFooter>
           </form>

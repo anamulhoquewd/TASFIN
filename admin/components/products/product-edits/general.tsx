@@ -1,4 +1,4 @@
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import useCategory from "@/hooks/categorise/useCategory";
 import api from "@/axios/interceptor";
 import { ChipInput } from "@/components/chip-input";
 import { Badge } from "@/components/ui/badge";

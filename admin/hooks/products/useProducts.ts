@@ -300,6 +300,7 @@ function useProducts() {
   };
 
   const onDelete = async (productId: string) => {
+    console.log("Product id:", productId);
     try {
       const result = await api.delete(`/products/${productId}`, {});
 

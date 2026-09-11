@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import useCategory from "@/hooks/categorise/useCategory";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

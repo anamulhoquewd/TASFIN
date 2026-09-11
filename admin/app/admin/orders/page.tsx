@@ -140,11 +140,11 @@ export default function OrdersPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search by Order ID..."
+                  placeholder="Search by order number or id..."
                   className="pl-8"
-                  value={search.orderId}
+                  value={search.global}
                   onChange={(e) =>
-                    setSearch({ ...search, orderId: e.target.value })
+                    setSearch({ ...search, global: e.target.value })
                   }
                 />
               </div>
@@ -406,7 +406,7 @@ export default function OrdersPage() {
                       </TableCell>
 
                       <TableCell>
-                        {new Date(order.orderDate).toLocaleDateString()}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

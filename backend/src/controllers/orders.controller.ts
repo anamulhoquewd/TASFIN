@@ -21,7 +21,7 @@ export const register = async (c: Context) => {
 // Update order
 export const updateOrder = async (c: Context) => {
   const body = await c.req.json();
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await orderService.updateOrder({ body, _id });
 
@@ -38,7 +38,7 @@ export const updateOrder = async (c: Context) => {
 
 // // Delete Order
 export const deleteOrder = async (c: Context) => {
-  const orderId = c.req.param("orderId");
+  const orderId = c.req.param("orderId") as string;
 
   const response = await orderService.deleteOrder(orderId);
 
@@ -104,7 +104,7 @@ export const getOrders = async (c: Context) => {
 };
 
 export const getOrder = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await orderService.getOrder(_id);
 

@@ -243,7 +243,7 @@ export const updateCategory = async ({
 
 export const deleteCategory = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }

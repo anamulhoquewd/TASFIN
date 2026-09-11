@@ -30,7 +30,7 @@ import {
 import Paginations from "@/components/pagination";
 import { IAdmin } from "@/interfaces/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import useAdmin from "./_hook/useAdmin";
+import useAdmin from "../../../hooks/users/useAdmin";
 import { DeleteConfirmation } from "@/components/delete-confirmation";
 
 export default function UsersPage() {

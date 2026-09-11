@@ -83,19 +83,27 @@ export const productVariantSchemaZ = z.object({
 
 export const productSchemaZ = z.object({
   title: z.string().min(1, "title is required"),
-  slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
   description: z.string().max(1000).optional(),
   keyFeatures: z.array(z.string().min(1)).optional(),
 
-  categories: z.array(objectIdSchemaZ).nonempty("At least 1 category is required"),
+  categories: z
+    .array(objectIdSchemaZ)
+    .nonempty("At least 1 category is required"),
 
   images: imagesSchema,
   variants: z
     .array(productVariantSchemaZ)
     .nonempty("At least 1 variant is required")
     .refine(
-      (variants) => new Set(variants.map((v) => v.sku)).size === variants.length,
-      { message: "Variant SKUs must be unique within the product" }
+      (variants) =>
+        variants.filter(
+          (variant, index, allVariants) =>
+            allVariants.findIndex((v) => v.sku === variant.sku) === index,
+        ).length === variants.length,
+      { message: "Variant SKUs must be unique within the product" },
     ),
 
   specifications: z
@@ -128,14 +136,13 @@ export const productSchemaZ = z.object({
     }),
 });
 
-
 // If you want a separate update schema where fields can be optional:
 export const productUpdateZ = productSchemaZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
@@ -143,7 +150,7 @@ export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Product creation accepts pre-transform key-value arrays and produces records.
@@ -189,12 +196,14 @@ export const adminCreateZ = z.object({
 });
 
 // ৩. NID এবং Role ছাড়া আপডেট স্কিমা
-export const adminUpdateLimitedZ = z.object(adminCreateZ.shape)
+export const adminUpdateLimitedZ = z
+  .object(adminCreateZ.shape)
   .omit({ nid: true, role: true }) // প্রথমে ফিল্ড বাদ দিন
-  .partial()                       // তারপর অপশনাল করুন
-  .refine(                         // সবশেষে রিফাইনমেন্ট যোগ করুন
+  .partial() // তারপর অপশনাল করুন
+  .refine(
+    // সবশেষে রিফাইনমেন্ট যোগ করুন
     (data) => Object.keys(data).length > 0,
-    { message: "At least one field must be provided for update" }
+    { message: "At least one field must be provided for update" },
   );
 
 // If you want a separate update schema where fields can be optional:
@@ -203,7 +212,7 @@ export const adminUpdateZ = adminCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Types (optional)
@@ -215,10 +224,10 @@ export const idSchemaZ = z.object({
   _id: z
     .any()
     .transform((val) =>
-      val instanceof mongoose.Types.ObjectId ? val.toString() : val
+      val instanceof mongoose.Types.ObjectId ? val.toString() : val,
     )
     .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-      message: "Invalid MongoDB User ID format",
+      message: "Invalid MongoDB User ID format.",
     }),
 });
 
@@ -243,7 +252,7 @@ export const userCreateZ = z.object({
   occupation: z.string().optional(),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional()
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
@@ -266,7 +275,7 @@ export const userUpdateZ = userCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Types (optional)
@@ -282,7 +291,7 @@ export const loginSchemeZ = z
   .object({
     email: z.preprocess(
       (val) => (val === "" ? undefined : val),
-      z.string().email("Invalid email address").trim().toLowerCase().optional()
+      z.string().email("Invalid email address").trim().toLowerCase().optional(),
     ),
 
     phone: z
@@ -305,11 +314,11 @@ export const avatarSchemaZ = z.object({
     .refine(
       (file) =>
         ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
-          file.type
+          file.type,
         ),
       {
         message: "Only JPEG, JPG, PNG and WEBP files are allowed",
-      }
+      },
     ),
 });
 
@@ -324,7 +333,7 @@ export const categoryCreateZ = z.object({
     .toLowerCase()
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug must be kebab-case (e.g. my-category)"
+      "Slug must be kebab-case (e.g. my-category)",
     ),
   description: z.string().trim().optional().nullable(),
   image: imageZ.optional().nullable(),
@@ -338,7 +347,7 @@ export const categoryUpdateZ = categoryCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Input Type inferred from Zod
@@ -353,7 +362,7 @@ export const settingCreateZ = z.object({
   favicon: imageZ.optional(),
   contactEmail: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional()
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
   ),
 
   contactPhone: z
@@ -377,7 +386,7 @@ export const settingUpdateZ = settingCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Input Type inferred from Zod
@@ -392,18 +401,21 @@ export const orderProductSchemaZ = z.object({
 });
 
 /** Payment status and order status enums */
-export const paymentStatusEnumZ = z.enum(["unpaid", "paid"]);
+export const paymentStatusEnumZ = z.enum(["unpaid", "paid", "refunded"]);
 export const orderStatusEnumZ = z.enum([
   "pending",
+  "confirmed",
   "processing",
   "shipped",
   "delivered",
   "cancelled",
+  "returned",
+  "archived",
 ]);
 
 /** Main Order schema */
 export const orderSchemaZ = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"), // name for create user
   products: z
     .array(orderProductSchemaZ)
     .min(1, "Order must contain at least one product"),
@@ -413,7 +425,7 @@ export const orderSchemaZ = z.object({
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional()
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
@@ -425,20 +437,25 @@ export const orderSchemaZ = z.object({
   paymentMethod: z.enum(["cod"]).default("cod"),
   shippingCost: z.number().nonnegative("price must be >= 0").default(0),
 
-  orderDate: z.coerce
+  createdAt: z.coerce
     .date()
     .optional()
     .default(() => new Date()),
 });
 
 // If you want a separate update schema where fields can be optional:
-export const orderUpdateZ = orderSchemaZ.partial().refine(
-  (data) => {
-    // ensure at least one field present on update
-    return Object.keys(data).length > 0;
-  },
-  { message: "At least one field must be provided for update" }
-);
+export const orderUpdateZ = orderSchemaZ
+  .partial()
+  .extend({
+    note: z.string().trim().max(500).optional(),
+  })
+  .refine(
+    (data) => {
+      // ensure at least one field present on update
+      return Object.keys(data).length > 0;
+    },
+    { message: "At least one field must be provided for update" },
+  );
 
 /** TypeScript types inferred from schemas */
 export type OrderProductInput = z.infer<typeof orderProductSchemaZ>;
@@ -494,7 +511,16 @@ export const orderFetchQuerySchema = z.object({
     .optional(),
 
   status: z
-    .enum(["pending", "processing", "shipped", "delivered", "cancelled"])
+    .enum([
+      "pending",
+      "confirmed",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "returned",
+      "archived",
+    ])
     .optional(),
 
   search: z.string().optional(),

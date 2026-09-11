@@ -147,7 +147,7 @@ export interface ICoupon  {
   active: boolean;
 }
 
-export interface IOrderProduct  {
+export interface IOrderProduct {
   productId: mongoose.Types.ObjectId;
   variantId: mongoose.Types.ObjectId;
   title: string;
@@ -155,36 +155,37 @@ export interface IOrderProduct  {
   price: number;
   quantity: number;
   sku: string; // Added — needed for support/logistics
-  size: string; // Added — was missing entirely; no way to show size without re-querying Product
+  // size: string; // Added — was missing entirely; no way to show size without re-querying Product
 }
 
-export interface IOrder  {
+export interface IOrder {
   _id: string;
   orderNumber: string;
   user: mongoose.Types.ObjectId;
   products: IOrderProduct[];
   address: IAddress;
-  paymentStatus: "unpaid" | "paid";
-  paymentMethod: "cod" | "bkash" | "nagad";
+  paymentStatus: "unpaid" | "paid" | "refunded";
+  paymentMethod: "cod" | "bkash" | "nagad" | "card";
   totalAmount: number;
   shippingCost: number;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "returned"
+    | "archived";
   subtotal: number;
   productDiscountTotal: number;
   couponCode?: string;
   couponDiscount: number;
   statusHistory: {
     note?: string;
-    status:
-      | "pending"
-      | "confirmed"
-      | "processing"
-      | "shipped"
-      | "delivered"
-      | "cancelled"
-      | "returned";
-    at: Date;
-  };
+    status: IOrder["status"];
+    at?: Date;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }

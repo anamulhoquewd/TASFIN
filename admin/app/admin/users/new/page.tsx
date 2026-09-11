@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import useAdmin from "../_hook/useAdmin";
+import useAdmin from "../../../../hooks/users/useAdmin";
 
 export default function NewUserPage() {
   const { form, handleSubmit, isLoading } = useAdmin();
