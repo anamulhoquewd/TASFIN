@@ -178,7 +178,7 @@ export interface IOrder {
     | "returned"
     | "archived";
   subtotal: number;
-  productDiscountTotal: number;
+  discountTotal: number;
   couponCode?: string;
   couponDiscount: number;
   statusHistory: {

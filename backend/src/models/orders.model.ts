@@ -27,6 +27,30 @@ const OrderProductSchema: mongoose.Schema<IOrderProduct> = new mongoose.Schema(
   { _id: false },
 ); // no _id for subdocument — not needed, and avoids confusion with variantId
 
+import { Schema } from "mongoose";
+
+const statusHistorySchema = new Schema(
+  {
+    status: {
+      type: String,
+      enum: [
+        "pending",
+        "confirmed",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+        "returned",
+        "archived",
+      ],
+      required: true,
+    },
+    note: { type: String },
+    at: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
 const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
   {
     // Added — Mongo _id is unfriendly for customer support calls/SMS.
@@ -42,7 +66,7 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
     // way to show "you saved $X" on an invoice, and no audit trail once
     // the discount/coupon feature ships.
     subtotal: { type: Number, required: true, min: 0 },
-    productDiscountTotal: { type: Number, default: 0, min: 0 },
+    discountTotal: { type: Number, default: 0, min: 0 },
     couponCode: { type: String, trim: true, required: false },
     couponDiscount: { type: Number, default: 0, min: 0 },
     shippingCost: { type: Number, required: true, min: 0 },
@@ -77,6 +101,7 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
         "delivered",
         "cancelled",
         "returned",
+        "archived",
       ],
       default: "pending",
     },
@@ -84,27 +109,7 @@ const OrderSchema: mongoose.Schema<IOrder> = new mongoose.Schema(
     // Added — audit trail. Without this, there was no record of *when*
     // or *why* an order moved between statuses — important for support
     // ("customer says they cancelled 2 days ago, did we confirm that?").
-    statusHistory: [
-      {
-        status: {
-          type: String,
-          enum: [
-            "pending",
-            "confirmed",
-            "processing",
-            "shipped",
-            "delivered",
-            "cancelled",
-            "returned",
-            "archived",
-            "archived",
-          ],
-          required: true,
-        },
-        note: { type: String },
-        at: { type: Date, default: Date.now },
-      },
-    ],
+    statusHistory: [statusHistorySchema],
 
     // REMOVED: `orderDate`. It duplicated `createdAt` (already provided
     // by `timestamps: true`) with no distinct purpose. If you later need

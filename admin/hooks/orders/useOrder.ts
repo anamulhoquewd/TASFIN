@@ -6,13 +6,16 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-interface IFilter {
+export interface IFilter {
   status:
     | "pending"
+    | "confirmed"
     | "processing"
     | "shipped"
     | "delivered"
     | "cancelled"
+    | "returned"
+    | "archived"
     | "all";
   paymentStatus: "paid" | "unpaid" | "all";
   dateRange: { from: Date | undefined; to: Date | undefined } | undefined;
@@ -27,22 +30,18 @@ interface ILoadOrder {
   filters: IFilter;
   page: number;
 }
-interface ISearch {
+export interface ISearch {
   global: string;
   userId: string;
   variantId: string;
 }
 
 function useOrder() {
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [orders, setOrders] = useState<IOrder[]>([]);
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
 
   // Dialogs
   const [selectedItem, setSelectedItem] = useState<IOrder | null>(null);
-  const [statusOpen, setStatusOpen] = useState<boolean>(false);
-  const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
-  const [showItemsOpen, setShowItemsOpen] = useState<boolean>(false);
 
   // Search
   const [search, setSearch] = useState<ISearch>({
@@ -111,7 +110,7 @@ function useOrder() {
     if (!selectedItem) return;
 
     try {
-      const response = await api.patch(`/orders/${selectedItem._id}`, data, {});
+      const response = await api.patch(`/orders/${selectedItem._id}`, data);
 
       if (!response.data.success) {
         throw new Error("Failed to update order");
@@ -140,7 +139,7 @@ function useOrder() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await api.delete(`/orders/${id}`, {});
+      const response = await api.delete(`/orders/${id}`);
 
       if (!response.data.success) {
         throw new Error("Failed to delete order");
@@ -236,17 +235,9 @@ function useOrder() {
     getActiveFiltersCount,
     handleDelete,
     handleUpdate,
-    showAdvancedFilters,
-    setShowAdvancedFilters,
     orders,
     pagination,
     setPagination,
-    statusOpen,
-    setStatusOpen,
-    showItemsOpen,
-    setShowItemsOpen,
-    deleteOpen,
-    setDeleteOpen,
     selectedItem,
     setSelectedItem,
     search,

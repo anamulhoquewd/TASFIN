@@ -43,7 +43,6 @@ export default function ShowItems({
 }: ShowItemsProps) {
   const [products, setProducts] = useState<IOrderItem[]>([]);
 
-  console.log("Products: ", products);
   useEffect(() => {
     setProducts(order?.products || []);
   }, [order]);

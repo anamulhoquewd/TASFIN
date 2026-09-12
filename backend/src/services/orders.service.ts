@@ -311,7 +311,7 @@ export const register = async (body: OrderInput) => {
         const orderProducts: any[] = [];
         let totalAmount = 0;
         let subtotal = 0;
-        let productDiscountTotal = 0;
+        let discountTotal = 0;
 
         for (const item of products) {
           const product = await Product.findById(item.productId).session(
@@ -352,7 +352,7 @@ export const register = async (body: OrderInput) => {
           }
 
           const discountedLineTotal = discountedPrice * item.quantity;
-          productDiscountTotal += lineTotal - discountedLineTotal;
+          discountTotal += lineTotal - discountedLineTotal;
           totalAmount += discountedLineTotal;
 
           orderProducts.push({
@@ -379,7 +379,7 @@ export const register = async (body: OrderInput) => {
               shippingCost,
               totalAmount: totalAmount + shippingCost,
               subtotal,
-              productDiscountTotal,
+              discountTotal,
               paymentMethod,
               statusHistory: [{ status: "pending", note: "Order created" }],
             },
@@ -495,15 +495,15 @@ function buildOrderQuery(filters: {
 
   // User ID filter
   if (filters.userId) {
-    query.user = filters.userId;
+    query.user = new mongoose.Types.ObjectId(filters.userId);
   }
 
   // Filter for a specific variant inside products array
   if (filters.variantId) {
-    query["products.variantId"] = filters.variantId;
+    query["products.variantId"] = new mongoose.Types.ObjectId(
+      filters.variantId,
+    );
   }
-
-  console.log("Query: ", query);
 
   return query;
 }
