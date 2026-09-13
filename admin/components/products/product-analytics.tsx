@@ -260,7 +260,7 @@ export function ProductAnalyticsModal({
   const searchParams = useSearchParams();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
 
-  const { categories, getCategoryName } = useCategory();
+  const { getCategoryName } = useCategory();
 
   // Generate analytics data when product changes
   useEffect(() => {

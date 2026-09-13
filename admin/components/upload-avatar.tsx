@@ -11,7 +11,7 @@ interface Props {
   setError: (error: string) => void;
   isAvatarOpen: boolean;
   setIsAvatarOpen: (isAvatarOpen: boolean) => void;
-  setSelectedItem: (selectedItem: ICategory | null) => void;
+  setSelectedItem?: (selectedItem: ICategory | null) => void;
   uploadHandler: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
@@ -69,7 +69,7 @@ export function UploadAvatar({
         onOpenChange={(open: boolean) => {
           setIsAvatarOpen(open);
           setError("");
-          if (!open) setSelectedItem(null);
+          if (!open && setSelectedItem) setSelectedItem(null);
         }}
       >
         <DialogContent className="w-[90vw] sm:max-w-[425px] bg-secondary text-secondary-foreground rounded-lg">

@@ -2,14 +2,16 @@ import type { ISettings } from "./../interfaces/index.js";
 import mongoose from "mongoose";
 import { AddressSchema, ImageSchema } from "./admins.model.js";
 
-const settingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
+
+type SettingsDocument = ISettings & { _id: string };
+
+const settingsSchema = new mongoose.Schema<SettingsDocument>(
   {
     // FIXED: fixed, known _id instead of letting Mongo auto-generate one.
     // This makes "only one settings document" an atomic guarantee from
     // MongoDB's own _id uniqueness — no race-condition-prone count check
     // needed. Always fetch/update via this exact _id.
     _id: { type: String, default: "global" },
-
     siteName: { type: String, required: true, trim: true },
     siteDescription: { type: String, required: true, trim: true },
     logo: { type: ImageSchema, required: false },
@@ -24,7 +26,7 @@ const settingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
       linkedin: { type: String, trim: true },
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // REMOVED: the countDocuments() pre-save check — it had a race condition
@@ -32,7 +34,7 @@ const settingsSchema: mongoose.Schema<ISettings> = new mongoose.Schema(
 // resulting in two documents). The fixed _id above makes this impossible
 // at the database level instead.
 
-const Settings = mongoose.model<ISettings>("Settings", settingsSchema);
+const Settings = mongoose.model<SettingsDocument>("Settings", settingsSchema);
 export default Settings;
 
 // Usage in your service/controller layer — always use findOneAndUpdate

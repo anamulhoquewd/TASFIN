@@ -54,7 +54,7 @@ export const getSubscribers = async (c: Context) => {
 };
 
 export const getSubscriber = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await subscribersService.getSubscriber(_id);
 
@@ -92,7 +92,7 @@ export const updateSubscriber = async (c: Context) => {
 
 // Delete subscriber
 export const deleteSubscriber = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await subscribersService.deleteSubscriber(_id);
 

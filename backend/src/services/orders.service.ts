@@ -661,7 +661,6 @@ export const getOrder = async (_id: string) => {
   }
 };
 
-// TODO./.. Test kora baki ache. order cancelled hole stock back korbe.
 export async function updateOrder({
   body,
   _id,

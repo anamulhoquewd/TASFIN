@@ -48,6 +48,7 @@ import {
 import { IPagination } from "@/interfaces/global";
 import { IProduct } from "@/interfaces/products";
 import { defaultPagination } from "@/utils/details";
+import {} from "@radix-ui/react-dialog";
 import { format } from "date-fns";
 import {
   Edit,
@@ -70,11 +71,9 @@ import {
   useProductAnalyticsModal,
 } from "./product-analytics";
 import { ProductEditDialogs } from "./product-edit";
-import { DialogTitle } from "@radix-ui/react-dialog";
 
 export function ProductsTable() {
-  const { isOpen, selectedProductId, openModal, closeModal } =
-    useProductAnalyticsModal();
+  const { isOpen, selectedProductId, closeModal } = useProductAnalyticsModal();
   const [statusFilter, setStatusFilter] = useState("all");
   const [featuredFilter, setFeaturedFilter] = useState("all");
   // const [categoryFilter, setCategoryFilter] = useState<string>("all");

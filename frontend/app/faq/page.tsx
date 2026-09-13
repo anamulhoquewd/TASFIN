@@ -11,7 +11,10 @@ import Link from "next/link";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
-const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
+const SHIPPING_COST_IN_DHAKA = process.env
+  .NEXT_PUBLIC_SHIPPING_COST_IN_DHAKA as string;
+const SHIPPING_COST_OUT_DHAKA = process.env
+  .NEXT_PUBLIC_SHIPPING_COST_OUT_DHAKA as string;
 
 export default function FAQPage() {
   const faqs = [
@@ -37,9 +40,9 @@ export default function FAQPage() {
       id: 4,
       question: "Do you offer free shipping?",
       answer: `Yes! We offer free shipping on all orders above BDT ${Number(
-        FREE_SHIPPING_START_FROM
-      )}. For orders below this amount, a standard shipping fee of ৳${Number(
-        SHIPPING_COST
+        FREE_SHIPPING_START_FROM,
+      )}. For orders below this amount, a standard shipping fee of ${Number(
+        SHIPPING_COST_IN_DHAKA,
       )} applies.`,
     },
     {

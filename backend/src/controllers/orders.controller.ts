@@ -21,19 +21,27 @@ export const register = async (c: Context) => {
 // Update order
 export const updateOrder = async (c: Context) => {
   const body = await c.req.json();
+
   const _id = c.req.param("_id") as string;
 
   const response = await orderService.updateOrder({ body, _id });
 
-  if (response.error) {
+  if ("error" in response && response.error) {
     return badRequestHandler(c, response.error);
   }
 
-  if (response.serverError) {
+  if ("serverError" in response && response.serverError) {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 200);
+  if ("success" in response) {
+    return c.json(response.success, 200);
+  }
+
+  return serverErrorHandler(c, {
+    success: false,
+    message: "Unexpected response from order service",
+  });
 };
 
 // // Delete Order
