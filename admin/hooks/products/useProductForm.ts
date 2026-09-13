@@ -4,29 +4,19 @@ export function useProductForm(initialData?: any) {
   const [title, setTitle] = useState(initialData?.title || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [description, setDescription] = useState(
-    initialData?.description || {}
+    initialData?.description || {},
   );
-  const [fabric, setFabric] = useState(initialData?.fabric || "");
-  const [valueAddition, setValueAddition] = useState(
-    initialData?.valueAddition || ""
-  );
-  const [cutFit, setCutFit] = useState(initialData?.cutFit || "");
-  const [collarNeck, setCollarNeck] = useState(initialData?.collarNeck || "");
-  const [sleeve, setSleeve] = useState(initialData?.sleeve || "");
-  const [length, setLength] = useState(initialData?.length || "");
-  const [washCare, setWashCare] = useState(initialData?.washCare || "");
-  const [sideCut, setSideCut] = useState(initialData?.sideCut || "");
   const [isFeatured, setIsFeatured] = useState(
-    initialData?.isFeatured || false
+    initialData?.isFeatured || false,
   );
   const [isActive, setIsActive] = useState(initialData?.isActive || true);
 
   const [categories, setCategories] = useState<string[]>(
-    initialData?.categories || []
+    initialData?.categories || [],
   );
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [keyFeatures, setKeyFeatures] = useState<string[]>(
-    initialData?.keyFeatures || []
+    initialData?.keyFeatures || [],
   );
 
   // Main images
@@ -36,7 +26,7 @@ export function useProductForm(initialData?: any) {
   // Variants
   const [variants, setVariants] = useState<any[]>(initialData?.variants || []);
   const [variantImages, setVariantImages] = useState<Record<string, File[]>>(
-    {}
+    {},
   );
   const [deleteVariantUrls, setDeleteVariantUrls] = useState<
     Record<string, string[]>
@@ -84,14 +74,6 @@ export function useProductForm(initialData?: any) {
     setTitle("");
     setSlug("");
     setDescription({});
-    setFabric("");
-    setValueAddition("");
-    setCutFit("");
-    setCollarNeck("");
-    setSleeve("");
-    setLength("");
-    setWashCare("");
-    setSideCut("");
     setIsFeatured(false);
     setIsActive(true);
     setCategories([]);
@@ -110,22 +92,7 @@ export function useProductForm(initialData?: any) {
     setSlug,
     description,
     setDescription,
-    fabric,
-    setFabric,
-    valueAddition,
-    setValueAddition,
-    cutFit,
-    setCutFit,
-    collarNeck,
-    setCollarNeck,
-    sleeve,
-    setSleeve,
-    length,
-    setLength,
-    washCare,
-    setWashCare,
-    sideCut,
-    setSideCut,
+
     isFeatured,
     setIsFeatured,
     isActive,

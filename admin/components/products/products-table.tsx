@@ -457,7 +457,7 @@ export function ProductsTable() {
                               </div>
                             </>
                           ) : (
-                            "00"
+                            "_"
                           )}
                         </TableCell>
 

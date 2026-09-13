@@ -551,7 +551,7 @@ export function EditProductForm({
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                          <FormField
+                          {/* <FormField
                             control={form.control}
                             name={`variants.${index}.size`}
                             render={({ field }) => (
@@ -563,7 +563,7 @@ export function EditProductForm({
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
+                          /> */}
 
                           <FormField
                             control={form.control}
@@ -761,138 +761,6 @@ export function EditProductForm({
             </Card>
 
             {/* Product Details - Same as create form */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="fabric"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Fabric</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Cotton, Polyester, etc."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="valueAddition"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Value Addition</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Special features" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="cutFit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cut & Fit</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Slim, Regular, Loose"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="collarNeck"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Collar/Neck</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Round neck, V-neck, etc."
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sleeve"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Sleeve</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Short, Long, 3/4" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="length"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Length</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Short, Medium, Long" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="washCare"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Wash Care</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Machine wash, Hand wash"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="sideCut"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Side Cut</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Side cut details" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar */}

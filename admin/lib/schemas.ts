@@ -74,12 +74,22 @@ export const productSchema = z.object({
 // IProductVariant schema
 export const productVariantSchemaZ = z.object({
   // Kept optional only so legacy edit dialogs can render old records during migration.
-  size: z.string().optional(),
   sku: z.string().trim().min(1, "SKU is required"),
   attributes: z
-    .array(z.object({ key: z.string().trim().min(1, "Attribute name is required"), value: z.string().trim().min(1, "Attribute value is required") }))
+    .array(
+      z.object({
+        key: z.string().trim().min(1, "Attribute name is required"),
+        value: z.string().trim().min(1, "Attribute value is required"),
+      }),
+    )
     .optional()
-    .refine((items) => !items || new Set(items.map((item) => item.key.toLowerCase())).size === items.length, "Attribute names must be unique"),
+    .refine(
+      (items) =>
+        !items ||
+        new Set(items.map((item) => item.key.trim().toLowerCase())).size ===
+          items.length,
+      "Attribute names must be unique",
+    ),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(fileSchema).optional(),
@@ -116,16 +126,6 @@ export const productSchemaZ = z.object({
     .array(z.object({ key: z.string().trim().min(1, "Specification name is required"), value: z.string().trim().min(1, "Specification value is required") }))
     .optional()
     .refine((items) => !items || new Set(items.map((item) => item.key.toLowerCase())).size === items.length, "Specification names must be unique"),
-
-  // Legacy fields are read-only compatibility fields. New products use specifications.
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
 
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),

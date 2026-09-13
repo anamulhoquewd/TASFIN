@@ -2,7 +2,6 @@
 
 import type React from "react";
 
-import useCategory from "@/hooks/categorise/useCategory";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +34,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import useCategory from "@/hooks/categorise/useCategory";
 import { IProduct } from "@/interfaces/products";
 import { formatPrice } from "@/lib/utils";
 import {
@@ -165,7 +165,7 @@ const generateMockAnalytics = (product: IProduct): Analytics => {
     })),
     variantPerformance: product.variants.map((variant, i) => ({
       variantId: variant._id || `variant-${i}`,
-      variantName: `${variant.size}`,
+      variantName: `${variant.sku}`,
       unitsSold: Math.floor(Math.random() * 50) + 10,
       revenue: Math.floor(Math.random() * 100000) + 20000,
       conversion: Math.random() * 15 + 2,
@@ -388,9 +388,7 @@ export function ProductAnalyticsModal({
                         ))}
                       </div>
                     )}
-                    {product.fabric && (
-                      <Badge variant="default">{product.fabric}</Badge>
-                    )}
+
                     <Badge variant={product.isActive ? "default" : "secondary"}>
                       {product.isActive ? "Active" : "Inactive"}
                     </Badge>
@@ -618,14 +616,6 @@ export function ProductAnalyticsModal({
                             Others information
                           </h4>
                           <div className="space-y-2 text-sm">
-                            {product.fabric && (
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  Fabric:
-                                </span>
-                                <span>{product.fabric}</span>
-                              </div>
-                            )}
                             <div className="flex justify-between">
                               <span className="text-muted-foreground">
                                 Created At:
@@ -718,7 +708,7 @@ export function ProductAnalyticsModal({
                                 </div>
                               </TableCell>
                               <TableCell className="font-medium">
-                                {variant.size}
+                                variant
                               </TableCell>
                               <TableCell className="font-medium">
                                 {formatPrice(
@@ -910,7 +900,7 @@ export function ProductAnalyticsModal({
                               className="text-yellow-600 border-yellow-600"
                             >
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              {variant.size} ({variant.stock})
+                              {variant.sku} ({variant.stock})
                             </Badge>
                           ))}
                         </div>
@@ -927,12 +917,7 @@ export function ProductAnalyticsModal({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Size</TableHead>
-                          <TableHead>Fabric</TableHead>
-                          <TableHead>Sleeve</TableHead>
-                          <TableHead>Collar/Neck</TableHead>
-                          <TableHead>Cut/Fit</TableHead>
-                          <TableHead>Value Addition</TableHead>
+                         
                           <TableHead>Wash Care</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -940,25 +925,7 @@ export function ProductAnalyticsModal({
                         {product.variants.map((variant) => (
                           <TableRow key={variant._id}>
                             <TableCell className="font-medium">
-                              {variant.size}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.fabric}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.sleeve}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.collarNeck}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.cutFit}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.valueAddition}
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              {product.washCare}
+                              product
                             </TableCell>
                           </TableRow>
                         ))}

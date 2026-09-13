@@ -1,7 +1,7 @@
 // validation/admin.validation.ts
-import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
-import {  z } from "zod";
+import { z } from "zod";
+import { isValidDate } from "./../utils/index.js";
 
 // Image validation (matches your ImageSchema)
 export const imageZ = z.object({
@@ -53,12 +53,17 @@ export const keyValueArrayToRecord = (
   arr: { key: string; value: string }[],
 ) => {
   const record: Record<string, string> = {};
+
   for (const { key, value } of arr) {
-    if (record[key] !== undefined) {
+    const normalizedKey = key.trim().toLowerCase();
+
+    if (record[normalizedKey] !== undefined) {
       throw new Error(`Duplicate specification key: "${key}"`);
     }
-    record[key] = value;
+
+    record[normalizedKey] = value.trim();
   }
+
   return record;
 };
 
@@ -495,7 +500,7 @@ export const orderFetchQuerySchema = z.object({
     .optional(),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional()
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
@@ -531,7 +536,7 @@ export const orderFetchQuerySchema = z.object({
 export const subscriberSchemaZ = z.object({
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase()
+    z.string().email("Invalid email address").trim().toLowerCase(),
   ),
   status: z.enum(["subscribed", "unsubscribed"]).default("subscribed"),
 
@@ -550,7 +555,7 @@ export const subscriberUpdateZ = subscriberSchemaZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 export const subscriberQueryZ = z.object({
@@ -560,13 +565,13 @@ export const subscriberQueryZ = z.object({
     .string()
     .optional()
     .transform((val) =>
-      val === "true" ? true : val === "false" ? false : undefined
+      val === "true" ? true : val === "false" ? false : undefined,
     ),
   isBlocked: z
     .string()
     .optional()
     .transform((val) =>
-      val === "true" ? true : val === "false" ? false : undefined
+      val === "true" ? true : val === "false" ? false : undefined,
     ),
   search: z.string().optional(),
 });
