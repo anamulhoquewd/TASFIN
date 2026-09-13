@@ -16,7 +16,14 @@ import {
 } from "@/components/ui/breadcrumb";
 import Image from "next/image";
 import { ProductNotFound } from "@/components/products/product/product-not-found";
-import { cn, debounce, formatPrice } from "@/lib/utils";
+import {
+  cn,
+  debounce,
+  formatPrice,
+  getDiscountAmount,
+  getDiscountLabel,
+  getDiscountedPrice,
+} from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -75,7 +82,13 @@ export default function ProductPage() {
         variantId: selectedVariant._id,
         title: product?.title,
         image: selectedVariant.images?.[0] || product?.images[0],
-        price: selectedVariant.price,
+        price: getDiscountedPrice(selectedVariant.price, product.discount),
+        originalPrice: selectedVariant.price,
+        discountAmount: getDiscountAmount(
+          selectedVariant.price,
+          product.discount,
+        ),
+        discountLabel: getDiscountLabel(product.discount),
         maxStock: selectedVariant.stock,
         attributes: getVariantAttributes(selectedVariant.attributes),
         quantity: quantity,
@@ -110,6 +123,7 @@ export default function ProductPage() {
           image: product.images[0],
           slug: product.slug,
           variants: [...product.variants],
+          discount: product.discount,
         });
         toast.success("Added ✓", {
           action: {

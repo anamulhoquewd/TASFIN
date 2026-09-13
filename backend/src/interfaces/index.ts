@@ -15,7 +15,7 @@ export interface IImage {
   key: string;
 }
 
-export interface IProductVariant  {
+export interface IProductVariant {
   _id: string;
   sku: string;
   attributes: Map<string, string>; // flexible attributes
@@ -24,7 +24,7 @@ export interface IProductVariant  {
   images?: IImage[];
 }
 
-export interface IProduct  {
+export interface IProduct {
   _id: string;
   title: string;
   slug: string;

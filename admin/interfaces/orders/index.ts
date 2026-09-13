@@ -36,6 +36,7 @@ export interface IOrderUser {
 export interface IOrder {
   _id: string;
   orderNumber: string;
+  discountTotal: number;
   user: IOrderUser;
   products: IOrderItem[];
   address: IAddress;
@@ -47,7 +48,7 @@ export interface IOrder {
   totalAmount: number;
 
   paymentStatus: PaymentStatus;
-  paymentMethod: "cod" | "card" | "bkash" | "nagad"; // adjust to your actual enum
+  paymentMethod: "cod" | "bkash" | "nagad" | "card";
 
   status: OrderStatus;
   statusHistory: IStatusHistoryEntry[];

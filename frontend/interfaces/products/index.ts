@@ -14,7 +14,7 @@ export interface IProduct {
   title: string;
   slug: string;
   description?: string;
-   keyFeatures?: string[];
+  keyFeatures?: string[];
   categories: string[];
   images: IImage[];
   variants: IProductVariant[];
@@ -30,8 +30,8 @@ export interface IProduct {
   discount?: {
     discountType: "percentage" | "fixed";
     value: number;
-    startAt: Date;
-    endAt: Date;
+    startAt?: Date;
+    endAt?: Date;
   };
   createdAt: Date;
   updatedAt: Date;

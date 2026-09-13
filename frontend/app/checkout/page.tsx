@@ -9,25 +9,23 @@ import useOrder from "@/hooks/orders/use-orders";
 import Checkout from "@/components/order/checkout";
 import OrderConfirmed from "@/components/order/order-confirmed";
 import OrderFailed from "@/components/order/order-faild";
-
-const FREE_SHIPPING_START_FROM = process.env
-  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
-const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
+import { FREE_SHIPPING_THRESHOLD, getShippingFee } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function CheckoutPage() {
-  const { cartItems, subtotal, totalCartItems } = useCartAndWishlist();
+  const { cartItems, subtotal, originalSubtotal, totalCartItems } =
+    useCartAndWishlist();
   const { form, handleSubmit, isProcessing, status, order, setStatus } =
     useOrder();
 
-  const shippingFee =
-    subtotal > 0
-      ? subtotal >= Number(FREE_SHIPPING_START_FROM)
-        ? 0
-        : Number(SHIPPING_COST)
-      : 0;
+  const shippingLocation = form.watch("shippingLocation");
+  const isDhaka = shippingLocation === "dhaka";
+  const shippingFee = getShippingFee(subtotal, shippingLocation);
   const total = subtotal + shippingFee;
 
-  form.setValue("shippingCost", shippingFee);
+  useEffect(() => {
+    form.setValue("shippingCost", shippingFee, { shouldValidate: true });
+  }, [form, shippingFee]);
 
   if (status === "success" && order)
     return (
@@ -65,8 +63,11 @@ export default function CheckoutPage() {
       items={cartItems}
       shippingFee={shippingFee}
       subtotal={subtotal}
+      originalSubtotal={originalSubtotal}
       total={total}
       totalItems={totalCartItems}
+      shippingThreshold={FREE_SHIPPING_THRESHOLD}
+      isDhaka={isDhaka}
     />
   );
 }

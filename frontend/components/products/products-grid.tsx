@@ -12,7 +12,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ArrowUpDown, Heart } from "lucide-react";
-import { cn, debounce, formatPrice } from "@/lib/utils";
+import {
+  cn,
+  debounce,
+  formatPrice,
+  getDiscountAmount,
+  getDiscountLabel,
+  getDiscountedPrice,
+  isDiscountActive,
+} from "@/lib/utils";
 import { IProduct, IProductVariant } from "@/interfaces/products";
 import { IImage } from "@/interfaces/global";
 import { Spinner } from "../ui/spinner";
@@ -190,6 +198,7 @@ export function ProductCard({
           image: product.images[0],
           slug: product.slug,
           variants: [...product.variants],
+          discount: product.discount,
         });
         toast.success("Added ✓", {
           action: {
@@ -207,11 +216,17 @@ export function ProductCard({
 
   const inStock = product.isActive && variantsHasStock.length > 0;
   const attributeGroups = getVariantAttributeGroups(product.variants);
-  const selectedVariant = product.variants.find((variant) =>
-    Object.entries(selectedAttributes).every(
-      ([key, value]) => getVariantAttributes(variant.attributes)[key] === value
-    )
+  const hasSelectedAllAttributes = attributeGroups.every(
+    (group) => selectedAttributes[group.key],
   );
+  const selectedVariant = hasSelectedAllAttributes
+    ? product.variants.find((variant) => {
+        const attributes = getVariantAttributes(variant.attributes);
+        return attributeGroups.every(
+          (group) => attributes[group.key] === selectedAttributes[group.key],
+        );
+      })
+    : undefined;
 
   const handleAddToCart = () => {
     if (!selectedVariant) return;
@@ -228,7 +243,13 @@ export function ProductCard({
       variantId: selectedVariant._id,
       title: product.title,
       image: selectedVariant.images?.[0] || product.images[0],
-      price: selectedVariant.price,
+      price: getDiscountedPrice(selectedVariant.price, product.discount),
+      originalPrice: selectedVariant.price,
+      discountAmount: getDiscountAmount(
+        selectedVariant.price,
+        product.discount,
+      ),
+      discountLabel: getDiscountLabel(product.discount),
       maxStock: selectedVariant.stock,
       quantity: 1, // optional, defaults to 1
       slug: product.slug,
@@ -242,6 +263,27 @@ export function ProductCard({
     () => debounce(handleAddToCart, 500),
     [product, selectedVariant]
   );
+
+  const discountActive = isDiscountActive(product.discount);
+  const variantPrices = product.variants.map((variant) => variant.price);
+  const discountedVariantPrices = product.variants.map((variant) =>
+    getDiscountedPrice(variant.price, product.discount),
+  );
+  const minVariantPrice = Math.min(...variantPrices);
+  const maxVariantPrice = Math.max(...variantPrices);
+  const minDiscountedPrice = Math.min(...discountedVariantPrices);
+  const maxDiscountedPrice = Math.max(...discountedVariantPrices);
+  const hasPriceRange = minVariantPrice !== maxVariantPrice;
+  const priceLabel = selectedVariant
+    ? formatPrice(getDiscountedPrice(selectedVariant.price, product.discount))
+    : hasPriceRange
+      ? `${formatPrice(minDiscountedPrice)} - ${formatPrice(maxDiscountedPrice)}`
+      : formatPrice(minDiscountedPrice);
+  const originalPriceLabel = selectedVariant
+    ? formatPrice(selectedVariant.price)
+    : hasPriceRange
+      ? `${formatPrice(minVariantPrice)} - ${formatPrice(maxVariantPrice)}`
+      : formatPrice(minVariantPrice);
 
   useEffect(() => {
     if (!hovered || !product.images || product.images.length <= 1) return;
@@ -297,6 +339,12 @@ export function ProductCard({
         {product.isFeatured ? "New" : "Sale"}
       </span>
 
+      {discountActive && (
+        <span className="absolute left-4 top-10 bg-foreground px-2 py-1 text-[10px] tracking-[0.15em] text-background">
+          {getDiscountLabel(product.discount)}
+        </span>
+      )}
+
       {/* Out of Stock Overlay */}
       {inStock || (
         <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
@@ -312,7 +360,7 @@ export function ProductCard({
         className={cn(
           "absolute top-4 right-4 p-2 cursor-pointer transition-all duration-300 z-10 hover:bg-transparent bg-transparent",
           "opacity-0 group-hover:opacity-100",
-          "opacity-100"
+          "opacity-100",
         )}
         onClick={debouncedWishlist}
       >
@@ -321,7 +369,7 @@ export function ProductCard({
             "w-5 h-5 transition-all duration-300",
             isInWishlist(product._id)
               ? "fill-foreground stroke-foreground"
-              : "fill-transparent stroke-foreground hover:stroke-foreground"
+              : "fill-transparent stroke-foreground hover:stroke-foreground",
           )}
         />
       </Button>
@@ -331,7 +379,7 @@ export function ProductCard({
         <div
           className={cn(
             "absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm transition-all duration-500",
-            "translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+            "translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100",
           )}
         >
           <div className="p-4">
@@ -346,12 +394,17 @@ export function ProductCard({
                 <div className="flex gap-2 flex-wrap">
                   {group.values.map((value) => {
                     const candidate = product.variants.find((variant) => {
-                      const attributes = getVariantAttributes(variant.attributes);
+                      const attributes = getVariantAttributes(
+                        variant.attributes,
+                      );
                       return (
                         attributes[group.key] === value &&
                         Object.entries(selectedAttributes)
                           .filter(([key]) => key !== group.key)
-                          .every(([key, selectedValue]) => attributes[key] === selectedValue)
+                          .every(
+                            ([key, selectedValue]) =>
+                              attributes[key] === selectedValue,
+                          )
                       );
                     });
                     const selected = selectedAttributes[group.key] === value;
@@ -361,16 +414,24 @@ export function ProductCard({
                         variant="outline"
                         key={`${group.key}-${value}`}
                         onClick={() =>
-                          setSelectedAttributes((current) => ({
-                            ...current,
-                            [group.key]: value,
-                          }))
+                          setSelectedAttributes((current) => {
+                            if (current[group.key] === value) {
+                              const nextAttributes = { ...current };
+                              delete nextAttributes[group.key];
+                              return nextAttributes;
+                            }
+
+                            return {
+                              ...current,
+                              [group.key]: value,
+                            };
+                          })
                         }
                         className={cn(
                           "text-xs relative overflow-hidden tracking-wide cursor-pointer rounded-none border transition-colors duration-300",
                           selected && candidate?.stock !== 0
                             ? "bg-primary hover:bg-primary/95 text-accent hover:text-accent"
-                            : "bg-transparent hover:border-foreground border text-foreground"
+                            : "bg-transparent hover:border-foreground border text-foreground",
                         )}
                         disabled={!candidate || candidate.stock <= 0}
                       >
@@ -388,7 +449,7 @@ export function ProductCard({
             size={"lg"}
             variant={selectedVariant ? "default" : "outline"}
             className={cn(
-              "w-full py-3 text-xs tracking-[0.2em] uppercase transition-colors rounded-none cursor-pointer"
+              "w-full py-3 text-xs tracking-[0.2em] uppercase transition-colors rounded-none cursor-pointer",
             )}
           >
             {selectedVariant ? "Add to Bag" : "Select options"}
@@ -406,13 +467,13 @@ export function ProductCard({
 
         <div className="flex items-center gap-2">
           <span className="text-sm tracking-wide text-foreground">
-            {formatPrice(product.variants[0].price)}
+            {priceLabel}
           </span>
-          {/* {product.originalPrice && (
-            <span className="text-sm tracking-wide text-muted-foreground line-through">
-              ${product.originalPrice.toFixed(2)}
+          {discountActive && (
+            <span className="text-xs tracking-wide text-muted-foreground line-through">
+              {originalPriceLabel}
             </span>
-          )} */}
+          )}
         </div>
 
         {product.variants.length > 0 && (

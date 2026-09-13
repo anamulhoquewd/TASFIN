@@ -78,7 +78,7 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
               </p>
               <div className="flex items-center gap-2">
                 <p className="text-lg font-mono font-semibold text-foreground">
-                  {order._id.substring(0, 12)}...
+                  ... {order.orderNumber.split("-")[3]}
                 </p>
                 <button
                   onClick={() => copyToClipboard(order._id)}
@@ -140,8 +140,8 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
                         isActive
                           ? "bg-orange-600 text-white"
                           : isCompleted
-                          ? "bg-green-600 text-white"
-                          : "bg-gray-200 text-gray-500"
+                            ? "bg-green-600 text-white"
+                            : "bg-gray-200 text-gray-500"
                       }`}
                     >
                       <StepIcon className="w-5 h-5" />
@@ -160,8 +160,8 @@ export default function OrderStatus({ order, onBack }: OrderStatusProps) {
                         isActive
                           ? "text-orange-600"
                           : isCompleted
-                          ? "text-green-600"
-                          : "text-gray-400"
+                            ? "text-green-600"
+                            : "text-gray-400"
                       }`}
                     >
                       {step.label}

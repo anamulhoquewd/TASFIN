@@ -8,6 +8,9 @@ export interface ICartItem {
   slug: string;
   image: IImage;
   price: number;
+  originalPrice?: number;
+  discountAmount?: number;
+  discountLabel?: string;
   quantity: number;
   maxStock: number;
   // Include variant details for display
@@ -20,4 +23,10 @@ export interface IWishlistItem {
   image: IImage;
   slug: string;
   variants: IProductVariant[];
+  discount?: {
+    discountType: "percentage" | "fixed";
+    value: number;
+    startAt?: Date;
+    endAt?: Date;
+  };
 }

@@ -10,6 +10,57 @@ export function cn(...inputs: ClassValue[]) {
 export const formatPrice = (price: number = 0) =>
   `BDT ${price.toLocaleString()}`;
 
+export const isDiscountActive = (
+  discount?: IProduct["discount"],
+  now = new Date(),
+) => {
+  if (!discount || discount.value <= 0) return false;
+
+  const startAt = discount.startAt ? new Date(discount.startAt) : undefined;
+  const endAt = discount.endAt ? new Date(discount.endAt) : undefined;
+
+  return (!startAt || now >= startAt) && (!endAt || now <= endAt);
+};
+
+export const getDiscountedPrice = (
+  price: number,
+  discount?: IProduct["discount"],
+) => {
+  if (!discount || !isDiscountActive(discount)) return price;
+
+  return discount.discountType === "percentage"
+    ? Math.round(price * (1 - discount.value / 100))
+    : Math.max(0, price - discount.value);
+};
+
+export const getDiscountAmount = (
+  price: number,
+  discount?: IProduct["discount"],
+) => Math.max(0, price - getDiscountedPrice(price, discount));
+
+export const getDiscountLabel = (discount?: IProduct["discount"]) => {
+  if (!discount || !isDiscountActive(discount)) return "";
+
+  return discount.discountType === "percentage"
+    ? `${discount.value}% OFF`
+    : `${formatPrice(discount.value)} OFF`;
+};
+
+export const FREE_SHIPPING_THRESHOLD = 3000;
+export const DHAKA_SHIPPING_COST = 70;
+export const OUTSIDE_DHAKA_SHIPPING_COST = 130;
+
+export const getShippingFee = (
+  subtotal: number,
+  location: "dhaka" | "outside-dhaka" = "outside-dhaka",
+) => {
+  if (subtotal <= 0 || subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+
+  return location === "dhaka"
+    ? DHAKA_SHIPPING_COST
+    : OUTSIDE_DHAKA_SHIPPING_COST;
+};
+
 // Function to copy the access key to clipboard
 export const copyToClipboard = (text: string) => {
   toast.success("Copied");

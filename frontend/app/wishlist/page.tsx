@@ -5,7 +5,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Heart } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import {
+  cn,
+  formatPrice,
+  getDiscountAmount,
+  getDiscountLabel,
+  getDiscountedPrice,
+} from "@/lib/utils";
 import Image from "next/image";
 import {
   Breadcrumb,
@@ -53,7 +59,10 @@ function Wishlist() {
       variantId: selectedVariant._id,
       title: item.title,
       image: item.image,
-      price: selectedVariant.price,
+      price: getDiscountedPrice(selectedVariant.price, item.discount),
+      originalPrice: selectedVariant.price,
+      discountAmount: getDiscountAmount(selectedVariant.price, item.discount),
+      discountLabel: getDiscountLabel(item.discount),
       maxStock: selectedVariant.stock,
       attributes: getVariantAttributes(selectedVariant.attributes),
       quantity: 1,

@@ -8,23 +8,45 @@ export interface IAddress {
   country: string;
 }
 
-export interface IOrder {
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "returned"
+  | "archived";
+
+export type PaymentStatus = "unpaid" | "paid" | "refunded";
+
+export interface IStatusHistoryEntry {
+  status: OrderStatus;
+  note?: string;
+  at: Date;
+}
+
+export interface IOrderUser {
   _id: string;
-  user: {
-    name: string;
-    phone: string;
-    address: IAddress;
-    email: string;
-    _id: string;
-  };
+  name: string;
+  phone: string;
+  email?: string;
+}
+
+export interface IOrder {
+  orderNumber: string;
+
+  _id: string;
+  user: IOrderUser;
   totalAmount: number;
-  paymentStatus: "unpaid" | "paid";
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  paymentStatus: PaymentStatus;
+  status: OrderStatus;
   address: IAddress;
   orderDate: string | Date;
   createdAt: string;
   products: IOrderItem[];
   shippingCost: number;
+  statusHistory: IStatusHistoryEntry;
 }
 
 export interface IFetchOrder {

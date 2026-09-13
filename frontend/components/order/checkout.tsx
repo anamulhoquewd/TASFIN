@@ -1,23 +1,15 @@
-import { Wallet } from "lucide-react";
-import Link from "next/link";
-import React from "react";
+import { ICartItem } from "@/interfaces/context";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Input } from "../ui/input";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { Separator } from "../ui/separator";
-import { formatPrice } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { UseFormReturn } from "react-hook-form";
+  DHAKA_SHIPPING_COST,
+  formatPrice,
+  OUTSIDE_DHAKA_SHIPPING_COST,
+} from "@/lib/utils";
 import { CheckoutFormValues } from "@/lib/zod-validation";
+import { CreditCard, Wallet } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { UseFormReturn } from "react-hook-form";
+import { Badge } from "../ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -26,8 +18,19 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../ui/breadcrumb";
-import { Badge } from "../ui/badge";
-import { ICartItem } from "@/interfaces/context";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
+import { Input } from "../ui/input";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Separator } from "../ui/separator";
 
 interface CheckoutProps {
   form: UseFormReturn<CheckoutFormValues>;
@@ -36,8 +39,11 @@ interface CheckoutProps {
   isProcessing: boolean;
   totalItems: number;
   subtotal: number;
+  originalSubtotal: number;
   total: number;
   shippingFee: number;
+  shippingThreshold: number;
+  isDhaka: boolean;
 }
 
 function Checkout({
@@ -47,9 +53,17 @@ function Checkout({
   isProcessing,
   totalItems,
   subtotal,
+  originalSubtotal,
   total,
   shippingFee,
+  shippingThreshold,
+  isDhaka,
 }: CheckoutProps) {
+  const totalDiscount = items.reduce(
+    (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
+    0,
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       <header className="pb-">
@@ -198,6 +212,60 @@ function Checkout({
                       )}
                     />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="shippingLocation"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Delivery Area *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                          >
+                            <label
+                              htmlFor="shipping-dhaka"
+                              className="flex cursor-pointer items-center gap-3 border p-4 hover:bg-muted/50"
+                            >
+                              <RadioGroupItem
+                                value="dhaka"
+                                id="shipping-dhaka"
+                              />
+                              <span>
+                                <span className="block font-medium">
+                                  Inside Dhaka
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatPrice(DHAKA_SHIPPING_COST)} delivery
+                                </span>
+                              </span>
+                            </label>
+                            <label
+                              htmlFor="shipping-outside-dhaka"
+                              className="flex cursor-pointer items-center gap-3 border p-4 hover:bg-muted/50"
+                            >
+                              <RadioGroupItem
+                                value="outside-dhaka"
+                                id="shipping-outside-dhaka"
+                              />
+                              <span>
+                                <span className="block font-medium">
+                                  Outside Dhaka
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatPrice(OUTSIDE_DHAKA_SHIPPING_COST)}{" "}
+                                  delivery
+                                </span>
+                              </span>
+                            </label>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
@@ -233,6 +301,25 @@ function Checkout({
                                   </p>
                                   <p className="text-sm text-muted-foreground">
                                     Pay when you receive your order
+                                  </p>
+                                </div>
+                              </label>
+                            </div>
+                            <div className="bg-destructive/20 cursor-not-allowed flex items-center space-x-3 border rounded-lg p-4 transition-colors">
+                              <RadioGroupItem
+                                disabled
+                                value="online"
+                                id="online"
+                              />
+                              <label
+                                htmlFor="online"
+                                className="flex items-center gap-3 flex-1"
+                              >
+                                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                  <p className="font-medium">Online</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Pay online and get shipping for 100% free.
                                   </p>
                                 </div>
                               </label>
@@ -285,9 +372,22 @@ function Checkout({
                             Qty: {item.quantity}
                           </p>
                         </div>
-                        <p className="text-sm font-semibold">
-                          {formatPrice(item.price * item.quantity)}
-                        </p>
+                        <div className="text-right">
+                          {item.originalPrice && item.discountAmount ? (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {formatPrice(item.originalPrice * item.quantity)}
+                            </p>
+                          ) : null}
+                          <p className="text-sm font-semibold">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                          {item.discountAmount ? (
+                            <p className="text-xs text-green-700">
+                              {item.discountLabel || "Discount"} - Save{" "}
+                              {formatPrice(item.discountAmount * item.quantity)}
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -300,12 +400,20 @@ function Checkout({
                         Subtotal ({totalItems} items)
                       </span>
                       <span className="font-medium">
-                        {formatPrice(subtotal)}
+                        {formatPrice(originalSubtotal)}
                       </span>
                     </div>
+                    {totalDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Discount</span>
+                        <span className="font-medium text-green-700">
+                          - {formatPrice(totalDiscount)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Shipping Fee
+                        Shipping Fee ({isDhaka ? "Dhaka" : "Outside Dhaka"})
                       </span>
                       <span className="font-medium">
                         {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
@@ -321,6 +429,13 @@ function Checkout({
                       {formatPrice(total)}
                     </span>
                   </div>
+
+                  {subtotal < shippingThreshold && (
+                    <p className="text-xs text-muted-foreground">
+                      Add {formatPrice(shippingThreshold - subtotal)} more for
+                      free shipping.
+                    </p>
+                  )}
 
                   <Button
                     type="submit"

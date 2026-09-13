@@ -13,7 +13,7 @@ interface CartContextType {
   wishlist: IWishlistItem[];
   addToWishlist: (wishlistItem: IWishlistItem) => void;
   addCartItem: (
-    newCartItem: Omit<ICartItem, "quantity"> & { quantity?: number }
+    newCartItem: Omit<ICartItem, "quantity"> & { quantity?: number },
   ) => void;
   totalWishlist: number;
   isInWishlist: (productId: string) => boolean;
@@ -24,11 +24,12 @@ interface CartContextType {
   updateCartQuantity: (
     productId: string,
     variantId: string,
-    quantity: number
+    quantity: number,
   ) => void;
   clearCart: () => void;
   totalCartItems: number;
   subtotal: number;
+  originalSubtotal: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -188,6 +189,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     (sum, cartItem) => sum + cartItem.price * cartItem.quantity,
     0
   );
+  const originalSubtotal = cartItems.reduce(
+    (sum, cartItem) =>
+      sum + (cartItem.originalPrice ?? cartItem.price) * cartItem.quantity,
+    0,
+  );
 
   return (
     <CartContext.Provider
@@ -199,6 +205,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         totalCartItems,
         subtotal,
+        originalSubtotal,
 
         wishlist,
         addToWishlist,

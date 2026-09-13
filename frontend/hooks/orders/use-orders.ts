@@ -56,6 +56,7 @@ const useOrders = () => {
         country: "Bangladesh",
       },
       paymentMethod: "cod",
+      shippingLocation: "outside-dhaka",
     },
   });
 

@@ -2,7 +2,13 @@
 
 import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
 import { ProductsGrids } from "@/components/products/products-grid";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import useCategory from "@/hooks/categories/useCategory";
 import { useProducts } from "@/hooks/products/use-products";
 import { useSearchParams } from "next/navigation";
@@ -71,15 +77,24 @@ export default function ProductsPage() {
         </div>
 
         {/* Drawer (Mobile Filter) */}
-        <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <DialogContent className="p-0 border-0 m-0">
+        <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+          <DrawerContent className="max-h-[88vh] p-0">
+            <DrawerHeader className="border-b border-border px-6 py-4">
+              <DrawerTitle className="font-cormorant text-left text-lg uppercase tracking-wide">
+                Filters
+              </DrawerTitle>
+              <DrawerDescription className="sr-only">
+                Filter products by category and price range.
+              </DrawerDescription>
+            </DrawerHeader>
             <ProductsFilterSidebar
               onFilterChange={handleFilterChange_}
               initialFilters={filters}
               categories={categories}
+              isDrawer
             />
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       </div>
     </div>
   );

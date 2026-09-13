@@ -26,6 +26,7 @@ export const CheckoutSchemaZ = z.object({
   paymentMethod: z.enum(["cod"], {
     error: "Please select a payment method",
   }),
+  shippingLocation: z.enum(["dhaka", "outside-dhaka"]),
   shippingCost: z.coerce.number().nonnegative("Cost must be 0 or up"),
 });
 

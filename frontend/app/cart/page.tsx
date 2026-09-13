@@ -6,7 +6,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
 import { useCartAndWishlist } from "@/lib/cart-context";
-import { cn, formatPrice } from "@/lib/utils";
+import {
+  cn,
+  formatPrice,
+  FREE_SHIPPING_THRESHOLD,
+  getShippingFee,
+} from "@/lib/utils";
 import Image from "next/image";
 import {
   Breadcrumb,
@@ -18,10 +23,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { EmptyCart } from "@/components/cart/empty-cart";
 
-const FREE_SHIPPING_START_FROM = process.env
-  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
-const SHIPPING_COST = process.env.NEXT_PUBLIC_SHIPPING_COST as string;
-
 export default function CartPage() {
   const {
     cartItems,
@@ -29,16 +30,16 @@ export default function CartPage() {
     updateCartQuantity,
     subtotal,
     totalCartItems,
+    originalSubtotal,
   } = useCartAndWishlist();
   // const [promoCode, setPromoCode] = useState("");
 
-  const shippingFee =
-    subtotal > 0
-      ? subtotal >= Number(FREE_SHIPPING_START_FROM)
-        ? 0
-        : Number(SHIPPING_COST)
-      : 0;
+  const shippingFee = getShippingFee(subtotal);
   const total = subtotal + shippingFee;
+  const totalDiscount = cartItems.reduce(
+    (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
+    0,
+  );
 
   if (cartItems.length === 0) {
     return (
@@ -166,7 +167,7 @@ export default function CartPage() {
                             updateCartQuantity(
                               item.productId,
                               item.variantId,
-                              item.quantity - 1
+                              item.quantity - 1,
                             )
                           }
                           disabled={item.quantity <= 1}
@@ -181,7 +182,7 @@ export default function CartPage() {
                             updateCartQuantity(
                               item.productId,
                               item.variantId,
-                              item.quantity + 1
+                              item.quantity + 1,
                             )
                           }
                           disabled={item.quantity >= item.maxStock}
@@ -195,9 +196,22 @@ export default function CartPage() {
                       </div>
 
                       {/* Price */}
-                      <p className="text-foreground">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
+                      <div className="text-right">
+                        {item.originalPrice && item.discountAmount ? (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {formatPrice(item.originalPrice * item.quantity)}
+                          </p>
+                        ) : null}
+                        <p className="text-foreground">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                        {item.discountAmount ? (
+                          <p className="text-xs text-green-700">
+                            {item.discountLabel || "Discount"} - Save{" "}
+                            {formatPrice(item.discountAmount * item.quantity)}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
 
                     {item.quantity >= item.maxStock && (
@@ -226,15 +240,25 @@ export default function CartPage() {
                     Subtotal ({totalCartItems} items)
                   </span>
                   <span className="font-medium text-foreground">
-                    {formatPrice(subtotal)}
+                    {formatPrice(originalSubtotal)}
                   </span>
                 </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span className="font-medium text-green-700">
+                      - {formatPrice(totalDiscount)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping Fee</span>
+                  <span className="text-muted-foreground">
+                    Shipping Fee (outside Dhaka estimate)
+                  </span>
                   <span
                     className={cn(
                       "font-medium text-foreground",
-                      shippingFee === 0 && "text-green-400"
+                      shippingFee === 0 && "text-green-400",
                     )}
                   >
                     {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
@@ -251,12 +275,11 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {subtotal < Number(FREE_SHIPPING_START_FROM) && (
+              {subtotal < FREE_SHIPPING_THRESHOLD && (
                 <div className="p-3 bg-green-500/10">
                   <p className="text-xs text-green-700">
-                    Add{" "}
-                    {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
-                    more for free shipping!
+                    Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more
+                    for free shipping!
                   </p>
                 </div>
               )}
