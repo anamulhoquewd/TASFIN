@@ -1,5 +1,5 @@
-import type { IPayment } from "./../interfaces/index.js";
 import mongoose from "mongoose";
+import type { IPayment } from "./../interfaces/index.js";
 
 const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
   {
@@ -23,12 +23,24 @@ const PaymentSchema: mongoose.Schema<IPayment> = new mongoose.Schema(
     transactionId: { type: String },
     status: {
       type: String,
-      enum: ["pending", "success", "failed"],
-      required: true,
+      enum: ["pending", "success", "failed", "refunded"],
+      default: "pending",
     },
+    // Added: needed for the cancel/return flow discussed earlier —
+    // without these there's no record of how much was actually refunded.
+    refundedAmount: { type: Number, min: 0, default: 0 },
+    refundedAt: { type: Date, required: false },
+
+    // Added: store raw gateway response for a failed bkash/nagad/card
+    // payment, so support can see exactly what the provider returned
+    // instead of guessing.
+    gatewayResponse: { type: mongoose.Schema.Types.Mixed, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
+
+PaymentSchema.index({ orderId: 1 });
+PaymentSchema.index({ transactionId: 1 });
 
 const Payment = mongoose.model<IPayment>("Payment", PaymentSchema);
 export default Payment;

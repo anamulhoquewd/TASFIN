@@ -4,71 +4,128 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
-import { useCart } from "@/lib/cart-context";
-import { formatPrice } from "@/lib/utils";
+import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react";
+import { useCartAndWishlist } from "@/lib/cart-context";
+import {
+  cn,
+  formatPrice,
+  FREE_SHIPPING_THRESHOLD,
+  getShippingFee,
+} from "@/lib/utils";
 import Image from "next/image";
-
-const FREE_SHIPPING_START_FROM = process.env
-  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { EmptyCart } from "@/components/cart/empty-cart";
 
 export default function CartPage() {
-  const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
+  const {
+    cartItems,
+    removeCartItem,
+    updateCartQuantity,
+    subtotal,
+    totalCartItems,
+    originalSubtotal,
+  } = useCartAndWishlist();
   // const [promoCode, setPromoCode] = useState("");
 
-  const shippingFee =
-    subtotal > 0 ? (subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100) : 0;
+  const shippingFee = getShippingFee(subtotal);
   const total = subtotal + shippingFee;
+  const totalDiscount = cartItems.reduce(
+    (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
+    0,
+  );
 
-  if (items.length === 0) {
+  if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-32">
-        <div className="max-w-md mx-auto text-center space-y-6">
-          <div className="w-24 h-24 mx-auto rounded-full bg-muted flex items-center justify-center">
-            <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+      <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+        <EmptyCart>
+          {/* Icon */}
+          <div className="flex justify-center">
+            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
+              <ShoppingCart className="w-10 h-10 text-gray-400" />
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Your Cart is Empty
-          </h1>
-          <p className="text-muted-foreground">
-            Start shopping to add items to your cart
-          </p>
-          <Button asChild size="lg">
-            <Link href="/products">
-              Browse Products
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
-      </div>
+
+          {/* Content */}
+          <div className="space-y-4">
+            <h2 className="font-cormorant text-2xl sm:text-3xl font-light tracking-tight">
+              Your bag is empty
+            </h2>
+            <p className="text-base text-foreground/70 font- leading-relaxed">
+              Continue exploring and find something special to add to your
+              collection.{" "}
+              <Link
+                href={"/shop"}
+                className="uppercase font-cormorant underline text-foreground"
+              >
+                Shop Now
+              </Link>
+            </p>
+          </div>
+        </EmptyCart>
+      </section>
     );
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-        Shopping Cart
-      </h1>
+      {/* Header with Breadcrumb */}
+      <header className="pb-4">
+        <Breadcrumb>
+          <BreadcrumbList className="font-cormorant">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/shop">Shop</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Sopping cart</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        <h2 className="font-cormorant text-3xl py-4 sm:text-4xl font-light tracking-wide text-foreground">
+          Shopping Cart
+        </h2>
+        <p className="text-sm text-gray-600 mt-2">
+          {cartItems.length} item{cartItems.length !== 1 ? "s" : ""} in your
+          cart
+        </p>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <Separator className="bg-border w-0.5" />
+
+      <div className="pt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
+          {cartItems.map((item) => (
             <Card
-              key={`v_${item.variantId}-p_${item.productId}-${item.size}`}
-              className="border-border"
+              key={`v_${item.variantId}-p_${item.productId}`}
+              className="rounded-none shadow-none border-"
             >
               <CardContent className="p-4">
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                   {/* Product Image */}
-                  <div className="w-24 h-32 shrink-0 rounded-md overflow-hidden border border-border">
-                    <Link href={`/products/${item.slug}`}>
+                  <div className="max-w-24 aspect-[3/4] shrink-0 overflow-hidden">
+                    <Link href={`/shop/${item.slug}`}>
                       <Image
-                        width={1000}
-                        height={1000}
-                        src={item.image.url || "/placeholder.svg"}
+                        width={1200}
+                        height={1600}
+                        src={item.image.url}
                         alt={item.image.alt || item.title}
-                        className="w-full h-full object-cover"
+                        className="object-cover w-full h-full"
                       />
                     </Link>
                   </div>
@@ -77,69 +134,84 @@ export default function CartPage() {
                   <div className="flex-1 space-y-2">
                     <div className="flex justify-between gap-4">
                       <div>
-                        <h3 className="font-semibold text-primary">
-                          <Link href={`/products/${item.slug}`}>
-                            {item.title}
-                          </Link>
+                        <h3 className="text-lg">
+                          <Link href={`/shop/${item.slug}`}>{item.title}</Link>
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Variant: {item.size}
+                        <p className="font-cormorant text-base text-muted-foreground">
+                          {Object.entries(item.attributes ?? {})
+                            .map(([key, value]) => `${key}: ${value}`)
+                            .join(" | ")}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        className="shrink-0 text-destructive hover:text-destructive"
+                        size="icon-lg"
+                        className="shrink-0 bg-transparent hover:bg-transparent border border-border hover:border-foreground text-destructive hover:text-destructive rounded-none transition-colors duration-300 cursor-pointer"
                         onClick={() =>
-                          removeItem(item.productId, item.variantId)
+                          removeCartItem(item.productId, item.variantId)
                         }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center items-start justify-between">
                       {/* Quantity Controls */}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center border border-border">
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 bg-transparent"
+                          size={"icon-lg"}
+                          className={
+                            "text-xs tracking-wide bg-transparent text-foreground hover:bg-accent border-r rounded-none cursor-pointer"
+                          }
                           onClick={() =>
-                            updateQuantity(
+                            updateCartQuantity(
                               item.productId,
                               item.variantId,
-                              item.quantity - 1
+                              item.quantity - 1,
                             )
                           }
                           disabled={item.quantity <= 1}
                         >
-                          <Minus className="h-3 w-3" />
+                          <Minus className="w-4 h-4" />
                         </Button>
                         <span className="w-8 text-center text-sm font-medium">
                           {item.quantity}
                         </span>
                         <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-8 w-8 bg-transparent"
                           onClick={() =>
-                            updateQuantity(
+                            updateCartQuantity(
                               item.productId,
                               item.variantId,
-                              item.quantity + 1
+                              item.quantity + 1,
                             )
                           }
                           disabled={item.quantity >= item.maxStock}
+                          size={"icon-lg"}
+                          className={
+                            "text-xs tracking-wide bg-transparent text-foreground hover:bg-accent border-l rounded-none cursor-pointer"
+                          }
                         >
-                          <Plus className="h-3 w-3" />
+                          <Plus className="w-4 h-4" />
                         </Button>
                       </div>
 
                       {/* Price */}
-                      <p className="font-bold text-foreground">
-                        {formatPrice(item.price * item.quantity)}
-                      </p>
+                      <div className="text-right">
+                        {item.originalPrice && item.discountAmount ? (
+                          <p className="text-xs text-muted-foreground line-through">
+                            {formatPrice(item.originalPrice * item.quantity)}
+                          </p>
+                        ) : null}
+                        <p className="text-foreground">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                        {item.discountAmount ? (
+                          <p className="text-xs text-green-700">
+                            {item.discountLabel || "Discount"} - Save{" "}
+                            {formatPrice(item.discountAmount * item.quantity)}
+                          </p>
+                        ) : null}
+                      </div>
                     </div>
 
                     {item.quantity >= item.maxStock && (
@@ -156,26 +228,39 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <Card className="border-border sticky top-24">
+          <Card className="border-border sticky top-24 rounded-none">
             <CardContent className="p-6 space-y-4">
-              <h2 className="text-xl font-bold text-foreground">
-                Order Summary
-              </h2>
+              <h2 className="font-cormorant text-2xl">Order Summary</h2>
 
               <Separator />
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Subtotal ({totalItems} items)
+                    Subtotal ({totalCartItems} items)
                   </span>
                   <span className="font-medium text-foreground">
-                    {formatPrice(subtotal)}
+                    {formatPrice(originalSubtotal)}
                   </span>
                 </div>
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Discount</span>
+                    <span className="font-medium text-green-700">
+                      - {formatPrice(totalDiscount)}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Shipping Fee</span>
-                  <span className="font-medium text-foreground">
+                  <span className="text-muted-foreground">
+                    Shipping Fee (outside Dhaka estimate)
+                  </span>
+                  <span
+                    className={cn(
+                      "font-medium text-foreground",
+                      shippingFee === 0 && "text-green-400",
+                    )}
+                  >
                     {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
                   </span>
                 </div>
@@ -190,11 +275,13 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {subtotal < Number(FREE_SHIPPING_START_FROM) && (
-                <p className="text-xs text-muted-foreground">
-                  Add {formatPrice(Number(FREE_SHIPPING_START_FROM) - subtotal)}{" "}
-                  more for free shipping!
-                </p>
+              {subtotal < FREE_SHIPPING_THRESHOLD && (
+                <div className="p-3 bg-green-500/10">
+                  <p className="text-xs text-green-700">
+                    Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more
+                    for free shipping!
+                  </p>
+                </div>
               )}
 
               <Separator />
@@ -217,21 +304,24 @@ export default function CartPage() {
                 </div>
               </div> */}
 
-              <Button asChild size="lg" className="w-full">
+              <div className="flex flex-col gap-4 font-cormorant">
                 <Link href="/checkout">
-                  Proceed to Checkout
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  <Button
+                    size={"lg"}
+                    className="rounded-none w-full cursor-pointer text-xs tracking-[0.2em] uppercase"
+                  >
+                    Proceed to Checkout
+                  </Button>
                 </Link>
-              </Button>
-
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="w-full bg-transparent"
-              >
-                <Link href="/products">Continue Shopping</Link>
-              </Button>
+                <Link href="/shop">
+                  <Button
+                    size={"lg"}
+                    className="rounded-none w-full h-9 px-4 py-2 md:px-6 md:h-10 bg-transparent border border-foreground text-foreground hover:text-background hover:bg-foreground transition-colors duration-300 cursor-pointer text-xs tracking-[0.2em] uppercase"
+                  >
+                    Continue Shopping
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>

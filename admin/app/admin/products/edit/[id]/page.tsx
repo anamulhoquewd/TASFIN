@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { IImage, IProduct } from "@/interfaces/products";
 import { productUpdateZ, type ProductUpdateInput } from "@/lib/schemas";
-import useProducts from "../../_hook/useProducts";
-import { EditProductForm } from "../../_components/edit-form";
+import useProducts from "../../../../../hooks/products/useProducts";
+import { EditProductForm } from "../../../../../components/products/edit-form";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -60,14 +60,6 @@ export default function EditProductPage() {
               existingImages: v.images?.map((img: IImage) => img.url) || [],
               deleteImageUrls: [],
             })) || [],
-          fabric: res.data.fabric || "",
-          valueAddition: res.data.valueAddition || "",
-          cutFit: res.data.cutFit || "",
-          collarNeck: res.data.collarNeck || "",
-          sleeve: res.data.sleeve || "",
-          length: res.data.length || "",
-          washCare: res.data.washCare || "",
-          sideCut: res.data.sideCut || "",
           isFeatured: res.data.isFeatured || false,
           tags: res.data.tags || [],
           keyFeatures: res.data.keyFeatures || [],

@@ -1,14 +1,14 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { X } from "lucide-react";
-import useCategory from "@/hooks/categories/useCategory";
+import { useCallback, useEffect, useState } from "react";
+import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
+import { X } from "lucide-react";
+import { Checkbox } from "../ui/checkbox";
+import { Label } from "../ui/label";
+import { Slider } from "../ui/slider";
+import { Input } from "../ui/input";
+import { ICategory } from "@/interfaces/categories";
+import { formatPrice } from "@/lib/utils";
 
 interface ProductsFilterSidebarProps {
   onFilterChange: (filters: {
@@ -19,107 +19,101 @@ interface ProductsFilterSidebarProps {
     categories: string[];
     priceRange: { minPrice: number; maxPrice: number };
   };
+  categories: ICategory[];
+  isDrawer?: boolean;
 }
 
 export function ProductsFilterSidebar({
   onFilterChange,
   initialFilters,
+  categories,
+  isDrawer = false,
 }: ProductsFilterSidebarProps) {
-  const { categories } = useCategory();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // 🔹 Get initial query params
-  const queryCategories = searchParams.get("categories")
-    ? searchParams.get("categories")!.split(",")
-    : [];
-  const minPriceQuery = searchParams.get("minPrice");
-  const maxPriceQuery = searchParams.get("maxPrice");
-
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
-    initialFilters?.categories || queryCategories || []
+    initialFilters?.categories || [],
   );
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    initialFilters?.priceRange.minPrice || 0,
+    initialFilters?.priceRange.maxPrice || 10000,
+  ]);
 
-  const [priceRange, setPriceRange] = useState<[number, number]>(
-    initialFilters?.priceRange
-      ? [initialFilters.priceRange.minPrice, initialFilters.priceRange.maxPrice]
-      : [Number(minPriceQuery) || 0, Number(maxPriceQuery) || 10000]
-  );
-
-  // 🔹 Update UI + Filters when URL query changes
+  // Sync local state with URL changes and notify parent
   useEffect(() => {
-    const updatedCategories = searchParams.get("categories")
-      ? searchParams.get("categories")!.split(",")
-      : [];
-
+    const updatedCategories = searchParams.get("categories")?.split(",") || [];
     const updatedMin = Number(searchParams.get("minPrice")) || 0;
     const updatedMax = Number(searchParams.get("maxPrice")) || 10000;
 
-    // ✅ Update local UI state
     setSelectedCategories(updatedCategories);
     setPriceRange([updatedMin, updatedMax]);
 
-    // ✅ Notify parent to fetch products
     onFilterChange({
       categories: updatedCategories,
-      priceRange: {
-        minPrice: updatedMin,
-        maxPrice: updatedMax,
-      },
+      priceRange: { minPrice: updatedMin, maxPrice: updatedMax },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 🔹 Update URL query params
-  const updateURLParams = (filters: {
-    categories: string[];
-    priceRange: [number, number];
-  }) => {
-    const params = new URLSearchParams();
+  const updateURLParams = useCallback(
+    (newCategories: string[], newPriceRange: [number, number]) => {
+      const params = new URLSearchParams();
 
-    if (filters.categories.length > 0) {
-      params.set("categories", filters.categories.join(","));
-    }
-    if (filters.priceRange[0] > 0) {
-      params.set("minPrice", String(filters.priceRange[0]));
-    }
-    if (filters.priceRange[1] < 10000) {
-      params.set("maxPrice", String(filters.priceRange[1]));
-    }
+      if (newCategories.length > 0) {
+        params.set("categories", newCategories.join(","));
+      }
+      if (newPriceRange[0] > 0) {
+        params.set("minPrice", String(newPriceRange[0]));
+      }
+      if (newPriceRange[1] < 10000) {
+        params.set("maxPrice", String(newPriceRange[1]));
+      }
 
-    const query = params.toString();
-    router.push(`?${query}`, { scroll: false });
-  };
+      const query = params.toString();
+      router.push(`?${query}`, { scroll: false });
+    },
+    [router],
+  );
 
-  // 🔹 Category Change
   const handleCategoryChange = (categoryId: string, checked: boolean) => {
     const newCategories = checked
       ? [...selectedCategories, categoryId]
       : selectedCategories.filter((id) => id !== categoryId);
 
     setSelectedCategories(newCategories);
-
-    // ✅ Update URL instantly
-    updateURLParams({
-      categories: newCategories,
-      priceRange,
-    });
   };
 
-  // 🔹 Price Change (Slider)
   const handlePriceChange = (value: number[]) => {
     setPriceRange([value[0], value[1]]);
   };
 
-  // 🔹 Apply Filters Button (optional if not instant)
-  const handleApplyFilters = () => {
-    updateURLParams({
-      categories: selectedCategories,
-      priceRange,
+  const handlePriceInput = (index: 0 | 1, value: string) => {
+    const parsedValue = Number(value);
+    if (Number.isNaN(parsedValue)) return;
+
+    setPriceRange((current) => {
+      const nextRange = [...current] as [number, number];
+      const nextValue = Math.min(10000, Math.max(0, parsedValue));
+
+      if (index === 0) {
+        nextRange[0] = Math.min(nextValue, current[1]);
+      } else {
+        nextRange[1] = Math.max(nextValue, current[0]);
+      }
+
+      return nextRange;
     });
   };
 
-  // 🔹 Reset Filters
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateURLParams(selectedCategories, priceRange);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [priceRange, selectedCategories, updateURLParams]);
+
   const handleResetFilters = () => {
     setSelectedCategories([]);
     setPriceRange([0, 10000]);
@@ -132,43 +126,64 @@ export function ProductsFilterSidebar({
   };
 
   return (
-    <div className="sticky top-14 h-fit w-full rounded-lg border border-border bg-card p-6 lg:w-64">
+    <div
+      className={`font-cormorant h-fit w-full bg-card p-6 ${
+        isDrawer
+          ? "overflow-y-auto"
+          : "sticky top-14 border border-border lg:w-64"
+      }`}
+    >
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Filters</h2>
+        <h2 className="text-lg font-semibold text-foreground uppercase">
+          Filters
+        </h2>
         {(selectedCategories.length > 0 ||
           priceRange[0] !== 0 ||
           priceRange[1] !== 10000) && (
-          <Button variant="ghost" size="sm" onClick={handleResetFilters}>
-            <X className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            className="rounded-none cursor-pointer uppercase"
+            size="sm"
+            onClick={handleResetFilters}
+          >
+            Clear <X className="h-4 w-4" />
           </Button>
         )}
       </div>
 
       {/* Categories */}
       <div className="mb-8">
-        <h3 className="mb-4 font-medium text-foreground">Categories</h3>
+        <h3 className="mb-4 font-medium text-sm text-foreground uppercase">
+          Categories
+        </h3>
         <div className="space-y-3">
-          <ScrollArea className="h-40">
+          <ScrollArea className="h-48 pr-3">
             {categories && categories.length > 0 ? (
-              categories.map((category) => (
-                <div key={category._id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={category._id}
-                    checked={selectedCategories.includes(category._id)}
-                    onCheckedChange={(checked) =>
-                      handleCategoryChange(category._id, checked as boolean)
-                    }
-                  />
-                  <Label
-                    htmlFor={category._id}
-                    className="cursor-pointer text-sm font-normal text-muted-foreground"
+              <div className="space-y-2 py-1">
+                {categories.map((category) => (
+                  <div
+                    key={category._id}
+                    className="flex items-center space-x-2"
                   >
-                    {category.name}
-                  </Label>
-                </div>
-              ))
+                    <Checkbox
+                      className="rounded-none"
+                      id={category._id}
+                      checked={selectedCategories.includes(category._id)}
+                      onCheckedChange={(checked) =>
+                        handleCategoryChange(category._id, checked as boolean)
+                      }
+                    />
+                    <Label
+                      htmlFor={category._id}
+                      className="cursor-pointer text-base font-normal text-muted-foreground"
+                    >
+                      {category.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             ) : (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-base text-muted-foreground">
                 No categories available
               </p>
             )}
@@ -178,35 +193,50 @@ export function ProductsFilterSidebar({
 
       {/* Price Range */}
       <div className="mb-8">
-        <h3 className="mb-4 font-medium text-foreground">Price Range</h3>
-        <div className="space-y-4">
+        <h3 className="mb-4 font-medium text-foreground uppercase text-sm">
+          Price Range
+        </h3>
+        <div className="space-y-5">
           <Slider
             value={priceRange}
             onValueChange={handlePriceChange}
             min={0}
             max={10000}
             step={100}
-            className="w-full"
+            className="w-full cursor-pointer"
           />
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{priceRange[0]}</span>
-            <span className="text-muted-foreground">{priceRange[1]}</span>
+          <div className="grid grid-cols-2 gap-3">
+            {([0, 1] as const).map((index) => (
+              <label key={index} className="space-y-1.5">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
+                  {index === 0 ? "From" : "To"}
+                </span>
+                <div className="relative">
+                  <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-sm text-muted-foreground">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={10000}
+                    step={100}
+                    value={priceRange[index]}
+                    onChange={(event) =>
+                      handlePriceInput(index, event.target.value)
+                    }
+                    className="rounded-none pl-7 pr-2"
+                    aria-label={`${index === 0 ? "Minimum" : "Maximum"} price`}
+                  />
+                </div>
+              </label>
+            ))}
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{formatPrice(priceRange[0])}</span>
+            <span>{formatPrice(priceRange[1])}</span>
           </div>
         </div>
       </div>
-
-      {/* Apply Button */}
-      <Button
-        disabled={
-          !selectedCategories.length &&
-          priceRange[0] === 0 &&
-          priceRange[1] === 10000
-        }
-        onClick={handleApplyFilters}
-        className="w-full"
-      >
-        Apply Filters
-      </Button>
     </div>
   );
 }

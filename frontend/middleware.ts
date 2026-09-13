@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { deleteCookie } from "./app/actions";
+import { toast } from "sonner";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -8,12 +10,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const cookie = request.cookies.get("X-User-Phone");
-  const phone = cookie?.value.split(".")[0];
+  const cookie = request.cookies.get("X-User-ID");
+  const userId = cookie?.value;
 
-  // If no valid phone number in cookie -> redirect to privacy policy page
-  if (!phone || !/^\d{11}$/.test(phone)) {
-    const policyUrl = new URL("/privacy", request.url);
+  // If no valid userId number in cookie -> redirect to privacy policy page
+  if (!userId) {
+    deleteCookie("X-User-ID");
+    const policyUrl = new URL("/", request.url);
     policyUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(policyUrl);
   }

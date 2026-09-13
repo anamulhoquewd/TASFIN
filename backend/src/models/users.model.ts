@@ -1,5 +1,5 @@
-import type { IUser } from "./../interfaces/index.js";
 import mongoose from "mongoose";
+import type { IUser } from "./../interfaces/index.js";
 import { AddressSchema, ImageSchema } from "./../models/admins.model.js";
 
 const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
@@ -11,26 +11,29 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
       trim: true,
     },
     phone: { type: String, required: true, unique: true, trim: true },
-    address: { type: AddressSchema, required: false },
+    addresses: [AddressSchema],
     avatar: { type: ImageSchema, required: false },
 
-    dob: { type: Date, required: false },
+    dob: Date,
     gender: { type: String, enum: ["male", "female"] },
 
     isActive: { type: Boolean, default: true },
-    isBlocked: { type: Boolean, default: false },
-    blockedAt: { type: Date, required: false },
+    isBlocked: Boolean,
+    blockedAt:  Date,
+    blockedReason: String,
+    lastOrderAt: Date,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// ✅ Create a partial unique index (only applies when email exists)
+// Partial unique index — only enforced when email actually exists,
+// since not every login method guarantees one.
 userSchema.index(
   { email: 1 },
   {
     unique: true,
     partialFilterExpression: { email: { $exists: true, $ne: null } },
-  }
+  },
 );
 
 const User = mongoose.model<IUser>("User", userSchema);

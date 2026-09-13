@@ -1,0 +1,101 @@
+"use client";
+
+import { ProductsFilterSidebar } from "@/components/products/filter-sidbar";
+import { ProductsGrids } from "@/components/products/products-grid";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
+import useCategory from "@/hooks/categories/useCategory";
+import { useProducts } from "@/hooks/products/use-products";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+
+export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const { categories } = useCategory();
+
+  // Initialize filters from URL query params
+  const initialCategories = searchParams.get("categories")?.split(",") || [];
+  const initialMinPrice = Number(searchParams.get("minPrice")) || 0;
+  const initialMaxPrice = Number(searchParams.get("maxPrice")) || 10000;
+
+  const [filters, setFilters] = useState<{
+    categories: string[];
+    priceRange: { minPrice: number; maxPrice: number };
+  }>({
+    categories: initialCategories,
+    priceRange: { minPrice: initialMinPrice, maxPrice: initialMaxPrice },
+  });
+
+  const {
+    infinityProducts: products,
+    isLoading,
+    hasMore,
+    observerTarget,
+    sortConfig,
+    handleSort,
+    handleFilterChange,
+  } = useProducts({
+    categories: filters.categories,
+    priceRange: filters.priceRange,
+  });
+
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const handleFilterChange_ = (newFilters: typeof filters) => {
+    setFilters(newFilters);
+    handleFilterChange(newFilters);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 pt-4 pb-12 flex flex-col gap-8 lg:flex-row">
+        {/* Sidebar for Desktop */}
+        <div className="hidden lg:block">
+          <ProductsFilterSidebar
+            onFilterChange={handleFilterChange_}
+            initialFilters={filters}
+            categories={categories}
+          />
+        </div>
+
+        {/* Products Grid */}
+        <div className="flex-1">
+          <ProductsGrids
+            products={products}
+            isLoading={isLoading}
+            hasMore={hasMore}
+            observerTarget={observerTarget as React.RefObject<HTMLDivElement>}
+            sortConfig={sortConfig}
+            onSortChange={handleSort}
+            setIsFilterOpen={setIsFilterOpen}
+          />
+        </div>
+
+        {/* Drawer (Mobile Filter) */}
+        <Drawer open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+          <DrawerContent className="max-h-[88vh] p-0">
+            <DrawerHeader className="border-b border-border px-6 py-4">
+              <DrawerTitle className="font-cormorant text-left text-lg uppercase tracking-wide">
+                Filters
+              </DrawerTitle>
+              <DrawerDescription className="sr-only">
+                Filter products by category and price range.
+              </DrawerDescription>
+            </DrawerHeader>
+            <ProductsFilterSidebar
+              onFilterChange={handleFilterChange_}
+              initialFilters={filters}
+              categories={categories}
+              isDrawer
+            />
+          </DrawerContent>
+        </Drawer>
+      </div>
+    </div>
+  );
+}

@@ -1,3 +1,4 @@
+import { deleteCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IAdmin } from "@/interfaces/users";
 import { userFormSchemaZ } from "@/lib/schemas";
@@ -34,7 +35,7 @@ function useMe() {
 
   const loadMe = async () => {
     try {
-      const response = await api.get("/admins/me");
+      const response = await api.get("/admins/me", {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message || "Something with wrong!");
@@ -49,8 +50,9 @@ function useMe() {
   const handleUpdate = async (data: z.infer<typeof userFormSchemaZ>) => {
     console.log("Update data: ", data);
     setIsLoading(true);
+
     try {
-      const response = await api.patch("/admins/me", data);
+      const response = await api.patch("/admins/me", data, {});
 
       if (!response.data.success) {
         throw new Error(response.data.error.message);
@@ -77,15 +79,19 @@ function useMe() {
 
   const handleLogout = async () => {
     try {
-      const response = await api.post("/admins/log-out");
+      const response = await api.post("/admins/log-out", "", {});
 
       if (!response.data.success) {
+        toast("Logout faild!");
         throw new Error(response.data.error.message);
       }
+      deleteCookie({ name: "accessToken" });
+      deleteCookie({ name: "refreshToken" });
+
+      // rediract to login page
+      router.push("/auth/sign-in");
 
       toast(response.data.message);
-
-      router.push("/auth/sign-in");
     } catch (error: any) {
       console.log("Error: ", error);
 

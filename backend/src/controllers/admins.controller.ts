@@ -1,3 +1,7 @@
+import axios from "axios";
+import type { Context } from "hono";
+import { getCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
 import {
   authenticationError,
   authorizationError,
@@ -7,13 +11,8 @@ import {
 import Admin from "./../models/admins.model.js";
 import { adminService } from "./../services/index.js";
 import { generateAccessToken, setAuthCookie } from "./../utils/index.js";
-import axios from "axios";
-import type { Context } from "hono";
-import { deleteCookie, getSignedCookie } from "hono/cookie";
-import { decode, verify } from "hono/jwt";
 
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
-const DOMAIN_NAME = process.env.DOMAIN_NAME as string;
 
 export const register = async (c: Context) => {
   const body = await c.req.json();
@@ -60,7 +59,7 @@ export const getAdmins = async (c: Context) => {
 };
 
 export const getAdmin = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await adminService.getUser(_id, { userType: "admin" });
 
@@ -72,7 +71,7 @@ export const getAdmin = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Get Me
@@ -107,7 +106,7 @@ export const getMe = async (c: Context) => {
         message: "Admin fetched successfully",
         data: me,
       },
-      200
+      200,
     );
   } catch (error: any) {
     return c.json(
@@ -116,7 +115,7 @@ export const getMe = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -161,16 +160,16 @@ export const login = async (c: Context) => {
 
   await setAuthCookie(
     c,
-    "refreshToken",
-    response.success.tokens.refreshToken,
-    60 * 60 * 24 * 7
-  ); // 7d
-  await setAuthCookie(
-    c,
     "accessToken",
     response.success.tokens.accessToken,
-    60 * 20
-  ); // 20 minutes
+    60 * 60 * 24,
+  ); // 1 day
+  await setAuthCookie(
+    c,
+    "refreshToken",
+    response.success.tokens.refreshToken,
+    60 * 60 * 24 * 30,
+  ); // 30 days
 
   return c.json(response.success, 200);
 };
@@ -178,19 +177,14 @@ export const login = async (c: Context) => {
 // Refresh Token
 export const refreshToken = async (c: Context) => {
   try {
-    // Get refresh token from cookie
-    const rToken = await getSignedCookie(
-      c,
-      process.env.COOKIE_SECRET as string,
-      "refreshToken"
-    );
+    const rToken = getCookie(c, "refreshToken");
 
     if (!rToken) {
       return authenticationError(c);
     }
 
     // Verify refresh token
-    const token = await verify(rToken, JWT_REFRESH_SECRET);
+    const token = await verify(rToken, JWT_REFRESH_SECRET, { alg: "HS256" });
 
     if (!token) {
       return authenticationError(c);
@@ -223,14 +217,14 @@ export const refreshToken = async (c: Context) => {
           accessToken,
         },
       },
-      200
+      200,
     );
   } catch (error: any) {
     console.log("Error during token refresh:", error);
     if (error.name === "JwtTokenExpired") {
       return authorizationError(
         c,
-        "Refresh token expired. Please login again."
+        "Refresh token expired. Please login again.",
       );
     }
 
@@ -240,7 +234,7 @@ export const refreshToken = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -248,45 +242,9 @@ export const refreshToken = async (c: Context) => {
 // Logout admin
 export const logout = async (c: Context) => {
   try {
-    // Clear cookie using Hono's deleteCookie
-    deleteCookie(c, "accessToken", {
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
-    });
-    const refreshToken = deleteCookie(c, "refreshToken", {
-      path: "/",
-      secure: process.env.NODE_ENV === "production",
-      domain: process.env.NODE_ENV === "production" ? "tasfin.com" : undefined,
-    });
-
-    if (!refreshToken) {
-      deleteCookie(c, "accessToken", {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      });
-      deleteCookie(c, "refreshToken", {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      });
-      deleteCookie(c, "X-User-Phone", {
-        path: "/",
-        secure: process.env.NODE_ENV === "production",
-        domain: process.env.NODE_ENV === "production" ? DOMAIN_NAME : undefined,
-      });
-      return authenticationError(c);
-    }
-
-    const { payload } = decode(refreshToken as string) as any;
-
-    if (!payload) {
-      return authenticationError(c, "Invalid refresh token on the cookie");
-    }
-
+    const user = c.get("admin");
     // Remove refresh token from database
-    const admin = await Admin.updateOne({ _id: payload._id }, { refresh: "" });
+    const admin = await Admin.updateOne({ _id: user._id }, { refresh: "" });
 
     if (!admin) {
       return authenticationError(c);
@@ -298,7 +256,7 @@ export const logout = async (c: Context) => {
         success: true,
         message: "Logout successful",
       },
-      200
+      200,
     );
   } catch (error: any) {
     return c.json(
@@ -307,7 +265,7 @@ export const logout = async (c: Context) => {
         message: error.message,
         stack: process.env.NODE_ENV === "production" ? null : error.stack,
       },
-      500
+      500,
     );
   }
 };
@@ -343,7 +301,7 @@ export const changePassword = async (c: Context) => {
 
 // Delete admin
 export const deleteAdmin = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await adminService.deleteAdmins(_id);
 
@@ -372,13 +330,13 @@ export const forgotPassword = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 201);
+  return c.json(response.success, 200);
 };
 
 // Reset Password
 export const resetPassword = async (c: Context) => {
   // Token come from param
-  const resetToken = c.req.param("resetToken");
+  const resetToken = c.req.param("resetToken") as string;
 
   // Password come from body
   const { password } = await c.req.json();
@@ -423,14 +381,8 @@ export const changeAvatar = async (c: Context) => {
         ],
       });
     }
-
-    // Generate filename
-    const fileN = c.req.query("filename") || "avatar";
-    const filename = `${fileN}-${Date.now()}.webp`;
-
-    const response = await adminService.uploadSingleFile({
+    const response = await adminService.uploadSingleFileService({
       body: { avatar: file },
-      filename,
       folder: "admins",
     });
 
@@ -444,8 +396,8 @@ export const changeAvatar = async (c: Context) => {
 
     // Update admin.avatar.url and save
     admin.avatar = {
-      alt: filename,
-      url: response.success.data,
+      alt: response.success.data.key,
+      url: response.success.data.url,
     };
 
     await admin.save();
@@ -458,7 +410,7 @@ export const changeAvatar = async (c: Context) => {
         message: "Avatar upload failed",
         error: error.message,
       },
-      500
+      500,
     );
   }
 };

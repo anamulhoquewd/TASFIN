@@ -3,23 +3,29 @@
 import type React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { ArrowRight, BrushCleaning } from "lucide-react";
 import useOrder from "@/hooks/orders/use-orders";
 import Checkout from "@/components/order/checkout";
 import OrderConfirmed from "@/components/order/order-confirmed";
 import OrderFailed from "@/components/order/order-faild";
-
-const FREE_SHIPPING_START_FROM = process.env
-  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
+import { FREE_SHIPPING_THRESHOLD, getShippingFee } from "@/lib/utils";
+import { useEffect } from "react";
 
 export default function CheckoutPage() {
-  const { items, subtotal, totalItems } = useCart();
+  const { cartItems, subtotal, originalSubtotal, totalCartItems } =
+    useCartAndWishlist();
   const { form, handleSubmit, isProcessing, status, order, setStatus } =
     useOrder();
 
-  const shippingFee = subtotal >= Number(FREE_SHIPPING_START_FROM) ? 0 : 100;
+  const shippingLocation = form.watch("shippingLocation");
+  const isDhaka = shippingLocation === "dhaka";
+  const shippingFee = getShippingFee(subtotal, shippingLocation);
   const total = subtotal + shippingFee;
+
+  useEffect(() => {
+    form.setValue("shippingCost", shippingFee, { shouldValidate: true });
+  }, [form, shippingFee]);
 
   if (status === "success" && order)
     return (
@@ -32,7 +38,7 @@ export default function CheckoutPage() {
 
   if (status === "faild") return <OrderFailed changeStatus={setStatus} />;
 
-  if (items.length === 0 && status === null) {
+  if (cartItems.length === 0 && status === null) {
     return (
       <div className="container mx-auto px-4 py-32 text-center">
         <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
@@ -40,7 +46,7 @@ export default function CheckoutPage() {
         </div>
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
         <Button asChild>
-          <Link href="/products">
+          <Link href="/shop">
             Continue Shopping
             <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
@@ -54,11 +60,14 @@ export default function CheckoutPage() {
       form={form}
       handleSubmit={handleSubmit}
       isProcessing={isProcessing}
-      items={items}
+      items={cartItems}
       shippingFee={shippingFee}
       subtotal={subtotal}
+      originalSubtotal={originalSubtotal}
       total={total}
-      totalItems={totalItems}
+      totalItems={totalCartItems}
+      shippingThreshold={FREE_SHIPPING_THRESHOLD}
+      isDhaka={isDhaka}
     />
   );
 }

@@ -23,18 +23,21 @@ export function OrderTrackingModal({
 
   const trackingSteps = [
     {
+      id: 1,
       title: "Order Placed",
       date: order.createdAt,
       status: "completed",
       icon: Package,
     },
     {
+      id: 2,
       title: "Processing",
       date: order.orderDate,
       status: order.status !== "pending" ? "completed" : "pending",
       icon: Package,
     },
     {
+      id: 3,
       title: "Shipped",
       date: order._id ? order.orderDate : null,
       status: ["shipped", "delivered"].includes(order.status)
@@ -43,6 +46,7 @@ export function OrderTrackingModal({
       icon: Truck,
     },
     {
+      id: 4,
       title: "Delivered",
       date: order.status === "delivered" ? order.orderDate : null,
       status: order.status === "delivered" ? "completed" : "pending",
@@ -73,7 +77,7 @@ export function OrderTrackingModal({
             {trackingSteps.map((step, index) => {
               const Icon = step.icon;
               return (
-                <div key={index} className="flex gap-4">
+                <div key={step.id} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <div
                       className={`rounded-full p-2 ${

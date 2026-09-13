@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Mail, MapPin, Phone, Save, Store } from "lucide-react";
-import useSettings from "./_hooks/useSettings";
+import useSettings from "../../../hooks/settings/useSettings";
 
 export default function SettingsPage() {
   const { form, handleUpdate, isLoading, setIsAvatarOpen } = useSettings();

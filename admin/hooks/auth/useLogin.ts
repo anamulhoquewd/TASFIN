@@ -1,35 +1,19 @@
+import { createCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
-import { setStorage } from "@/store/local";
+import { loginFormSchema, LoginFormValuse } from "@/lib/schemas";
 import { handleAxiosError } from "@/utils/error";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
-
-const loginFormSchema = z.object({
-  email: z
-    .string()
-    .refine(
-      (value) =>
-        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-      {
-        message: "Must be a valid email or 11-digit phone number",
-      }
-    ),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(20, "Password cannot exceed 20 characters"),
-});
 
 const useLogin = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("from") || "/admin";
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<z.infer<typeof loginFormSchema>>({
+  const form = useForm<LoginFormValuse>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
@@ -50,18 +34,26 @@ const useLogin = () => {
         password: data.password,
       });
 
-      console.log("response");
-
-      // if response is successful
-
       if (!response.data.success) {
         throw new Error(response.data?.error?.message || "Login failed");
       }
-      // Set access token
-      const accessToken = response.data.tokens.accessToken;
 
-      // Set access token in local storage
-      setStorage("accessToken", accessToken);
+      router.push("/admin");
+
+      // get tokens
+      const tokens = response.data.tokens;
+
+      // Set tokens in cookie
+      createCookie({
+        name: "accessToken",
+        value: tokens.accessToken,
+        maxAgeAsSeconds: 60 * 60, // 60m
+      });
+      createCookie({
+        name: "refreshToken",
+        value: tokens.refreshToken,
+        maxAgeAsSeconds: 60 * 60 * 24 * 30, // 30d
+      });
 
       // Clear form
       form.reset({
@@ -70,7 +62,7 @@ const useLogin = () => {
       });
 
       // Redirect to home page
-      router.push(redirectTo);
+      toast(response.data?.success?.message || "Login successful!");
     } catch (error: any) {
       // Handle error
       handleAxiosError(error);

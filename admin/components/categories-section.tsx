@@ -1,4 +1,4 @@
-import useCategory from "@/app/admin/categories/_hook/useCategory";
+import useCategory from "@/hooks/categorise/useCategory";
 import Image from "next/image";
 import Link from "next/link";
 

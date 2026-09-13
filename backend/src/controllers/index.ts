@@ -4,6 +4,7 @@ import * as categoryController from "./categorise.controller.js";
 import * as productController from "./products.controller.js";
 import * as orderController from "./orders.controller.js";
 import * as settingsController from "./settings.controller.js";
+import * as subscribersController from "./subscriber.controller.js";
 
 export {
   adminController,
@@ -12,4 +13,5 @@ export {
   productController,
   orderController,
   settingsController,
+  subscribersController,
 };

@@ -1,18 +1,27 @@
-import type React from "react";
-import type { Metadata } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import "./globals.css";
-import { Header } from "@/components/layout/header";
+import BottomActions from "@/components/layout/bottom-actions";
 import { Footer } from "@/components/layout/footer";
-import { CartProvider } from "@/lib/cart-context";
-import { Suspense } from "react";
+import { Header } from "@/components/layout/header";
 import LoadingPage from "@/components/loading-page";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { CartProvider } from "@/lib/cart-context";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import { Cormorant_Garamond, Inter, Playfair_Display } from "next/font/google";
+import type React from "react";
+import { Suspense } from "react";
+import "./globals.css";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
+  display: "swap",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-cormorant",
   display: "swap",
 });
 
@@ -26,7 +35,6 @@ export const metadata: Metadata = {
   title: "TASFIN - Fashion for Her",
   description:
     "Discover elegant women's fashion for the modern Bangladeshi woman. Shop 2-piece, 3-piece, tops, salwar, and more.",
-  generator: "v0.app",
 };
 
 export default function RootLayout({
@@ -37,11 +45,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`font-sans ${inter.variable} ${playfair.variable} antialiased`}
+        className={`font-sans ${inter.variable} ${cormorant.variable}  ${playfair.variable} antialiased`}
       >
         <CartProvider>
           <Suspense fallback={<LoadingPage />}>
             <Header />
+            {/* Bottom actions on mobile */}
+            <BottomActions />
             {children}
             <Toaster />
             <Footer />

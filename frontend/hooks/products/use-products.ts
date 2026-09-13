@@ -1,52 +1,36 @@
-"use client";
-
 import api from "@/axios/interceptor";
-import type { IProduct } from "@/interfaces/products";
+import { IProduct } from "@/interfaces/products";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface UseProductsOptions {
-  initialLimit?: number;
-  sortBy?: "title" | "createdAt";
-  sortType?: "asc" | "desc";
   categories?: string[];
   priceRange?: { minPrice: number; maxPrice: number };
 }
 
 export function useProducts(options: UseProductsOptions = {}) {
-  const {
-    initialLimit = 12,
-    sortBy = "createdAt",
-    sortType = "desc",
-    categories = [],
-    priceRange,
-  } = options;
+  const { categories = [], priceRange = { minPrice: 0, maxPrice: 10000 } } =
+    options;
+
+  const initialLimit = 12;
 
   const [infinityProducts, setInfinityProducts] = useState<IProduct[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [sortConfig, setSortConfig] = useState({ sortBy, sortType });
+  const [sortConfig, setSortConfig] = useState({
+    sortBy: "createdAt",
+    sortType: "desc",
+  });
   const [filters, setFilters] = useState({ categories, priceRange });
   const [totalPages, setTotalPages] = useState<number | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Add a ref to track if we're currently fetching
   const isFetchingRef = useRef(false);
 
   const fetchInfinityProducts = useCallback(
     async (pageNum: number, reset = false) => {
-      // Prevent duplicate requests
-      if (isFetchingRef.current) {
-        console.log("Already fetching, skipping...");
-        return;
-      }
-
-      // Don't fetch if we know there's no more data (unless it's a reset)
-      if (!reset && !hasMore) {
-        console.log("No more data, skipping...");
-        return;
-      }
+      if (isFetchingRef.current) return;
 
       isFetchingRef.current = true;
       setIsLoading(true);
@@ -66,15 +50,19 @@ export function useProducts(options: UseProductsOptions = {}) {
           }),
         };
 
-        console.log("Fetching page:", pageNum, params);
         const response = await api.get("/products", { params });
 
         if (response.data.success && Array.isArray(response.data.data)) {
           const newProducts = response.data.data;
-          const totalPagesFromAPI = response.data.pagination.totalPages;
-          console.log("totalPagesFromAPI: ", totalPagesFromAPI);
+          console.debug(
+            "fetchInfinityProducts - page:",
+            pageNum,
+            "fetched ids:",
+            newProducts.map((p: IProduct) => p._id)
+          );
 
-          // Store total pages
+          const totalPagesFromAPI = response.data.pagination.totalPages || 0;
+
           if (totalPagesFromAPI) {
             setTotalPages(totalPagesFromAPI);
           }
@@ -82,22 +70,32 @@ export function useProducts(options: UseProductsOptions = {}) {
           if (reset) {
             setInfinityProducts(newProducts);
           } else {
-            setInfinityProducts((prev) => [...prev, ...newProducts]);
+            setInfinityProducts((prev) => {
+              // merge and dedupe by _id to avoid duplicate entries
+              const merged = [...prev, ...newProducts];
+              const seen = new Set<string>();
+              const deduped: IProduct[] = [];
+              for (const item of merged) {
+                if (!seen.has(item._id)) {
+                  seen.add(item._id);
+                  deduped.push(item);
+                }
+              }
+              return deduped;
+            });
           }
 
-          // Check if we've reached the end using totalPage
           if (totalPagesFromAPI) {
             if (pageNum >= totalPagesFromAPI) {
-              console.log(`Reached last page: ${pageNum}/${totalPagesFromAPI}`);
               setHasMore(false);
             }
           } else {
-            // Fallback: check by data length if totalPage not provided
             if (newProducts.length < initialLimit) {
-              console.log("Reached end of products (fallback check)");
               setHasMore(false);
             }
           }
+        } else {
+          setHasMore(false);
         }
       } catch (error) {
         toast.error("Failed to fetch products");
@@ -107,13 +105,12 @@ export function useProducts(options: UseProductsOptions = {}) {
         isFetchingRef.current = false;
       }
     },
-    [initialLimit, sortConfig, filters, hasMore]
+    [initialLimit, sortConfig, filters]
   );
 
   const fetchProducts = useCallback(
     async ({
       limit = 8,
-      isFeatured = true,
       isActive = true,
       sortType = "desc",
       sortBy = "updatedAt",
@@ -122,7 +119,7 @@ export function useProducts(options: UseProductsOptions = {}) {
 
       try {
         const response = await api.get("/products", {
-          params: { limit, isFeatured, isActive, sortType, sortBy },
+          params: { limit, isActive, sortType, sortBy },
         });
 
         if (response.data.success && Array.isArray(response.data.data)) {
@@ -133,15 +130,13 @@ export function useProducts(options: UseProductsOptions = {}) {
         console.error("Error fetching products:", error);
       } finally {
         setIsLoading(false);
-        isFetchingRef.current = false;
       }
     },
-    [initialLimit, sortConfig, filters, hasMore]
+    []
   );
 
   const getProductBySlug = useCallback(
     async (slug: string): Promise<IProduct | null> => {
-      // Prevent duplicate requests
       try {
         const response = await api.get(`/products/slug/${slug}`);
         if (response.data.success) {
@@ -149,7 +144,7 @@ export function useProducts(options: UseProductsOptions = {}) {
         }
         return null;
       } catch (error) {
-        toast.error("Failed to fetch product by slug");
+        // toast.error("Failed to fetch product by slug");
         console.error("Failed to fetch product by slug:", error);
         return null;
       }
@@ -158,10 +153,8 @@ export function useProducts(options: UseProductsOptions = {}) {
   );
 
   const handleSort = useCallback(
-    (newSortBy: "title" | "createdAt", newsortType: "asc" | "desc") => {
-      if (sortBy === newSortBy && sortType === newsortType) return; // No change
-      console.log("Sort changed:", newSortBy, newsortType);
-      setSortConfig({ sortBy: newSortBy, sortType: newsortType });
+    (newSortBy: "title" | "createdAt", newSortType: "asc" | "desc") => {
+      setSortConfig({ sortBy: newSortBy, sortType: newSortType });
       setPage(1);
       setHasMore(true);
       setTotalPages(null);
@@ -178,7 +171,6 @@ export function useProducts(options: UseProductsOptions = {}) {
     setInfinityProducts([]);
   }, []);
 
-  // Intersection Observer Effect
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -188,7 +180,6 @@ export function useProducts(options: UseProductsOptions = {}) {
           !isLoading &&
           !isFetchingRef.current
         ) {
-          console.log("Observer triggered, loading next page");
           setPage((prevPage) => {
             const nextPage = prevPage + 1;
             fetchInfinityProducts(nextPage);
@@ -212,11 +203,9 @@ export function useProducts(options: UseProductsOptions = {}) {
     };
   }, [hasMore, isLoading, fetchInfinityProducts]);
 
-  // Initial load and filter/sort changes
   useEffect(() => {
-    console.log("Filters or sort changed, resetting...");
     fetchInfinityProducts(1, true);
-  }, [sortConfig, filters]);
+  }, [sortConfig, filters, fetchInfinityProducts]);
 
   return {
     infinityProducts,

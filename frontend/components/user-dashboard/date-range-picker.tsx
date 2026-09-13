@@ -251,7 +251,7 @@ export const DateRangePicker: FC<DateRangePickerProps> = ({
     >
       <>
         <span className={cn("pr-2 opacity-0", isSelected && "opacity-70")}>
-          <CheckIcon width={18} height={18} />
+          <CheckIcon className="w-4 h-4" />
         </span>
         {label}
       </>

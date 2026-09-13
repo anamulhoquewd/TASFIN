@@ -1,27 +1,76 @@
-import s3 from "./../config/s3.js";
+import mongoose from "mongoose";
+import z from "zod";
+import { deleteMultipleFiles, uploadMultipleFiles } from "../utils/r2-utils.js";
 import { schemaValidationError } from "./../error/index.js";
 import Product from "./../models/products.model.js";
-import { uploadAvatar } from "./../utils/index.js";
 import pagination from "./../utils/pagination.js";
 import {
-  avatarSchemaZ,
   idSchemaZ,
+  keyValueArrayToRecord,
+  keyValueSchemaZ,
   objectIdSchemaZ,
   type ProductCreateInput,
   productSchemaZ,
+  productVariantSchemaZ,
   productVariantUpdateZ,
+  updateProductImagesZ,
 } from "./../validations/zod.js";
-import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import z from "zod";
+
+function toPlainImage(image: {
+  url: string;
+  key: string;
+  alt?: string;
+  position?: number;
+  toObject?: () => Record<string, unknown>;
+}) {
+  const plain =
+    typeof image.toObject === "function"
+      ? (image.toObject() as {
+          url: string;
+          key: string;
+          alt?: string;
+        })
+      : image;
+
+  return {
+    url: plain.url,
+    key: plain.key,
+    alt: plain.alt ?? "",
+  };
+}
+
+function orderImages<
+  T extends { url: string; key: string; alt?: string; position?: number },
+>(images: T[], reorderedUrls: string[]) {
+  const orderSet = new Set(reorderedUrls);
+  const remaining = images.filter((image) => !orderSet.has(image.url));
+
+  return reorderedUrls
+    .map((url) => images.find((image) => image.url === url))
+    .filter((image): image is T => Boolean(image))
+    .concat(remaining)
+    .map((image, index) => ({
+      ...toPlainImage(image),
+      position: index + 1,
+    }));
+}
 
 // Register new product
 export const register = async ({
   body,
 }: {
-  body: ProductCreateInput & { images: File[]; variants: { images: File[] }[] };
+  body: ProductCreateInput & {
+    images: { file: File; position: number; alt: string }[];
+    variants: { images: { file: File; position: number; alt: string }[] }[];
+  };
 }) => {
-  let uploadedRootUrls: string[] = [];
-  let uploadedVariantUrls: Record<number, string[]> = {}; // { variantIndex: [urls] }
+  let rootImages: {
+    url: string;
+    alt: string;
+    position: number;
+    key: string;
+  }[] = [];
+  let variantImages: Record<number, typeof rootImages> = {}; // { variantIndex: [urls] }
 
   // Step 1: validate fields (skip file validation here)
   const validData = productSchemaZ.safeParse(body);
@@ -32,7 +81,7 @@ export const register = async ({
     };
   }
 
-  // Check if category already exists
+  // Step 2: slug uniqueness (friendly check; unique index is the real guarantee)
   const existingProduct = await Product.findOne({
     slug: validData.data.slug,
   });
@@ -53,73 +102,81 @@ export const register = async ({
 
   try {
     // -------------------------------
-    // Step 2: Upload Root Images
+    // Step 3: Upload Root Images
     // -------------------------------
-    const rootUpload = await uploadMultipleFiles({
-      body: { images: validData.data.images || [] },
-      folder: `products/root/${validData.data.slug || ""}`,
-      filenames: (validData.data.images || []).map(
-        (f: File, i: number) => `${Date.now()}-root-${i}-${f.name}`
-      ),
-    });
+    const rootUpload = await uploadMultipleFiles(
+      validData.data.images,
+      `products/root/${validData.data.slug}`,
+    );
 
     if (rootUpload.error) throw new Error(rootUpload?.error?.message);
     if (rootUpload.serverError)
       throw new Error(rootUpload?.serverError?.message);
 
-    uploadedRootUrls = rootUpload?.success?.data ?? [];
+    rootImages = rootUpload?.success?.data ?? [];
 
-    const imageObjects = uploadedRootUrls.map((url) => ({
-      alt: validData.data.title || "product image",
-      url,
+    const imageObjects = rootImages.map((image) => ({
+      ...image,
+      alt: image.alt || validData.data.title,
     }));
 
     // -------------------------------
-    // Step 3: Upload Variant Images
+    // Step 4: Upload Variant Images
+    // FIXED: Promise.allSettled so we never lose track of files that
+    // finished uploading even if a sibling variant's upload fails —
+    // this is what makes rollback in the catch block actually complete.
     // -------------------------------
-    const variantsWithUrls = await Promise.all(
-      (validData.data.variants || []).map(
-        async (variant: any, vIdx: number) => {
-          let variantUrls: string[] = [];
-
-          if (variant.images && variant.images.length > 0) {
-            const variantUpload = await uploadMultipleFiles({
-              body: { images: variant.images },
-              folder: `products/${validData.data.slug || ""}/variants/${vIdx}`,
-              filenames: variant.images.map(
-                (f: File, i: number) =>
-                  `${Date.now()}-variant-${vIdx}-${i}-${f.name}`
-              ),
-            });
-
-            if (variantUpload.error)
-              throw new Error(variantUpload?.error?.message);
-            if (variantUpload.serverError)
-              throw new Error(variantUpload?.serverError?.message);
-
-            variantUrls = variantUpload?.success?.data ?? [];
-            uploadedVariantUrls[vIdx] = variantUrls;
-          }
-
-          return {
-            ...variant,
-            images: variantUrls.map((url) => ({
-              alt: `-${variant.size}`,
-              url,
-            })),
-          };
+    const variantResults = await Promise.allSettled(
+      validData.data.variants.map(async (variant: any, vIdx: number) => {
+        if (!variant.images || variant.images.length === 0) {
+          return { ...variant, images: [] };
         }
-      )
+
+        const variantUpload = await uploadMultipleFiles(
+          variant.images,
+          `products/${validData.data.slug}/variants/${variant.sku}`,
+        );
+
+        if (variantUpload.error) throw new Error(variantUpload.error.message);
+        if (variantUpload.serverError)
+          throw new Error(variantUpload.serverError.message);
+
+        const urls = variantUpload.success?.data ?? [];
+        variantImages[vIdx] = urls; // recorded regardless of siblings' outcome
+
+        return {
+          ...variant,
+          images: urls.map((image) => ({ ...image, alt: `${variant.sku}` })),
+        };
+      }),
+    );
+
+    const firstFailure = variantResults.find((r) => r.status === "rejected") as
+      | PromiseRejectedResult
+      | undefined;
+
+    if (firstFailure) {
+      // every fulfilled upload is already in variantImages above,
+      // so the catch block below can roll ALL of them back, not just some.
+      throw new Error(
+        firstFailure.reason?.message ?? "Variant image upload failed",
+      );
+    }
+
+    const variantsWithUrls = variantResults.map(
+      (r) => (r as PromiseFulfilledResult<any>).value,
     );
 
     // -------------------------------
-    // Step 4: Save in DB
+    // Step 5: Save in DB
     // -------------------------------
     const product = new Product({
       ...validData.data,
       images: imageObjects,
       variants: variantsWithUrls,
     });
+
+    console.log("Valid data: ", validData, imageObjects, variantsWithUrls);
 
     const docs = await product.save();
 
@@ -133,14 +190,24 @@ export const register = async ({
   } catch (error: any) {
     console.error("Error in register product:", error);
     // Rollback root images
-    if (uploadedRootUrls.length > 0) {
-      await Promise.all(uploadedRootUrls.map((url) => deleteFromS3(url)));
+    if (rootImages.length > 0) {
+      await deleteMultipleFiles(rootImages.map((image) => image.key));
     }
-    // Rollback variant images
-    for (const vIdx in uploadedVariantUrls) {
-      await Promise.all(
-        uploadedVariantUrls[vIdx].map((url) => deleteFromS3(url))
-      );
+    // Rollback variant images (now guaranteed complete, see Step 4 fix)
+    await deleteMultipleFiles(
+      Object.values(variantImages)
+        .flat()
+        .map((image) => image.key),
+    );
+
+    // Handle duplicate-key race (two concurrent requests, same slug)
+    if (error.code === 11000) {
+      return {
+        error: {
+          message: "Sorry! This product already exists.",
+          fields: [{ name: "slug", message: "Slug must be unique" }],
+        },
+      };
     }
 
     return {
@@ -154,40 +221,117 @@ export const register = async ({
 };
 
 // Update general info (non-images)
-export const updateGeneralInfo = async ({
-  productId,
+export const updateDiscount = async ({
+  _id,
   data,
 }: {
-  productId: string;
+  _id: string;
   data: any;
 }) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
   // Validate body
   const validData = z
     .object({
-      title: z.string().min(1).optional(),
+      discount: z
+        .object({
+          discountType: z.enum(["percentage", "fixed"]),
+          value: z.number().min(0),
+          startAt: z.coerce.date().optional(),
+          endAt: z.coerce.date().optional(),
+        })
+        .optional()
+        .refine((d) => !d?.startAt || !d?.endAt || d.startAt < d.endAt, {
+          message: "startAt must be before endAt",
+        }),
+    })
+    .safeParse(data);
+
+  if (!validData.success) {
+    return {
+      error: schemaValidationError(validData.error, "Invalid request body"),
+    };
+  }
+
+  try {
+    // Validate product existence and slug uniqueness
+    const product = await Product.findById(idValidation.data._id);
+    if (!product) {
+      return {
+        error: {
+          message: `Product not found!`,
+        },
+      };
+    }
+
+    // Update fields
+    Object.assign(product, validData.data);
+
+    const updated = await product.save();
+    return {
+      success: {
+        success: true,
+        message: "Product discount updated successfully!",
+        data: updated,
+      },
+    };
+  } catch (error: any) {
+    return {
+      serverError: {
+        success: false,
+        message: error.message,
+        stack: process.env.NODE_ENV === "production" ? null : error.stack,
+      },
+    };
+  }
+};
+
+// Update general info (non-images)
+export const updateGeneralInfo = async ({
+  _id,
+  data,
+}: {
+  _id: string;
+  data: any;
+}) => {
+  // Validate ID
+  const idValidation = idSchemaZ.safeParse({ _id });
+  if (!idValidation.success) {
+    return { error: schemaValidationError(idValidation.error, "Invalid ID") };
+  }
+  // Validate body
+  const validData = z
+    .object({
+      title: z.string().min(1, "title is required"),
       slug: z
         .string()
-        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case")
-        .optional(),
-      description: z.string().optional(),
-      fabric: z.string().max(100).optional(),
-      keyFeatures: z.array(z.string().max(100)).optional(),
-      valueAddition: z.string().max(500).optional(),
-      cutFit: z.string().max(100).optional(),
-      collarNeck: z.string().max(100).optional(),
-      sleeve: z.string().max(100).optional(),
-      length: z.string().max(100).optional(),
-      washCare: z.string().max(500).optional(),
-      sideCut: z.string().max(100).optional(),
-      isFeatured: z.boolean().optional(),
-      isActive: z.boolean().optional(),
-      categories: z.array(objectIdSchemaZ),
-      tags: z.array(z.string().max(10)).optional(),
+        .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
+      description: z.string().max(1000).optional(),
+      keyFeatures: z.array(z.string().min(1)).optional(),
+
+      categories: z
+        .array(objectIdSchemaZ)
+        .nonempty("At least 1 category is required"),
+
+      specifications: z
+        .array(keyValueSchemaZ)
+        .optional()
+        .default([])
+        .transform((arr, ctx) => {
+          try {
+            return keyValueArrayToRecord(arr);
+          } catch (e: any) {
+            ctx.addIssue({ code: "custom", message: e.message });
+            return z.NEVER;
+          }
+        }),
+
+      isFeatured: z.boolean().optional().default(false),
+      isActive: z.boolean().default(true),
+      tags: z.array(z.string().min(1).max(10)).optional(),
     })
     .safeParse(data);
 
@@ -251,17 +395,18 @@ export const updateGeneralInfo = async ({
 
 // Update product variant info
 export const updateVariantInfo = async ({
-  productId,
-  variantId,
+  _id,
+  vId,
   data,
 }: {
-  productId: string;
-  variantId: string;
+  _id: string;
+  vId: string;
   data: any;
 }) => {
-  // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
-  const vIdValidation = idSchemaZ.safeParse({ _id: variantId });
+  // product id
+  const idValidation = idSchemaZ.safeParse({ _id });
+  // variant id
+  const vIdValidation = idSchemaZ.safeParse({ _id: vId });
   if (!idValidation.success || !vIdValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -285,7 +430,7 @@ export const updateVariantInfo = async ({
     }
 
     const variant = product.variants.find(
-      (v) => v._id.toString() === vIdValidation.data._id
+      (v) => v._id.toString() === vIdValidation.data._id,
     );
 
     if (!variant) {
@@ -320,23 +465,18 @@ export const updateVariantInfo = async ({
 
 // Update main images
 export const updateMainImages = async ({
-  productId,
+  _id,
   data,
 }: {
-  productId: string;
-  data: { mainImages: File[]; deleteImageUrls: string[] };
+  _id: string;
+  data: z.input<typeof updateProductImagesZ>;
 }) => {
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
-  const validData = z
-    .object({
-      mainImages: z.array(z.file()),
-      deleteImageUrls: z.array(z.string()),
-    })
-    .safeParse(data);
+  const validData = updateProductImagesZ.safeParse(data);
 
   if (!validData.success) {
     return {
@@ -344,53 +484,59 @@ export const updateMainImages = async ({
     };
   }
 
-  const uploadedUrls: string[] = [];
+  const uploadedImages: { url: string; key: string }[] = [];
   try {
     const product = await Product.findById(idValidation.data._id);
     if (!product) return { error: { message: "Product not found!" } };
 
-    /** 🔹 Delete old images */
+    /** Delete old images */
     if (validData.data.deleteImageUrls.length) {
-      const deleteUrls = validData.data.deleteImageUrls.filter((url) =>
-        product.images.some((img: { url: string }) => img.url === url)
+      const imagesToDelete = product.images.filter((img) =>
+        validData.data.deleteImageUrls.includes(img.url),
       );
 
-      if (deleteUrls.length) {
-        await Promise.all(deleteUrls.map((url) => deleteFromS3(url)));
+      if (imagesToDelete.length) {
+        await deleteMultipleFiles(imagesToDelete.map((img) => img.key));
         product.images = product.images.filter(
-          (img: { url: string }) => !deleteUrls.includes(img.url)
+          (img) => !validData.data.deleteImageUrls.includes(img.url),
         );
       }
     }
 
-    /** 🔹 Upload new images */
-    if (validData.data.mainImages.length) {
-      const filenames = validData.data.mainImages.map(
-        (f: File, idx: number) => `${Date.now()}-${idx}-${f.name}`
+    /** Upload new images */
+    if (validData.data.images.length) {
+      const res = await uploadMultipleFiles(
+        validData.data.images,
+        `products/root/${product.slug}`,
       );
-
-      const res = await uploadMultipleFiles({
-        body: { images: validData.data.mainImages },
-        folder: "products", // ./..TODO: Path thik moto dite hobe.
-        filenames,
-      });
 
       if (res.error) throw new Error(res?.error?.message);
       if (res.serverError) throw new Error(res?.serverError?.message);
       if (!res.success) throw new Error("Failed to upload main images");
 
-      const newUrls = res.success?.data || [];
-      uploadedUrls.push(...newUrls);
+      const newImages = res.success?.data || [];
+      uploadedImages.push(...newImages);
 
-      const existingUrlsSet = new Set(product.images.map((img) => img.url));
-      const uniqueNewUrls = newUrls.filter((url) => !existingUrlsSet.has(url));
+      const existingImageSet = new Set(product.images.map((img) => img.url));
+      const uniqueNewImages = newImages.filter(
+        (img) => !existingImageSet.has(img.url),
+      );
 
       product.images.push(
-        ...uniqueNewUrls.map((url) => ({ url, alt: product.title }))
+        ...uniqueNewImages.map((img) => ({ ...img, alt: product.title })),
       );
     }
 
-    /** 🔹 Save changes */
+    const reorderedUrls = validData.data.reorderedImageUrls.filter(Boolean);
+
+    if (reorderedUrls.length > 0 || product.images.length > 0) {
+      product.images = orderImages(
+        product.images,
+        reorderedUrls,
+      ) as typeof product.images;
+    }
+
+    product.markModified("images");
     const updated = await product.save();
 
     return {
@@ -401,9 +547,9 @@ export const updateMainImages = async ({
       },
     };
   } catch (error: any) {
-    /** 🔹 Rollback uploaded images */
-    if (uploadedUrls.length) {
-      await Promise.all(uploadedUrls.map((url) => deleteFromS3(url)));
+    /** Rollback uploaded images */
+    if (uploadedImages.length) {
+      await deleteMultipleFiles(uploadedImages.map((img) => img.key));
     }
 
     return {
@@ -418,26 +564,23 @@ export const updateMainImages = async ({
 
 // Update variant images
 export const updateVImages = async ({
-  productId,
-  variantId,
+  _id,
+  vId,
   data,
 }: {
-  productId: string;
-  variantId: string;
-  data: { images: File[]; deleteImageUrls: string[] };
+  _id: string;
+  vId: string;
+  data: z.input<typeof updateProductImagesZ>;
 }) => {
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
-  const vIdValidation = idSchemaZ.safeParse({ _id: variantId });
+  // product id
+  const idValidation = idSchemaZ.safeParse({ _id });
+  // variant id
+  const vIdValidation = idSchemaZ.safeParse({ _id: vId });
   if (!idValidation.success || !vIdValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
-  const validData = z
-    .object({
-      images: z.array(z.file()),
-      deleteImageUrls: z.array(z.string()),
-    })
-    .safeParse(data);
+  const validData = updateProductImagesZ.safeParse(data);
 
   if (!validData.success) {
     return {
@@ -445,67 +588,75 @@ export const updateVImages = async ({
     };
   }
 
-  const uploadedUrls: string[] = [];
+  const uploadedImages: { key: string; url: string }[] = [];
   try {
     const product = await Product.findById(idValidation.data._id);
     if (!product) return { error: { message: "Product not found!" } };
 
     const variantIndex = product.variants.findIndex(
-      (v) => v._id.toString() === vIdValidation.data._id
+      (v) => v._id.toString() === vIdValidation.data._id,
     );
     if (variantIndex === -1) {
       return { error: { message: "Variant not found!" } };
     }
     const variant = product.variants[variantIndex];
 
-    /** 🔹 Delete old images */
+    /** Delete old images if needed */
     if (validData.data.deleteImageUrls.length) {
-      const deleteUrls = validData.data.deleteImageUrls.filter((url) =>
-        variant.images?.some((img: { url: string }) => img.url === url)
+      const imagesToDelete = (variant.images || []).filter((img) =>
+        validData.data.deleteImageUrls.includes(img.url),
       );
 
-      if (deleteUrls.length) {
-        await Promise.all(deleteUrls.map((url) => deleteFromS3(url)));
+      if (imagesToDelete.length) {
+        await deleteMultipleFiles(imagesToDelete.map((img) => img.key));
         variant.images = (variant.images || []).filter(
-          (img: { url: string }) => !deleteUrls.includes(img.url)
+          (img) => !validData.data.deleteImageUrls.includes(img.url),
         );
       }
     }
 
-    /** 🔹 Upload new images */
+    /** Upload new images */
     if (validData.data.images?.length) {
-      const filenames = validData.data.images.map(
-        (f: File, idx: number) => `${Date.now()}-${idx}-${f.name}`
+      const res = await uploadMultipleFiles(
+        validData.data.images,
+        `products/${product.slug}/variants/${variant.sku}`,
       );
-
-      const res = await uploadMultipleFiles({
-        body: { images: validData.data.images },
-        folder: `products/variants/${variantIndex}/${product.title}-${variant.size}`,
-        filenames,
-      });
 
       if (res.error) throw new Error(res?.error?.message);
       if (res.serverError) throw new Error(res?.serverError?.message);
       if (!res.success) throw new Error("Failed to upload variant images");
 
-      const newUrls = res.success?.data || [];
-      uploadedUrls.push(...newUrls);
+      const newImages = res.success?.data || [];
+      uploadedImages.push(...newImages);
 
       const existingUrls = new Set(
-        (variant.images || []).map((img) => img.url)
+        (variant.images || []).map((img) => img.url),
       );
-      const uniqueNewUrls = newUrls.filter((url) => !existingUrls.has(url));
+      const uniqueNewImages = newImages.filter(
+        (img) => !existingUrls.has(img.url),
+      );
 
       if (!variant.images) variant.images = [];
       variant.images.push(
-        ...uniqueNewUrls.map((url) => ({
-          url,
-          alt: `${product.title}-${variant.size}`,
-        }))
+        ...uniqueNewImages.map((img) => ({
+          key: img.key,
+          url: img.url,
+          alt: `${product.title}-${variant.sku}`,
+          position: img.position,
+        })),
       );
     }
 
-    /** 🔹 Save product */
+    const reorderedUrls = validData.data.reorderedImageUrls.filter(Boolean);
+
+    if (reorderedUrls.length > 0 || (variant.images || []).length > 0) {
+      variant.images = orderImages(
+        variant.images || [],
+        reorderedUrls,
+      ) as typeof variant.images;
+    }
+
+    /** Save product */
     const updated = await product.save();
 
     return {
@@ -516,9 +667,9 @@ export const updateVImages = async ({
       },
     };
   } catch (error: any) {
-    /** 🔹 Rollback uploaded images */
-    if (uploadedUrls.length) {
-      await Promise.all(uploadedUrls.map((url) => deleteFromS3(url)));
+    /** Rollback uploaded images */
+    if (uploadedImages.length) {
+      await deleteMultipleFiles(uploadedImages.map((img) => img.url));
     }
 
     return {
@@ -534,27 +685,29 @@ export const updateVImages = async ({
 // Create new variant
 export const createVariant = async ({
   data,
-  productId,
+  _id,
 }: {
   data: any;
-  productId: string;
+  _id: string;
 }) => {
-  let uploadedUrls: string[] = [];
+  let uploadedImages: {
+    url: string;
+    key: string;
+    position: number;
+    alt: string;
+  }[] = [];
 
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
+  console.log("Data: ", data);
+
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
 
   // Step 1: validate fields (skip file validation here)
-  const validData = z
-    .object({
-      size: z.string().min(1),
-      stock: z.number().int().min(0, "stock must be >= 0"),
-      price: z.number().nonnegative("price must be >= 0"),
-      images: z.array(z.file()).optional().default([]),
-    })
-    .safeParse(data);
+  const validData = productVariantSchemaZ.safeParse(data);
+
+  console.log("Valid data: ", validData.error);
 
   if (!validData.success) {
     return {
@@ -578,33 +731,31 @@ export const createVariant = async ({
     // Step 2: Upload Images
     // -------------------------------
     if (validData.data.images.length > 0) {
-      const uploads = await uploadMultipleFiles({
-        body: { images: validData.data.images || [] },
-        folder: `products/variants/${product.variants.length}`,
-        filenames: (validData.data.images || []).map(
-          (f: File, idx: number) => `${Date.now()}-${idx}-${f.name}`
-        ),
-      });
+      const uploads = await uploadMultipleFiles(
+        validData.data.images,
+        `products/${product.slug}/variants/${validData.data.sku}`,
+      );
       if (uploads.error) throw new Error(uploads?.error?.message);
       if (uploads.serverError) throw new Error(uploads?.serverError?.message);
 
-      uploadedUrls = uploads?.success?.data ?? [];
+      uploadedImages = uploads?.success?.data ?? [];
     }
 
     // -------------------------------
     // Step 3: Build variant & Save in DB
     // -------------------------------
-    const { size, stock, price } = validData.data;
-    const imageObjects = (uploadedUrls || []).map((url) => ({
-      url,
-      alt: `${size}`,
-    }));
+    const { sku, stock, price, attributes } = validData.data;
+    // const imageObjects = (uploadedImages || []).map((img) => ({
+    //   url: img.url,
+    //   alt: `products/${validData.data.slug}/variants/${variant.sku}`,
+    // }));
 
     product.variants.push({
-      size,
+      sku,
+      attributes,
       stock,
       price,
-      images: imageObjects,
+      images: uploadedImages,
     } as any);
 
     const docs = product.save();
@@ -619,8 +770,8 @@ export const createVariant = async ({
   } catch (error: any) {
     console.error("Error in register product:", error);
     // Rollback root images
-    if (uploadedUrls.length > 0) {
-      await Promise.all(uploadedUrls.map((url) => deleteFromS3(url)));
+    if (uploadedImages.length > 0) {
+      await deleteMultipleFiles(uploadedImages.map((img) => img.key));
     }
 
     return {
@@ -635,14 +786,14 @@ export const createVariant = async ({
 
 // Delete variant
 export const deleteVariant = async ({
-  productId,
-  variantId,
+  _id,
+  vId,
 }: {
-  productId: string;
-  variantId: string;
+  _id: string;
+  vId: string;
 }) => {
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
-  const vIdValidation = idSchemaZ.safeParse({ _id: variantId });
+  const idValidation = idSchemaZ.safeParse({ _id });
+  const vIdValidation = idSchemaZ.safeParse({ _id: vId });
   if (!idValidation.success || !vIdValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -658,7 +809,7 @@ export const deleteVariant = async ({
       };
     }
     const variant = product.variants.find(
-      (v) => v._id.toString() === vIdValidation.data._id
+      (v) => v._id.toString() === vIdValidation.data._id,
     );
     if (!variant) {
       return {
@@ -669,17 +820,13 @@ export const deleteVariant = async ({
     }
 
     if (variant.images?.length) {
-      const existingUrls = variant.images.map(
-        (img: { url: string }) => img.url
-      );
-
-      if (existingUrls.length) {
-        await Promise.all(existingUrls.map((url) => deleteFromS3(url)));
-        variant.images = [];
-      }
+      await deleteMultipleFiles(variant.images.map((img) => img.key));
+      variant.images = [];
     }
 
-    variant.deleteOne();
+    product.variants = product.variants.filter(
+      (v) => v._id.toString() !== variant._id.toString(),
+    );
     const updated = await product.save();
 
     return {
@@ -726,18 +873,18 @@ export const getProducts = async (queryParams: {
         .string()
         .optional()
         .transform((val) =>
-          val === "true" ? true : val === "false" ? false : undefined
+          val === "true" ? true : val === "false" ? false : undefined,
         ),
       isActive: z
         .string()
         .optional()
         .transform((val) =>
-          val === "true" ? true : val === "false" ? false : undefined
+          val === "true" ? true : val === "false" ? false : undefined,
         ),
       priceRange: z
         .object({
-          min: z.number().min(0).optional().default(0),
-          max: z.number().min(0).optional().default(10000),
+          min: z.number().min(0).default(0),
+          max: z.number().min(0).default(10000),
         })
         .optional(),
       categories: z.array(z.string()).optional(),
@@ -772,14 +919,18 @@ export const getProducts = async (queryParams: {
         { slug: { $regex: search, $options: "i" } },
         { tags: { $regex: search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     if (typeof isFeatured === "boolean") query.isFeatured = isFeatured;
     if (typeof isActive === "boolean") query.isActive = isActive;
 
     // Allowable sort fields
-    const sortField = ["createdAt", "updatedAt", "title", "slug"].includes(
-      sortBy
-    )
+    const sortField = ["createdAt", "updatedAt", "title"].includes(sortBy)
       ? sortBy
       : "createdAt";
     const sortDirection =
@@ -822,9 +973,9 @@ export const getProducts = async (queryParams: {
 };
 
 // Get product by ID
-export const getProduct = async (productId: string) => {
+export const getProduct = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -900,9 +1051,9 @@ export const getProductBySlug = async (slug: string) => {
 };
 
 // Delete product
-export const deleteProduct = async (productId: string) => {
+export const deleteProduct = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: productId });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -919,26 +1070,20 @@ export const deleteProduct = async (productId: string) => {
     }
 
     if (product.images.length) {
-      const existingUrls = product.images.map(
-        (img: { url: string }) => img.url
-      );
-
-      if (existingUrls.length) {
-        await Promise.all(existingUrls.map((url) => deleteFromS3(url)));
-        product.images = [];
-      }
+      await deleteMultipleFiles(product.images.map((img) => img.key));
+      product.images = [];
     }
 
-    /** 🔹 Delete variant images */
+    /** Delete variant images */
     for (const variant of product.variants) {
       if (variant.images?.length) {
-        const vUrls = variant.images.map((img: { url: string }) => img.url);
-        await Promise.all(vUrls.map((url) => deleteFromS3(url)));
+        await deleteMultipleFiles(variant.images.map((img) => img.key));
+
         variant.images = [];
       }
     }
 
-    /** 🔹 Delete product from DB */
+    /** Delete product from DB */
     await product.deleteOne();
 
     // Response
@@ -959,202 +1104,13 @@ export const deleteProduct = async (productId: string) => {
   }
 };
 
-// Upload files
-export const uploadMultipleFiles = async ({
-  body,
-  folder,
-  filenames,
-}: {
-  folder: string;
-  filenames: string[];
-  body: {
-    images: File[] | File;
-  };
-}) => {
-  if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_BUCKET_NAME
-  ) {
-    return {
-      error: {
-        message:
-          "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is missing in env variables",
-      },
-    };
-  }
-
-  let images = body.images;
-
-  if (!images) {
-    return {
-      error: { message: "No file provided" },
-    };
-  }
-
-  // Convert to array if single file
-  if (!Array.isArray(images)) {
-    images = [images];
-  }
-
-  // Validate with zod (same as single avatar but array)
-  const imagesSchema = z.object({
-    images: z
-      .array(z.file())
-      .nonempty({ message: "At least one file is required" }),
-  });
-
-  const validData = imagesSchema.safeParse({ images });
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body"),
-    };
-  }
-
-  try {
-    const uploadPromises = validData.data.images.map((file, index) =>
-      uploadAvatar({
-        s3,
-        file,
-        key: `tasfin/${folder}/${
-          filenames[index] || `${Date.now()}-${file.name}`
-        }`,
-        fileType: file.type,
-        bucketName: process.env.AWS_BUCKET_NAME!,
-      }).then(() => {
-        return `https://${process.env.AWS_BUCKET_NAME}.s3.${
-          process.env.AWS_REGION
-        }.amazonaws.com/tasfin/${folder}/${
-          filenames[index] || `${Date.now()}-${file.name}`
-        }`;
-      })
-    );
-
-    const urls = await Promise.all(uploadPromises);
-
-    return {
-      success: {
-        success: true,
-        message: "Files uploaded successfully",
-        data: urls,
-      },
-    };
-  } catch (error: any) {
-    return {
-      serverError: {
-        success: false,
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
-
-// Upload file
-export const uploadSingleFile = async ({
-  filename,
-  body,
-  folder,
-}: {
-  filename: string;
-  folder: string;
-  body: {
-    avatar: File;
-  };
-}) => {
-  if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_BUCKET_NAME
-  ) {
-    return {
-      error: {
-        message:
-          "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is missing in env variables",
-      },
-    };
-  }
-
-  const file = body.avatar;
-
-  if (!file) {
-    return {
-      error: { message: "No file provided" },
-    };
-  }
-
-  const validData = avatarSchemaZ.safeParse({ avatar: file });
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body"),
-    };
-  }
-
-  try {
-    await uploadAvatar({
-      s3,
-      file: validData.data.avatar,
-      key: `uploads/${folder}/${filename}`,
-      fileType: validData.data.avatar.type,
-      bucketName: process.env.AWS_BUCKET_NAME,
-    });
-
-    const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${folder}/${filename}`;
-
-    return {
-      success: {
-        success: true,
-        message: "Avatar updated successfully",
-        data: url,
-      },
-    };
-  } catch (error: any) {
-    return {
-      serverError: {
-        success: false,
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
-
-// Halper functio of deleting images from S3
-export const deleteFromS3 = async (fileUrl: string) => {
-  const bucket = process.env.AWS_BUCKET_NAME!;
-
-  const key = fileUrl.split(`.amazonaws.com/`)[1];
-
-  if (!key) throw new Error("Invalid S3 file URL");
-
-  try {
-    await s3.send(
-      new DeleteObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      })
-    );
-
-    console.log(`Deleted from S3: ${key}`);
-  } catch (error) {
-    console.error("Failed to delete from S3:", error);
-  }
-};
-
 // Halper function
 function updateProductFields(product: any, data: any) {
   const updatableFields = [
     "title",
     "description",
     "categories",
-    "fabric",
-    "valueAddition",
-    "cutFit",
-    "collarNeck",
-    "sleeve",
-    "length",
-    "washCare",
-    "sideCut",
+    "attributes",
     "isFeatured",
     "isActive",
     "tags",

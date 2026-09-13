@@ -1,7 +1,8 @@
+import { createCookie, getCookie } from "@/app/actions";
 import api from "@/axios/interceptor";
 import { IPagination } from "@/interfaces/global";
 import { IFetchOrder, IFilter, IOrder } from "@/interfaces/orders";
-import { useCart } from "@/lib/cart-context";
+import { useCartAndWishlist } from "@/lib/cart-context";
 import { defaultPagination } from "@/lib/utils";
 import { CheckoutFormValues, CheckoutSchemaZ } from "@/lib/zod-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,11 +16,12 @@ const useOrders = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [statusOpen, setStatusOpen] = useState<boolean>(false);
   const [status, setStatus] = useState<"success" | "faild" | null>("success");
-  const { items, clearCart } = useCart();
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [order, setOrder] = useState<{ message: string; data: IOrder } | null>(
     null
   );
+
+  const { cartItems, clearCart } = useCartAndWishlist();
 
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -54,6 +56,7 @@ const useOrders = () => {
         country: "Bangladesh",
       },
       paymentMethod: "cod",
+      shippingLocation: "outside-dhaka",
     },
   });
 
@@ -64,12 +67,13 @@ const useOrders = () => {
         name: values.name,
         address: values.address,
         phone: values.phone,
-        products: items.map((item) => ({
+        email: values.email,
+        products: cartItems.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
           quantity: item.quantity,
         })),
-        shippingCost: 0,
+        shippingCost: values.shippingCost,
       };
 
       const response = await api.post("/orders/register", data);
@@ -77,6 +81,13 @@ const useOrders = () => {
       if (response.data.success) {
         toast.success(response.data.message || "Order created successfully!");
         console.log(response.data.message || "Order created successfully!");
+
+        // set cookie - user phone number
+        createCookie({
+          name: "X-User-ID",
+          value: response.data?.data?.user,
+          maxAgeAsSeconds: 60 * 60 * 24 * 365, // 1y
+        });
 
         // Clear cart and redirect to confirmation
         setOrder(response.data);
@@ -125,6 +136,7 @@ const useOrders = () => {
   // fetch orders by userId
   const getOrdersByUserId = useCallback(
     async ({ filters, page, userId, limit = 10 }: IFetchOrder) => {
+      const phone = (await getCookie("X-User-ID")) as string;
       try {
         const response = await api.get(`/orders`, {
           params: {
@@ -146,6 +158,7 @@ const useOrders = () => {
             page: page === 1 ? undefined : page,
             limit,
           },
+          headers: { Authorization: phone },
         });
 
         if (!response.data.success || !Array.isArray(response.data.data)) {

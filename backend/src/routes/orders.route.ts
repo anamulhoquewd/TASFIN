@@ -1,3 +1,7 @@
+import {
+  authenticatedAdmin,
+  authenticatedAnyUser,
+} from "../middlewares/auth.middleware.js";
 import { orderController } from "./../controllers/index.js";
 import { Hono } from "hono";
 
@@ -9,8 +13,12 @@ orderRoutes.get("/:_id", (c) => orderController.getOrder(c));
 
 orderRoutes.post("/register", (c) => orderController.register(c));
 
-orderRoutes.patch("/:_id", (c) => orderController.updateOrder(c));
+orderRoutes.patch("/:_id", authenticatedAdmin, (c) =>
+  orderController.updateOrder(c),
+);
 
-orderRoutes.delete("/:orderId", (c) => orderController.deleteOrder(c));
+orderRoutes.delete("/:orderId", authenticatedAdmin, (c) =>
+  orderController.deleteOrder(c),
+);
 
 export default orderRoutes;

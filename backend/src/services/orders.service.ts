@@ -1,5 +1,10 @@
+import { configDotenv } from "dotenv";
+import mongoose from "mongoose";
+import z from "zod";
+import { transporter } from "../config/email.js";
 import { schemaValidationError } from "./../error/index.js";
-import type{ IOrder } from "./../interfaces/index.js";
+import type { IOrder } from "./../interfaces/index.js";
+import OrderSequence from "./../models/order-sequence.model.js";
 import Order from "./../models/orders.model.js";
 import Product from "./../models/products.model.js";
 import User from "./../models/users.model.js";
@@ -8,13 +13,13 @@ import {
   addressZ,
   idSchemaZ,
   orderFetchQuerySchema,
- type OrderInput,
+  type OrderInput,
   orderSchemaZ,
   orderStatusEnumZ,
- type OrderUpdateInput,
+  type OrderUpdateInput,
   paymentStatusEnumZ,
 } from "./../validations/zod.js";
-import z from "zod";
+configDotenv();
 
 export interface GetOrderServiceProps {
   page: number;
@@ -28,11 +33,240 @@ export interface GetOrderServiceProps {
   date?: string;
   userId?: string;
   variantId?: string;
-  status?: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  paymentStatus?: "paid" | "unpaid";
+  status?:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "shipped"
+    | "delivered"
+    | "cancelled"
+    | "returned"
+    | "archived";
+  paymentStatus?: "paid" | "unpaid" | "refunded";
   search?: string;
   phone?: string;
   email?: string;
+}
+
+/**
+ * STATE MACHINE — allowed transitions only.
+ * Prevents illegal jumps like delivered -> pending, or cancelling
+ * something that's already shipped.
+ */
+const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  pending: ["confirmed", "processing", "cancelled"],
+  confirmed: ["processing", "shipped", "cancelled"],
+  processing: ["shipped", "cancelled"],
+  shipped: ["delivered", "returned"], // "returned" here = delivery refused/failed, not post-delivery return
+  delivered: ["returned"], // post-delivery return/exchange window
+  cancelled: [], // terminal
+  returned: [], // terminal
+  archived: [], // terminal; retained for audit, hidden only by an archive filter
+};
+
+function assertTransitionAllowed(from: string, to: string) {
+  if (!ALLOWED_TRANSITIONS[from]?.includes(to)) {
+    return {
+      error: {
+        message: `Cannot move order from "${from}" to "${to}"`,
+      },
+    };
+  }
+
+  return null;
+}
+
+function formatOrderDate(date: Date) {
+  const parts = [
+    date.getUTCFullYear().toString().padStart(4, "0"),
+    (date.getUTCMonth() + 1).toString().padStart(2, "0"),
+    date.getUTCDate().toString().padStart(2, "0"),
+  ];
+  const time = [
+    date.getUTCHours().toString().padStart(2, "0"),
+    date.getUTCMinutes().toString().padStart(2, "0"),
+    date.getUTCSeconds().toString().padStart(2, "0"),
+    date.getUTCMilliseconds().toString().padStart(3, "0"),
+  ];
+
+  return {
+    dateKey: parts.join(""),
+    timestamp: `${parts.join("")}-${time.join("")}`,
+  };
+}
+
+export async function generateOrderNumber(date = new Date()) {
+  const { dateKey, timestamp } = formatOrderDate(date);
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const sequence = await OrderSequence.findOneAndUpdate(
+        { _id: dateKey },
+        { $inc: { sequence: 1 } },
+        { new: true, upsert: true, setDefaultsOnInsert: true },
+      ).lean();
+
+      if (!sequence) throw new Error("Could not generate order sequence");
+
+      return `TSF-${timestamp}-${sequence.sequence.toString().padStart(4, "0")}`;
+    } catch (error: any) {
+      if (error?.code !== 11000 || attempt === 2) throw error;
+    }
+  }
+
+  throw new Error("Could not generate order number");
+}
+
+/**
+ * Shared restock helper — bumps variant stock back up and recomputes
+ * the product's denormalized inStock flag. Used by both cancel and return.
+ */
+async function restockItems(
+  items: {
+    product: mongoose.Types.ObjectId;
+    variantId: mongoose.Types.ObjectId;
+    quantity: number;
+  }[],
+  session: mongoose.ClientSession,
+) {
+  for (const item of items) {
+    const product = await Product.findById(item.product).session(session);
+    if (!product) continue;
+
+    const variant = product.variants.find(
+      (value) => value._id.toString() === item.variantId.toString(),
+    );
+    if (!variant) continue;
+
+    variant.stock += item.quantity;
+    await Product.updateOne(
+      { _id: item.product, "variants._id": item.variantId } as any,
+      {
+        $inc: { "variants.$.stock": item.quantity },
+        $set: { inStock: product.variants.some((value) => value.stock > 0) },
+      },
+      { session },
+    );
+  }
+}
+
+/**
+ * CANCEL — only allowed while order hasn't shipped yet.
+ * Full restock. Refund only if payment was already captured
+ * (relevant for bkash/nagad/card, irrelevant for COD-unpaid).
+ */
+export async function cancelOrder(
+  orderId: string,
+  reason: string,
+  cancelledBy: "user" | "admin",
+) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const order = await Order.findById(orderId).session(session);
+    if (!order) throw new Error("Order not found");
+
+    order.statusHistory ??= [];
+
+    const transitionError = assertTransitionAllowed(order.status, "cancelled");
+    if (transitionError) {
+      await session.abortTransaction();
+      return transitionError;
+    }
+
+    await restockItems(
+      order.products.map((i) => ({
+        product: i.productId,
+        variantId: i.variantId,
+        quantity: i.quantity,
+      })),
+      session,
+    );
+
+    order.status = "cancelled";
+    order.statusHistory.push({
+      status: "cancelled",
+      note: `${cancelledBy}: ${reason}`,
+    });
+
+    if (order.paymentStatus === "paid") {
+      order.paymentStatus = "refunded";
+      // trigger actual refund via payment gateway/manual process here
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
+}
+
+/**
+ * RETURN — only allowed after delivery. Supports partial returns
+ * (customer may return only some items from a multi-item order).
+ * Admin-approval gate is intentionally separate from this function —
+ * call this only once a return is approved, from your admin panel.
+ */
+export async function processReturn(
+  orderId: string,
+  returnedVariantIds: string[], // which variants are being returned
+  reason: string,
+) {
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
+
+    const order = await Order.findById(orderId).session(session);
+    if (!order) throw new Error("Order not found");
+
+    order.statusHistory ??= [];
+
+    const transitionError = assertTransitionAllowed(order.status, "returned");
+    if (transitionError) {
+      await session.abortTransaction();
+      return transitionError;
+    }
+
+    const returnedItems = order.products.filter((i) =>
+      returnedVariantIds.includes(i.variantId.toString()),
+    );
+    if (returnedItems.length === 0)
+      throw new Error("No matching items to return");
+
+    await restockItems(
+      returnedItems.map((i) => ({
+        product: i.productId,
+        variantId: i.variantId,
+        quantity: i.quantity,
+      })),
+      session,
+    );
+
+    const isFullReturn = returnedItems.length === order.products.length;
+    order.status = isFullReturn ? "returned" : order.status; // keep status if partial
+    order.statusHistory.push({
+      status: "returned",
+      note: `${isFullReturn ? "Full" : "Partial"} return: ${reason} (${returnedItems.length} item(s))`,
+    });
+
+    if (order.paymentStatus === "paid") {
+      order.paymentStatus = "refunded"; // for partial returns, calculate partial refund amount separately
+    }
+
+    await order.save({ session });
+    await session.commitTransaction();
+    return order;
+  } catch (err) {
+    await session.abortTransaction();
+    throw err;
+  } finally {
+    session.endSession();
+  }
 }
 
 export const register = async (body: OrderInput) => {
@@ -45,73 +279,143 @@ export const register = async (body: OrderInput) => {
   }
 
   try {
-    const { phone, address, products, name, shippingCost } = validData.data;
+    const {
+      phone,
+      address,
+      products,
+      name,
+      shippingCost,
+      email,
+      paymentMethod,
+    } = validData.data;
 
-    // 🔹 Step 1: Find or Create User
+    // Step 1: Find or Create User
     let user = await User.findOne({ phone });
 
     if (!user) {
       const newUser = new User({
         phone,
+        ...(email && { email }),
         address,
         name,
       });
       user = await newUser.save();
     }
 
-    // 🔹 Step 2: Validate Products & Calculate total
-    const orderProducts: any[] = [];
-    let totalAmount = 0;
+    // Keep inventory changes and order creation atomic. User creation intentionally
+    // stays outside this transaction so the user is retained when the order fails.
+    const session = await mongoose.startSession();
+    let order;
+    try {
+      order = await session.withTransaction(async () => {
+        const orderProducts: any[] = [];
+        let totalAmount = 0;
+        let subtotal = 0;
+        let discountTotal = 0;
 
-    for (const item of products) {
-      const product = await Product.findById(item.productId);
-      if (!product) {
-        return { error: { message: "Product not found!" } };
-      }
+        for (const item of products) {
+          const product = await Product.findById(item.productId).session(
+            session,
+          );
+          if (!product) throw new Error("Product not found!");
+          if (!product.isActive) throw new Error("Product not Orderable!");
 
-      const variant = product.variants.find(
-        (v) => v._id.toString() === item.variantId
-      );
-      if (!variant) {
-        return { error: { message: "Variant not found." } };
-      }
+          const variant = product.variants.find(
+            (v) => v._id.toString() === item.variantId,
+          );
+          if (!variant) throw new Error("Variant not found.");
 
-      if (variant.stock < item.quantity) {
-        return {
-          error: {
-            message: `Not enough stock for ${product.title} (${variant.size}). Available stock ${variant.stock}`,
-          },
-        };
-      }
+          if (variant.stock < item.quantity) {
+            throw new Error(
+              `Not enough stock for ${product.title} (${variant.sku}). Available stock ${variant.stock}`,
+            );
+          }
 
-      const price = variant.price;
-      const lineTotal = price * item.quantity;
-      totalAmount += lineTotal;
+          const price = variant.price;
+          const lineTotal = price * item.quantity;
+          subtotal += lineTotal;
 
-      orderProducts.push({
-        variantId: variant._id.toString(),
-        productId: product._id.toString(),
-        title: `${product.title} - ${variant.size}`,
-        image: variant.images?.[0] || product.images?.[0],
-        price,
-        quantity: item.quantity,
+          let discountedPrice = price;
+          const discount = product.discount;
+          const now = new Date();
+          const isDiscountActive =
+            discount &&
+            discount.value > 0 &&
+            (!discount.startAt || now >= discount.startAt) &&
+            (!discount.endAt || now <= discount.endAt);
+
+          if (isDiscountActive) {
+            discountedPrice =
+              discount.discountType === "percentage"
+                ? Math.round(price * (1 - discount.value / 100))
+                : Math.max(0, price - discount.value);
+          }
+
+          const discountedLineTotal = discountedPrice * item.quantity;
+          discountTotal += lineTotal - discountedLineTotal;
+          totalAmount += discountedLineTotal;
+
+          orderProducts.push({
+            variantId: variant._id.toString(),
+            productId: product._id.toString(),
+            title: `${product.title} - ${variant.sku}`,
+            image: product.images?.[0],
+            price: discountedPrice,
+            quantity: item.quantity,
+            sku: variant.sku,
+          });
+
+          variant.stock -= item.quantity;
+          await product.save({ session });
+        }
+
+        const [createdOrder] = await Order.create(
+          [
+            {
+              orderNumber: await generateOrderNumber(),
+              user: user._id,
+              products: orderProducts,
+              address,
+              shippingCost,
+              totalAmount: totalAmount + shippingCost,
+              subtotal,
+              discountTotal,
+              paymentMethod,
+              statusHistory: [{ status: "pending", note: "Order created" }],
+            },
+          ],
+          { session },
+        );
+        return createdOrder;
       });
-
-      variant.stock -= item.quantity;
-      await product.save();
+    } finally {
+      await session.endSession();
     }
 
-    // 🔹 Step 3: Create Order
-    const order = await Order.create({
-      user: user._id,
-      orderDate: new Date(),
-      products: orderProducts,
-      address,
-      paymentStatus: "unpaid",
-      shippingCost,
-      totalAmount: totalAmount + shippingCost,
-      status: "pending",
-    });
+    // Step 4: Send Email to admin
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL,
+      subject: "New Order Received",
+      text: `Hello Admin,
+
+A new order has been placed on the website. Here are the order details:
+
+Order ID: ${order.orderNumber}
+Order ID: ${order._id}
+Total Amount: ${order.totalAmount} BDT
+Payment Method: ${order.paymentMethod}
+Order Date: ${order.createdAt}
+
+Please check the admin dashboard for full order details.
+
+Thank you!
+Tasfin Team
+`,
+    };
+
+    // Send Email
+    await transporter.sendMail(mailOptions);
 
     return {
       success: {
@@ -146,7 +450,13 @@ function buildOrderQuery(filters: {
 
   // Search with ID
   if (filters.search) {
-    query._id = filters.search;
+    query.$or = [{ orderNumber: { $regex: filters.search, $options: "i" } }];
+
+    if (mongoose.Types.ObjectId.isValid(filters.search)) {
+      query.$or.push({
+        _id: new mongoose.Types.ObjectId(filters.search),
+      });
+    }
   }
 
   // Status filter
@@ -162,12 +472,12 @@ function buildOrderQuery(filters: {
   // Date filters: createdAt between fromDate and toDate
   if (filters.dateRange && filters.dateRange.from && filters.dateRange.to) {
     // Length should be 2
-    query.orderDate = {};
+    query.createdAt = {};
     if (filters.dateRange.from)
-      query.orderDate.$gte = new Date(filters.dateRange.from);
+      query.createdAt.$gte = new Date(filters.dateRange.from);
     if (filters.dateRange.to)
-      query.orderDate.$lte = new Date(filters.dateRange.to);
-    if (Object.keys(query.orderDate).length === 0) delete query.orderDate;
+      query.createdAt.$lte = new Date(filters.dateRange.to);
+    if (Object.keys(query.createdAt).length === 0) delete query.createdAt;
   }
 
   // Date filter
@@ -177,7 +487,7 @@ function buildOrderQuery(filters: {
     const nextDate = new Date(date);
     nextDate.setDate(date.getDate() + 1);
 
-    query.orderDate = {
+    query.createdAt = {
       $gte: date,
       $lt: nextDate,
     };
@@ -185,12 +495,14 @@ function buildOrderQuery(filters: {
 
   // User ID filter
   if (filters.userId) {
-    query.user = filters.userId;
+    query.user = new mongoose.Types.ObjectId(filters.userId);
   }
 
   // Filter for a specific variant inside products array
   if (filters.variantId) {
-    query["products.variantId"] = filters.variantId;
+    query["products.variantId"] = new mongoose.Types.ObjectId(
+      filters.variantId,
+    );
   }
 
   return query;
@@ -204,7 +516,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
     return {
       error: schemaValidationError(
         queryValidation.error,
-        "Invalid query parameters"
+        "Invalid query parameters",
       ),
     };
   }
@@ -239,15 +551,15 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
     }
 
     // Date filter
-    const dateFilter: any = {};
-    if (
-      queryValidation.data.dateRange &&
-      queryValidation.data.dateRange.from &&
-      queryValidation.data.dateRange.to
-    ) {
-      dateFilter.$gte = new Date(queryValidation.data.dateRange.from);
-      dateFilter.$lte = new Date(queryValidation.data.dateRange.to);
-    }
+    // const dateFilter: any = {};
+    // if (
+    //   queryValidation.data.dateRange &&
+    //   queryValidation.data.dateRange.from &&
+    //   queryValidation.data.dateRange.to
+    // ) {
+    //   dateFilter.$gte = new Date(queryValidation.data.dateRange.from);
+    //   dateFilter.$lte = new Date(queryValidation.data.dateRange.to);
+    // }
 
     // Query
     const query = buildOrderQuery({
@@ -264,7 +576,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
 
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt"].includes(
-      queryValidation.data.sortBy
+      queryValidation.data.sortBy,
     )
       ? queryValidation.data.sortBy
       : "createdAt";
@@ -277,7 +589,7 @@ export const getOrders = async (queryParams: GetOrderServiceProps) => {
         .sort({ [sortField]: sortDirection })
         .skip((queryParams.page - 1) * queryParams.limit)
         .limit(queryParams.limit)
-        .populate("user", "name email phone") // only select name and email from user
+        .populate("user", "name email phone") // only select name, phone and email from user
         .exec(),
 
       Order.countDocuments(query),
@@ -349,7 +661,6 @@ export const getOrder = async (_id: string) => {
   }
 };
 
-// TODO./.. Test kora baki ache. order cancelled hole stock back korbe.
 export async function updateOrder({
   body,
   _id,
@@ -369,6 +680,7 @@ export async function updateOrder({
       address: addressZ,
       paymentStatus: paymentStatusEnumZ,
       status: orderStatusEnumZ,
+      note: z.string().trim().max(500).optional(),
     })
     .partial()
     .refine((data) => Object.keys(data).length > 0, {
@@ -383,22 +695,24 @@ export async function updateOrder({
   }
 
   try {
-    const order: IOrder | null = await Order.findById(idValidation.data._id);
+    const order = await Order.findById(idValidation.data._id);
     if (!order)
       return {
         error: { message: "Order not found with the provided ID" },
       };
 
-    const { status, paymentStatus, address } = validData.data;
+    const { status, paymentStatus, address, note } = validData.data;
 
-    // 🧠 Rule 1: যদি order.cancelled → আর কিছু update হবে না
-    if (order.status === "cancelled") {
+    // Rule 1: যদি order.cancelled → আর কিছু update হবে না
+    if (order.status === "cancelled" || order.status === "archived") {
       return {
-        error: { message: "Cancelled order can no longer be updated." },
+        error: {
+          message: "Cancelled or archived order can no longer be updated.",
+        },
       };
     }
 
-    // 🧠 Rule 2: যদি order.delivered → শুধু paymentStatus update হবে
+    // Rule 2: যদি order.delivered → শুধু paymentStatus update হবে
     if (order.status === "delivered") {
       if (paymentStatus) {
         order.paymentStatus = paymentStatus;
@@ -416,35 +730,24 @@ export async function updateOrder({
       };
     }
 
-    // 🧠 Rule 3: যদি cancel করতে চায় → paymentStatus / status change হবে না
+    // Rule 3: যদি cancel করতে চায় → paymentStatus / status change হবে না
     if (status === "cancelled") {
-      // Stock restore logic
-      if ((order.status as string) !== "cancelled") {
-        for (const item of order.products) {
-          const product = await Product.findById(item.productId);
-          if (product) {
-            const variant = product.variants.find(
-              (v) => v._id.toString() === item.variantId
-            );
-            if (variant) {
-              variant.stock += item.quantity;
-              await product.save();
-            }
-          }
-        }
-      }
-      order.status = "cancelled";
-      const saved = await order.save();
+      const cancelled = await cancelOrder(
+        idValidation.data._id,
+        note || "Order cancelled from admin order update",
+        "admin",
+      );
+      if ("error" in cancelled) return cancelled;
       return {
         success: {
           success: true,
           message: "Order cancelled successfully!",
-          data: saved,
+          data: cancelled,
         },
       };
     }
 
-    // 🧠 Rule 4: address shipped হলে আর update হবে না
+    // Rule 4: address shipped হলে আর update হবে না
     if (address) {
       if (order.status === "shipped") {
         return {
@@ -460,12 +763,20 @@ export async function updateOrder({
       } as IOrder["address"];
     }
 
-    // 🧠 status update করা যাবে (cancel বাদে)
+    // Status changes must follow the order state machine and are audited.
     if (status && (status as string) !== "cancelled") {
+      if (status !== order.status) {
+        const transitionError = assertTransitionAllowed(order.status, status);
+        if (transitionError) return transitionError;
+        order.statusHistory.push({
+          status,
+          ...(note ? { note } : {}),
+        });
+      }
       order.status = status;
     }
 
-    // 🧠 paymentStatus update করা যাবে
+    // paymentStatus update করা যাবে
     if (paymentStatus) {
       order.paymentStatus = paymentStatus;
     }
@@ -489,7 +800,7 @@ export async function updateOrder({
   }
 }
 
-// TODO./.. Test kora baki ache.
+// DELETE route is intentionally a soft delete so order history remains available.
 export const deleteOrder = async (_id: string) => {
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id: _id });
@@ -508,14 +819,26 @@ export const deleteOrder = async (_id: string) => {
       };
     }
 
-    // Delete order
-    await order.deleteOne();
+    if (order.status === "archived") {
+      return {
+        error: { message: "Order is already archived." },
+      };
+    }
+
+    order.statusHistory ??= [];
+    order.status = "archived";
+    order.statusHistory.push({
+      status: "archived",
+      note: "Order archived by admin",
+    });
+    await order.save();
 
     // Response
     return {
       success: {
         success: true,
-        message: `User deleted successfully!`,
+        message: "Order archived successfully!",
+        data: order,
       },
     };
   } catch (error: any) {

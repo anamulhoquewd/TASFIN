@@ -1,10 +1,17 @@
+import mongoose from "mongoose";
+import z from "zod";
+import { uploadSingleFile } from "../utils/r2-utils.js";
+import { transporter } from "./../config/email.js";
 import { schemaValidationError } from "./../error/index.js";
+import type { IAdmin } from "./../interfaces/index.js";
 import Admin from "./../models/admins.model.js";
+import User from "./../models/users.model.js";
+import { generateAccessToken, generateRefreshToken } from "./../utils/index.js";
+import pagination from "./../utils/pagination.js";
 import { stringGenerator } from "./../utils/string-generator.js";
-import dotenv from "dotenv";
 import {
   adminCreateZ,
-  adminUpdateZ,
+  adminUpdateLimitedZ,
   avatarSchemaZ,
   changePasswordZ,
   idSchemaZ,
@@ -13,25 +20,6 @@ import {
   type AdminCreateInput,
   type AdminUpdateInput,
 } from "./../validations/zod.js";
-import { transporter } from "./../config/email.js";
-import z from "zod";
-import pagination from "./../utils/pagination.js";
-import type{ IAdmin, } from "./../interfaces/index.js";
-import s3 from "./../config/s3.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  uploadAvatar,
-} from "./../utils/index.js";
-import User from "./../models/users.model.js";
-dotenv.config();
-
-// Get environment variables
-const NAME = process.env.ADMIN_NAME;
-const EMAIL = process.env.ADMIN_EMAIL;
-const PHONE = process.env.ADMIN_PHONE;
-const PASSWORD = process.env.ADMIN_PASSWORD;
-const NID = process.env.ADMIN_NID;
 
 export const register = async (body: AdminCreateInput) => {
   // Safe Parse for better error handling
@@ -118,63 +106,6 @@ export const register = async (body: AdminCreateInput) => {
   }
 };
 
-export const registerSuperAdmin = async () => {
-  // Safe Parse for better error handling
-  const validData = adminCreateZ.safeParse({
-    name: NAME,
-    email: EMAIL,
-    phone: PHONE,
-    nid: NID,
-  });
-
-  if (!validData.success) {
-    return {
-      error: schemaValidationError(validData.error, "Invalid request body"),
-    };
-  }
-  try {
-    // Check if super admin already exists
-    const existingSuperAdmin = await Admin.findOne({ role: "super_admin" });
-
-    if (existingSuperAdmin) {
-      return {
-        success: false,
-        error: {
-          message: "Super Admin already exists",
-        },
-      };
-    }
-
-    // Create Super Admin
-    const admin = new Admin({
-      name: validData.data.name,
-      email: validData.data.email,
-      phone: validData.data.phone,
-      nid: validData.data.nid,
-      password: PASSWORD,
-      role: "super_admin",
-    });
-
-    // Save Super Admin
-    const docs = await admin.save();
-
-    // Response
-    return {
-      message: "Super Admin created successfully!",
-      success: true,
-      data: docs,
-    };
-  } catch (error: any) {
-    return {
-      success: false,
-      error: {
-        message: error.message,
-        stack: process.env.NODE_ENV === "production" ? null : error.stack,
-      },
-    };
-  }
-};
-
 export const getAdmins = async (queryParams: {
   page: number;
   limit: number;
@@ -206,10 +137,16 @@ export const getAdmins = async (queryParams: {
         { phone: { $regex: queryParams.search, $options: "i" } },
         { NID: { $regex: queryParams.search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "email"].includes(
-      queryParams.sortBy
+      queryParams.sortBy,
     )
       ? queryParams.sortBy
       : "createdAt";
@@ -222,7 +159,9 @@ export const getAdmins = async (queryParams: {
         .sort({ [sortField]: sortDirection })
         .skip((queryParams.page - 1) * queryParams.limit)
         .limit(queryParams.limit)
+        .lean()
         .exec(),
+
       Admin.countDocuments(query),
     ]);
 
@@ -252,9 +191,10 @@ export const getAdmins = async (queryParams: {
   }
 };
 
+// shared function to get user by ID, can be used for both admin and user (customer)
 export const getUser = async (
   _id: string,
-  { userType }: { userType: "user" | "admin" }
+  { userType }: { userType: "user" | "admin" },
 ) => {
   // Validate ID
   const idValidation = idSchemaZ.safeParse({ _id });
@@ -302,13 +242,11 @@ export const updateProfile = async ({
   admin,
   body,
 }: {
-  admin: IAdmin;
+  admin: mongoose.HydratedDocument<IAdmin>;
   body: AdminUpdateInput;
 }) => {
   // Validation without NID for update
-  const validData = adminUpdateZ
-    .omit({ nid: true, role: true })
-    .safeParse(body);
+  const validData = adminUpdateLimitedZ.safeParse(body);
 
   if (!validData.success) {
     return {
@@ -342,7 +280,8 @@ export const updateProfile = async ({
 
 export const deleteAdmins = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = idSchemaZ.safeParse({ _id });
+
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
@@ -391,7 +330,7 @@ export const changePassword = async ({
   collection,
   body,
 }: {
-  collection: IAdmin;
+  collection: mongoose.HydratedDocument<IAdmin>;
   body: {
     currentPassword: string;
     newPassword: string;
@@ -598,30 +537,15 @@ export const resetPassword = async ({
   }
 };
 
-export const uploadSingleFile = async ({
-  filename,
+export const uploadSingleFileService = async ({
   body,
   folder,
 }: {
-  filename: string;
   folder: string;
   body: {
     avatar: File;
   };
 }) => {
-  if (
-    !process.env.AWS_ACCESS_KEY_ID ||
-    !process.env.AWS_SECRET_ACCESS_KEY ||
-    !process.env.AWS_BUCKET_NAME
-  ) {
-    return {
-      error: {
-        message:
-          "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is missing in env variables",
-      },
-    };
-  }
-
   const file = body.avatar;
 
   if (!file) {
@@ -638,22 +562,25 @@ export const uploadSingleFile = async ({
   }
 
   try {
-    // Upload to S3 (uploadAvatar function assumed async - যদি না হয়, তাহলে await বাদ দিবে)
-    await uploadAvatar({
-      s3,
-      file: validData.data.avatar,
-      key: `uploads/${folder}/${filename}`,
-      fileType: validData.data.avatar.type,
-      bucketName: process.env.AWS_BUCKET_NAME,
-    });
+    const response = await uploadSingleFile(file, folder);
 
-    const url = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/uploads/${folder}/${filename}`;
+    if (response.error) {
+      return {
+        error: response.error,
+      };
+    } else if (response.serverError) {
+      return {
+        serverError: response.serverError,
+      };
+    }
+
+    const data = response.success.data;
 
     return {
       success: {
         success: true,
         message: "Avatar updated successfully",
-        data: url,
+        data,
       },
     };
   } catch (error: any) {
@@ -721,8 +648,6 @@ export const login = async (body: {
 
     // Generate access token
     const accessToken = await generateAccessToken({ user: admin });
-
-    console.log("Access Token:", accessToken);
 
     // Generate refresh token
     const refreshToken = await generateRefreshToken({ user: admin });

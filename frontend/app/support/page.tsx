@@ -45,24 +45,28 @@ export default function ContactPage() {
 
   const contactInfo = [
     {
+      id: 1,
       icon: Mail,
       title: "Email",
       content: "tasfinshop@gmail.com",
       link: "mailto:tasfinshop@gmail.com",
     },
     {
+      id: 2,
       icon: Phone,
       title: "Phone",
       content: "+880 1975-024262",
       link: "tel:+8801975024262",
     },
     {
+      id: 3,
       icon: MapPin,
       title: "Address",
       content: "Dhaka, Bangladesh",
       link: null,
     },
     {
+      id: 4,
       icon: Clock,
       title: "Business Hours",
       content: "Sat - Thu: 9AM - 12PM",
@@ -79,16 +83,16 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Have questions or need assistance? We&apos;re here to help! Reach out to
-            us and we&apos;ll respond as soon as possible.
+            Have questions or need assistance? We&apos;re here to help! Reach
+            out to us and we&apos;ll respond as soon as possible.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Contact Information */}
           <div className="lg:col-span-1 space-y-6">
-            {contactInfo.map((info, index) => (
-              <Card key={index} className="border-border">
+            {contactInfo.map((info) => (
+              <Card key={info.id} className="border-border">
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">

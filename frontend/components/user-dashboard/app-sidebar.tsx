@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { IUser } from "@/interfaces/users";
-import { Button } from "../ui/button";
 import useUsers from "@/hooks/users/use-users";
 import { useEffect, useState } from "react";
 import LoadingPage from "../loading-page";
@@ -79,14 +78,14 @@ export function AppSidebar({ ...props }) {
                 </SidebarMenuItem>
               );
             })}
-            <SidebarMenuItem className="mt-4">
+            {/* <SidebarMenuItem className="mt-4">
               <Button
                 variant={"destructive"}
                 className="font-medium cursor-pointer w-full"
               >
-                Logout
+                Log out
               </Button>
-            </SidebarMenuItem>
+            </SidebarMenuItem> */}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

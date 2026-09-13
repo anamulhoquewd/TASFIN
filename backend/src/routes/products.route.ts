@@ -11,6 +11,9 @@ productRoutes.get("/:productId", (c) => productController.getProduct(c));
 
 productRoutes.get("/slug/:slug", (c) => productController.getProductBySlug(c));
 
+productRoutes.patch("/:productId/discount", (c) =>
+  productController.updateDiscount(c),
+);
 productRoutes.patch("/:productId/general", (c) =>
   productController.updateGeneralInfo(c)
 );

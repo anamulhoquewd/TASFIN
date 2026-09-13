@@ -1,7 +1,7 @@
-import { getStorage, removeStorage, setStorage } from "@/store/local";
+import { createCookie, deleteCookie, getCookie } from "@/app/actions"; // Assuming getCookie is imported
 import axios from "axios";
 
-const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "http://localhost:3200";
+const DOMAIN = process.env.NEXT_PUBLIC_API_DOMAIN || "http://localhost:4000";
 const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/api/v1";
 
 const baseURL = `${DOMAIN}${BASE_PATH}` || "http://localhost:3000/api/v1";
@@ -9,12 +9,23 @@ const baseURL = `${DOMAIN}${BASE_PATH}` || "http://localhost:3000/api/v1";
 const api = axios.create({
   baseURL,
   withCredentials: true,
-  headers: {
-    Authorization: `Bearer ${getStorage("accessToken")}`,
-  },
 });
 
-// Response interceptor for token refresh
+// Request interceptor to add Authorization header
+api.interceptors.request.use(
+  async (config) => {
+    const accessToken = await getCookie("accessToken");
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for token refresh (unchanged, but now complements the request interceptor)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -31,12 +42,11 @@ api.interceptors.response.use(
           return api(originalRequest);
         }
 
-        removeStorage("accessToken");
+        await deleteCookie({ name: "accessToken" });
+        await deleteCookie({ name: "refreshToken" });
 
         return Promise.reject(new Error("Session expired please login again"));
       } catch (refreshError) {
-        removeStorage("accessToken");
-
         return Promise.reject(refreshError);
       }
     }
@@ -56,7 +66,11 @@ const refreshToken = async () => {
     );
 
     if (response.data.success && response.data.tokens?.accessToken) {
-      setStorage("accessToken", response.data.tokens.accessToken);
+      await createCookie({
+        name: "accessToken",
+        value: response.data.tokens.accessToken,
+        maxAgeAsSeconds: 60 * 15, // Align with JWT expiration if needed
+      });
       return response.data.tokens.accessToken;
     }
     return null;

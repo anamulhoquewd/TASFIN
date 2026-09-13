@@ -18,8 +18,10 @@ export const ImageSchema: mongoose.Schema<IImage> = new mongoose.Schema(
   {
     alt: { type: String, required: true, trim: true },
     url: { type: String, required: true, trim: true },
+    key: { type: String, required: false, trim: true },
+    position: { type: Number, required: false, min: 0, default: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
@@ -45,7 +47,9 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     password: {
       type: String,
       required: true,
-      minLength: 8,
+      minlength: 8, // FIXED: was "minLength" (capital L) — Mongoose doesn't
+      // recognize that option and silently ignored it, so the 8-character
+      // minimum was never actually enforced.
       select: false,
     },
     nid: {
@@ -62,11 +66,15 @@ const amdinSchema: mongoose.Schema<IAdmin> = new mongoose.Schema<IAdmin>(
     address: { type: AddressSchema },
     avatar: { type: ImageSchema, required: false },
 
-    refresh: { type: String, required: false },
+    refresh: { type: String, required: false, select: false },
     resetPasswordToken: { type: String },
     resetPasswordExpireDate: { type: Date },
+    // Added: brute-force protection. Admin accounts control the entire
+    // store — worth locking out after repeated failed logins.
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, required: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 amdinSchema.methods.generateResetPasswordToken = function (expMinutes = 30) {
@@ -90,20 +98,18 @@ amdinSchema.methods.matchPassword = async function (assword: string) {
 };
 
 // Hash password
-amdinSchema.pre("save", async function (next) {
+amdinSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    // If password is not modified, skip hashing
-    next();
+    return;
   }
 
   if (!this.password) {
-    return next(new Error("Password is required"));
+    throw new Error("Password is required");
   }
 
   // Use bcrypt to hash the password
   const salt = await bcrypt.genSalt(10); // Adjust salt rounds as needed
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
 const Admin = mongoose.model<IAdmin>("Admin", amdinSchema);

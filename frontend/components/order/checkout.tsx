@@ -1,6 +1,25 @@
-import { ArrowLeft, Wallet } from "lucide-react";
+import { ICartItem } from "@/interfaces/context";
+import {
+  DHAKA_SHIPPING_COST,
+  formatPrice,
+  OUTSIDE_DHAKA_SHIPPING_COST,
+} from "@/lib/utils";
+import { CheckoutFormValues } from "@/lib/zod-validation";
+import { CreditCard, Wallet } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { UseFormReturn } from "react-hook-form";
+import { Badge } from "../ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../ui/breadcrumb";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import {
   Form,
   FormControl,
@@ -9,16 +28,9 @@ import {
   FormLabel,
   FormMessage,
 } from "../ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { Separator } from "../ui/separator";
-import { formatPrice } from "@/lib/utils";
-import { Button } from "../ui/button";
-import { ICartItem } from "@/interfaces/global";
-import { UseFormReturn } from "react-hook-form";
-import { CheckoutFormValues } from "@/lib/zod-validation";
-import Image from "next/image";
 
 interface CheckoutProps {
   form: UseFormReturn<CheckoutFormValues>;
@@ -27,8 +39,11 @@ interface CheckoutProps {
   isProcessing: boolean;
   totalItems: number;
   subtotal: number;
+  originalSubtotal: number;
   total: number;
   shippingFee: number;
+  shippingThreshold: number;
+  isDhaka: boolean;
 }
 
 function Checkout({
@@ -38,31 +53,62 @@ function Checkout({
   isProcessing,
   totalItems,
   subtotal,
+  originalSubtotal,
   total,
   shippingFee,
+  shippingThreshold,
+  isDhaka,
 }: CheckoutProps) {
+  const totalDiscount = items.reduce(
+    (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
+    0,
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link
-        href="/cart"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to Cart
-      </Link>
-      <h1 className="font text-3xl md:text-4xl font-bold text-foreground mb-8">
-        Checkout
-      </h1>
+      <header className="pb-">
+        <Breadcrumb>
+          <BreadcrumbList className="font-cormorant">
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/">Home</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/shop">Shop</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link href="/cart">Cart</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
+            <BreadcrumbItem>
+              <BreadcrumbPage>Checkout</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        <h2 className="font-cormorant text-3xl py-4 sm:text-4xl font-light tracking-wide text-foreground">
+          Checkout
+        </h2>
+      </header>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Checkout Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6">
               {/* Contact Information */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Contact Information</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Contact
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -84,20 +130,6 @@ function Checkout({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                     <FormField
                       control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email (optioanl)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter your email" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
@@ -109,14 +141,30 @@ function Checkout({
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter your email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </CardContent>
               </Card>
 
               {/* Shipping Address */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Shipping Address</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Shipping Address
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <FormField
@@ -150,22 +198,6 @@ function Checkout({
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="address.zipCode"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Postal Code</FormLabel>
-                          <FormControl>
-                            <Input placeholder="1200" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="address.state"
@@ -179,28 +211,70 @@ function Checkout({
                         </FormItem>
                       )}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="address.country"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Country *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Bangladesh" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="shippingLocation"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Delivery Area *</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                          >
+                            <label
+                              htmlFor="shipping-dhaka"
+                              className="flex cursor-pointer items-center gap-3 border p-4 hover:bg-muted/50"
+                            >
+                              <RadioGroupItem
+                                value="dhaka"
+                                id="shipping-dhaka"
+                              />
+                              <span>
+                                <span className="block font-medium">
+                                  Inside Dhaka
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatPrice(DHAKA_SHIPPING_COST)} delivery
+                                </span>
+                              </span>
+                            </label>
+                            <label
+                              htmlFor="shipping-outside-dhaka"
+                              className="flex cursor-pointer items-center gap-3 border p-4 hover:bg-muted/50"
+                            >
+                              <RadioGroupItem
+                                value="outside-dhaka"
+                                id="shipping-outside-dhaka"
+                              />
+                              <span>
+                                <span className="block font-medium">
+                                  Outside Dhaka
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {formatPrice(OUTSIDE_DHAKA_SHIPPING_COST)}{" "}
+                                  delivery
+                                </span>
+                              </span>
+                            </label>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
               {/* Payment Method */}
-              <Card>
+              <Card className="rounded-none">
                 <CardHeader>
-                  <CardTitle>Payment Method</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Payment Method
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <FormField
@@ -231,6 +305,25 @@ function Checkout({
                                 </div>
                               </label>
                             </div>
+                            <div className="bg-destructive/20 cursor-not-allowed flex items-center space-x-3 border rounded-lg p-4 transition-colors">
+                              <RadioGroupItem
+                                disabled
+                                value="online"
+                                id="online"
+                              />
+                              <label
+                                htmlFor="online"
+                                className="flex items-center gap-3 flex-1"
+                              >
+                                <CreditCard className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                  <p className="font-medium">Online</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Pay online and get shipping for 100% free.
+                                  </p>
+                                </div>
+                              </label>
+                            </div>
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -242,38 +335,58 @@ function Checkout({
             </div>
 
             {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <Card className="sticky top-24">
+            <div>
+              <Card className="sticky top-24 rounded-none">
                 <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
+                  <CardTitle className="text-2xl font-cormorant">
+                    Order Summary
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {items.map((item: ICartItem) => (
                       <div
                         key={`${item.productId}-${item.variantId}`}
-                        className="flex gap-3"
+                        className="flex gap-4"
                       >
-                        <div className="w-16 h-20 rounded-md overflow-hidden border">
+                        <div className="max-w-16 relative aspect-[3/4] rounded-md border">
                           <Image
-                            width={1000}
-                            height={1000}
+                            width={1200}
+                            height={1600}
                             src={item.image.url}
                             alt={item.image.alt || item.title}
                             className="w-full h-full object-cover"
                           />
+                          <Badge className="absolute right-0 top-0 rounded-full">
+                            {item.quantity}
+                          </Badge>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium">{item.title}</p>
+                          <p className="font-medium">{item.title}</p>
                           <p className="text-xs text-muted-foreground">
-                            Variant: {item.size}
+                            {Object.entries(item.attributes ?? {})
+                              .map(([key, value]) => `${key}: ${value}`)
+                              .join(" | ")}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Qty: {item.quantity}
                           </p>
+                        </div>
+                        <div className="text-right">
+                          {item.originalPrice && item.discountAmount ? (
+                            <p className="text-xs text-muted-foreground line-through">
+                              {formatPrice(item.originalPrice * item.quantity)}
+                            </p>
+                          ) : null}
                           <p className="text-sm font-semibold">
-                            ৳{(item.price * item.quantity).toLocaleString()}
+                            {formatPrice(item.price * item.quantity)}
                           </p>
+                          {item.discountAmount ? (
+                            <p className="text-xs text-green-700">
+                              {item.discountLabel || "Discount"} - Save{" "}
+                              {formatPrice(item.discountAmount * item.quantity)}
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                     ))}
@@ -287,12 +400,20 @@ function Checkout({
                         Subtotal ({totalItems} items)
                       </span>
                       <span className="font-medium">
-                        {formatPrice(subtotal)}
+                        {formatPrice(originalSubtotal)}
                       </span>
                     </div>
+                    {totalDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Discount</span>
+                        <span className="font-medium text-green-700">
+                          - {formatPrice(totalDiscount)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Shipping Fee
+                        Shipping Fee ({isDhaka ? "Dhaka" : "Outside Dhaka"})
                       </span>
                       <span className="font-medium">
                         {shippingFee === 0 ? "FREE" : formatPrice(shippingFee)}
@@ -309,14 +430,32 @@ function Checkout({
                     </span>
                   </div>
 
+                  {subtotal < shippingThreshold && (
+                    <p className="text-xs text-muted-foreground">
+                      Add {formatPrice(shippingThreshold - subtotal)} more for
+                      free shipping.
+                    </p>
+                  )}
+
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full"
+                    className="w-full font-cormorant uppercase rounded-none cursor-pointer"
                     disabled={isProcessing}
                   >
-                    {isProcessing ? "Processing..." : "Place Order"}
+                    {isProcessing ? "Processing..." : "Place an order"}
                   </Button>
+                  <Link href={"/cart"}>
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant={"link"}
+                      className="w-full font-cormorant uppercase rounded-none cursor-pointer"
+                      disabled={isProcessing}
+                    >
+                      Edit Cart
+                    </Button>
+                  </Link>
 
                   <p className="text-xs text-center text-muted-foreground">
                     By placing your order, you agree to our{" "}

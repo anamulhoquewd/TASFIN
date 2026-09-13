@@ -8,22 +8,54 @@ export interface IAddress {
   country: string;
 }
 
+export type OrderStatus =
+  | "pending"
+  | "confirmed"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled"
+  | "returned"
+  | "archived";
+
+export type PaymentStatus = "unpaid" | "paid" | "refunded";
+
+export interface IStatusHistoryEntry {
+  status: OrderStatus;
+  note?: string;
+  at: Date;
+}
+
+export interface IOrderUser {
+  _id: string;
+  name: string;
+  phone: string;
+  email?: string;
+}
+
 export interface IOrder {
   _id: string;
-  user: {
-    name: string;
-    phone: string;
-    address: string;
-    email: string;
-    _id: string;
-  };
-  totalAmount: number;
-  paymentStatus: "unpaid" | "paid";
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  address: IAddress;
-  orderDate: string;
-  createdAt: string;
+  orderNumber: string;
+  discountTotal: number;
+  user: IOrderUser;
   products: IOrderItem[];
+  address: IAddress;
+
+  subtotal: number;
+  productDiscountTotal: number;
+  couponDiscount: number;
+  shippingCost: number;
+  totalAmount: number;
+
+  paymentStatus: PaymentStatus;
+  paymentMethod: "cod" | "bkash" | "nagad" | "card";
+
+  status: OrderStatus;
+  statusHistory: IStatusHistoryEntry[];
+
+  createdAt: string;
+  updatedAt: string;
+  __v?: number;
 }
 
 export interface IOrderItem {

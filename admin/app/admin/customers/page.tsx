@@ -99,7 +99,7 @@ export default function CustomersPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Address</TableHead>
-                  <TableHead className="w-[180px]">Actions</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -116,9 +116,9 @@ export default function CustomersPage() {
                   customers.map((customer: ICustomer) => (
                     <TableRow key={customer._id}>
                       <TableCell className="font-medium">
-                        <div className="flex items-center gap-2 flex-1">
+                        <div className="flex items-center gap-1 flex-1">
                           <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                            {customer._id.substring(0, 6)}...
+                            {customer._id.substring(0, 10)}...
                           </code>
                           <TooltipProvider>
                             <Tooltip>
@@ -146,11 +146,16 @@ export default function CustomersPage() {
                         <br />
                         {customer?.email}
                       </TableCell>
-                      <TableCell>
-                        {customer?.address?.street || "No address available"}
+                      <TableCell className="max-w-[250px] whitespace-normal break-words">
+                        {`${customer?.address?.street} ${
+                          customer?.address?.state || ""
+                        } ${customer?.address?.city || ""}, ${
+                          customer?.address?.country || ""
+                        } ${customer?.address?.zipCode || ""}` ||
+                          "No address available"}
                       </TableCell>
 
-                      <TableCell>
+                      <TableCell className="text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button

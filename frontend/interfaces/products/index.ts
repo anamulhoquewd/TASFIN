@@ -1,11 +1,9 @@
-export interface IImage {
-  alt: string;
-  url: string;
-}
+import { IImage } from "../global";
 
 export interface IProductVariant {
   _id: string;
-  size: string;
+  sku: string;
+  attributes: Record<string, string> | Map<string, string>; // flexible attributes
   stock: number;
   price: number;
   images?: IImage[];
@@ -15,27 +13,26 @@ export interface IProduct {
   _id: string;
   title: string;
   slug: string;
-  description: string;
+  description?: string;
   keyFeatures?: string[];
   categories: string[];
-
   images: IImage[];
   variants: IProductVariant[];
-
-  fabric?: string;
-  valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
-
+  specifications?: Array<{ label: string; value: string }>;
+  minPrice: number;
+  maxPrice: number;
+  inStock: boolean;
+  avgRating: number;
+  reviewCount: number;
   isFeatured?: boolean;
-
   isActive: boolean;
-
   tags?: string[];
+  discount?: {
+    discountType: "percentage" | "fixed";
+    value: number;
+    startAt?: Date;
+    endAt?: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,21 +41,11 @@ export interface IProduct {
 export interface IProductUpdateData {
   title?: string;
   slug?: string;
-  description?: {
-    html: string;
-    json: any;
-  };
+  description?: string;
   categories?: string[];
   images?: File[];
   variants?: IProductVariantUpdate[];
-  fabric?: string;
   valueAddition?: string;
-  cutFit?: string;
-  collarNeck?: string;
-  sleeve?: string;
-  length?: string;
-  washCare?: string;
-  sideCut?: string;
   isFeatured?: boolean;
   isActive?: boolean;
   tags?: string[];
@@ -66,7 +53,7 @@ export interface IProductUpdateData {
 
 export interface IProductVariantUpdate {
   _id?: string; // Optional for new variants
-  size: string;
+  attributes: Record<string, string>;
   stock: number;
   price: number;
   images?: File[];
@@ -92,17 +79,4 @@ export interface IUpdateProductResult {
   success: boolean;
   data?: IProduct;
   error?: string;
-}
-
-export interface ICartItem {
-  _id: string;
-  name: string;
-  media: { url: string; alt: string };
-  title: string;
-  unit: {
-    price: number;
-    stockQuantity: number;
-    unitType: "kg" | "piece";
-  };
-  quantity: number;
 }

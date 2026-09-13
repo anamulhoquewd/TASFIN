@@ -1,16 +1,18 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { sign } from "hono/jwt";
 import dotenv from "dotenv";
 import type { Context } from "hono";
 import { setSignedCookie } from "hono/cookie";
+import { sign } from "hono/jwt";
 import type { IAdmin, IUser } from "./../interfaces/index.js";
 dotenv.config();
 
-const DOMAIN = process.env.DOMAIN as string;
+const allowedOrigins =
+  process.env.ALLOWED_ORIGINS?.split(",").map((o) =>
+    o.replace(/^https?:\/\//, "").trim(),
+  ) || [];
+
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
-
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
-
 const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 // Validate query parameters
@@ -47,6 +49,11 @@ export const uploadAvatar = async ({
   }
 };
 
+// small helper, put in a utils file
+export function sanitizeFilename(name: string): string {
+  return name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+}
+
 // Generate Access Token
 export const generateAccessToken = async ({
   user,
@@ -60,8 +67,9 @@ export const generateAccessToken = async ({
       _id: user._id,
       email: user.email,
       exp: Math.floor(Date.now() / 1000) + 60 * expMinutes,
+      // exp: Math.floor(Date.now() / 1000) + 120, // 30s
     },
-    JWT_ACCESS_SECRET
+    JWT_ACCESS_SECRET,
   );
 
   if (!token) {
@@ -84,9 +92,9 @@ export const generateRefreshToken = async ({
       _id: user._id,
       email: user.email,
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * expDays,
-      // exp: Math.floor(Date.now() / 1000) + 60 * 5,
+      // exp: Math.floor(Date.now() / 1000) + 60 * 1, // 1m
     },
-    JWT_REFRESH_SECRET as string
+    JWT_REFRESH_SECRET as string,
   );
 
   if (!token) {
@@ -99,12 +107,16 @@ export const setAuthCookie = async (
   c: Context,
   name: string,
   value: string,
-  maxAgeSeconds: number
+  maxAgeSeconds: number,
 ) => {
+  const origin = c.req.header("Origin") || "";
+
+  const domain = allowedOrigins.find((o) => origin.includes(o));
+
   return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? DOMAIN : undefined,
+    domain: process.env.NODE_ENV === "production" ? domain : undefined,
     httpOnly: true,
     maxAge: maxAgeSeconds,
     expires: new Date(Date.now() + maxAgeSeconds * 1000),
@@ -136,7 +148,7 @@ export const parseFormValue = (key: string, value: any) => {
 
 export function parseDeleteUrls(
   formData: FormData,
-  key = "deleteImageUrl"
+  key = "deleteImageUrl",
 ): string[] {
   const allValues = formData.getAll(key);
 

@@ -11,11 +11,11 @@ export const BDPhoneRegex = /^01[3-9]\d{8}$/;
 
 const fileSchema = z
   .instanceof(File)
-  .refine((file) => file.size <= 2 * 1024 * 1024, {
-    message: "File size must be <= 2MB",
+  .refine((file) => file.size <= 5 * 1024 * 1024, {
+    message: "File size must be <= 5MB",
   })
-  .refine((file) => ["image/jpeg", "image/png"].includes(file.type), {
-    message: "Only JPEG/PNG allowed",
+  .refine((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type), {
+    message: "Only JPEG, PNG, or WebP images are allowed",
   });
 
 // Zod schema for ICategory
@@ -73,7 +73,23 @@ export const productSchema = z.object({
 
 // IProductVariant schema
 export const productVariantSchemaZ = z.object({
-  size: z.string().min(1),
+  // Kept optional only so legacy edit dialogs can render old records during migration.
+  sku: z.string().trim().min(1, "SKU is required"),
+  attributes: z
+    .array(
+      z.object({
+        key: z.string().trim().min(1, "Attribute name is required"),
+        value: z.string().trim().min(1, "Attribute value is required"),
+      }),
+    )
+    .optional()
+    .refine(
+      (items) =>
+        !items ||
+        new Set(items.map((item) => item.key.trim().toLowerCase())).size ===
+          items.length,
+      "Attribute names must be unique",
+    ),
   stock: z.number().int().min(0, "stock must be >= 0"),
   price: z.number().nonnegative("price must be >= 0"),
   images: z.array(fileSchema).optional(),
@@ -97,28 +113,42 @@ export const productSchemaZ = z.object({
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
-  description: z.string().max(100).optional(),
-  keyFeatures: z.array(z.string().min(1).max(100)).optional(),
+  description: z.string().max(1000).optional(),
+  keyFeatures: z.array(z.string().min(1)).optional(),
 
   categories: z.array(z.string()),
 
   images: z.array(fileSchema).nonempty("At least 1 image is required"),
-  variants: z
-    .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
+  variants: z.array(productVariantSchemaZ).nonempty("At least 1 variant is required")
+    .refine((items) => new Set(items.map((item) => item.sku.toLowerCase())).size === items.length, "Variant SKUs must be unique"),
 
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
+  specifications: z
+    .array(z.object({ key: z.string().trim().min(1, "Specification name is required"), value: z.string().trim().min(1, "Specification value is required") }))
+    .optional()
+    .refine((items) => !items || new Set(items.map((item) => item.key.toLowerCase())).size === items.length, "Specification names must be unique"),
 
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
   tags: z.array(z.string().min(1)).optional(),
+
+  discount: z
+    .object({
+      discountType: z.enum(["percentage", "fixed"]),
+      value: z.number().min(0, "Discount value must be non-negative"),
+      startAt: z.coerce.date().optional(),
+      endAt: z.coerce.date().optional(),
+    })
+    .optional()
+    .refine(
+      (discount) =>
+        !discount?.startAt ||
+        !discount?.endAt ||
+        discount.startAt < discount.endAt,
+      {
+        message: "Discount start date must be before the end date",
+        path: ["endAt"],
+      },
+    ),
 });
 
 // If you want a separate update schema where fields can be optional:
@@ -226,3 +256,21 @@ export const changePasswordFormSchema = z
   });
 
 export type ChangePasswordFormValues = z.infer<typeof changePasswordFormSchema>;
+
+export const loginFormSchema = z.object({
+  email: z
+    .string()
+    .refine(
+      (value) =>
+        /^\d{11}$/.test(value) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+      {
+        message: "Must be a valid email or 11-digit phone number",
+      }
+    ),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(20, "Password cannot exceed 20 characters"),
+});
+
+export type LoginFormValuse = z.infer<typeof loginFormSchema>;

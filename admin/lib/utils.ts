@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { toast } from "sonner";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -25,6 +26,7 @@ export function decodeJwtPayload(token: string) {
 // Function to copy the access key to clipboard
 export const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text);
+  toast("Copied!");
 };
 
 export const formatPrice = (price: number = 0) =>

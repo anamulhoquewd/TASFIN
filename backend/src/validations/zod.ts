@@ -1,12 +1,38 @@
 // validation/admin.validation.ts
-import { isValidDate } from "./../utils/index.js";
 import mongoose from "mongoose";
 import { z } from "zod";
+import { isValidDate } from "./../utils/index.js";
 
 // Image validation (matches your ImageSchema)
 export const imageZ = z.object({
   alt: z.string().min(1, "Image alt text required").trim(),
   url: z.string().url("Invalid image URL").trim(),
+});
+
+export const imageFileSchema = z.object({
+  file: z
+    .file()
+    .mime(["image/jpeg", "image/png", "image/webp"], {
+      message: "Only jpeg, png, or webp images are allowed",
+    })
+    .max(5 * 1024 * 1024, { message: "Each image must be under 5MB" }),
+  position: z.number().int().min(0, "Position must be a non-negative integer"),
+  alt: z.string().min(1, "Image alt text required").trim(),
+});
+
+export const imagesSchema = z
+  .array(imageFileSchema)
+  .nonempty({ message: "At least one file is required" });
+
+export const optionalImagesSchema = z
+  .array(imageFileSchema)
+  .optional()
+  .default([]);
+
+export const updateProductImagesZ = z.object({
+  images: optionalImagesSchema,
+  deleteImageUrls: z.array(z.string()).optional().default([]),
+  reorderedImageUrls: z.array(z.string()).optional().default([]),
 });
 
 // Accept either a 24-char hex string or a real ObjectId instance
@@ -17,51 +43,102 @@ export const objectIdSchemaZ = z.union([
   z.instanceof(mongoose.Types.ObjectId),
 ]);
 
-// IProductVariant schema
-export const productVariantSchemaZ = z.object({
-  size: z.string().min(1),
-  stock: z.number().int().min(0, "stock must be >= 0"),
-  price: z.number().nonnegative("price must be >= 0"),
-  images: z.array(z.file()).optional(),
+export const keyValueSchemaZ = z.object({
+  key: z.string().trim().min(1, "key is required"),
+  value: z.string().trim().min(1, "value is required"),
 });
 
-// If you want a separate update schema where fields can be optional:
-export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
-  (data) => {
-    // ensure at least one field present on update
-    return Object.keys(data).length > 0;
-  },
-  { message: "At least one field must be provided for update" }
-);
+// helper: array of {key,value} -> plain object, rejects duplicate keys
+export const keyValueArrayToRecord = (
+  arr: { key: string; value: string }[],
+) => {
+  const record: Record<string, string> = {};
 
-// IProduct schema
+  for (const { key, value } of arr) {
+    const normalizedKey = key.trim().toLowerCase();
+
+    if (record[normalizedKey] !== undefined) {
+      throw new Error(`Duplicate specification key: "${key}"`);
+    }
+
+    record[normalizedKey] = value.trim();
+  }
+
+  return record;
+};
+
+export const productVariantSchemaZ = z.object({
+  sku: z.string().min(1, "sku is required").trim(),
+  attributes: z
+    .array(keyValueSchemaZ)
+    .optional()
+    .default([])
+    .transform((arr, ctx) => {
+      try {
+        return keyValueArrayToRecord(arr);
+      } catch (e: any) {
+        ctx.addIssue({ code: "custom", message: e.message });
+        return z.NEVER;
+      }
+    }),
+  stock: z.coerce.number().int().min(0).default(0),
+  price: z.coerce.number().min(0, "price must be non-negative"),
+  images: optionalImagesSchema,
+});
+
 export const productSchemaZ = z.object({
   title: z.string().min(1, "title is required"),
   slug: z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "slug must be kebab-case"),
   description: z.string().max(1000).optional(),
-  keyFeatures: z.array(z.string().min(1).max(1000)).optional(),
+  keyFeatures: z.array(z.string().min(1)).optional(),
 
-  categories: z.array(objectIdSchemaZ),
+  categories: z
+    .array(objectIdSchemaZ)
+    .nonempty("At least 1 category is required"),
 
-  images: z.array(z.file()).nonempty("At least 1 image is required"),
+  images: imagesSchema,
   variants: z
     .array(productVariantSchemaZ)
-    .nonempty("At least 1 variant is required"),
+    .nonempty("At least 1 variant is required")
+    .refine(
+      (variants) =>
+        variants.filter(
+          (variant, index, allVariants) =>
+            allVariants.findIndex((v) => v.sku === variant.sku) === index,
+        ).length === variants.length,
+      { message: "Variant SKUs must be unique within the product" },
+    ),
 
-  fabric: z.string().optional(),
-  valueAddition: z.string().optional(),
-  cutFit: z.string().optional(),
-  collarNeck: z.string().optional(),
-  sleeve: z.string().optional(),
-  length: z.string().optional(),
-  washCare: z.string().optional(),
-  sideCut: z.string().optional(),
+  specifications: z
+    .array(keyValueSchemaZ)
+    .optional()
+    .default([])
+    .transform((arr, ctx) => {
+      try {
+        return keyValueArrayToRecord(arr);
+      } catch (e: any) {
+        ctx.addIssue({ code: "custom", message: e.message });
+        return z.NEVER;
+      }
+    }),
 
-  isFeatured: z.boolean().optional(),
+  isFeatured: z.boolean().optional().default(false),
   isActive: z.boolean().default(true),
   tags: z.array(z.string().min(1).max(10)).optional(),
+
+  discount: z
+    .object({
+      discountType: z.enum(["percentage", "fixed"]),
+      value: z.number().min(0),
+      startAt: z.coerce.date().optional(),
+      endAt: z.coerce.date().optional(),
+    })
+    .optional()
+    .refine((d) => !d?.startAt || !d?.endAt || d.startAt < d.endAt, {
+      message: "startAt must be before endAt",
+    }),
 });
 
 // If you want a separate update schema where fields can be optional:
@@ -70,11 +147,20 @@ export const productUpdateZ = productSchemaZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
-// Types + helpers
-export type ProductCreateInput = z.infer<typeof productSchemaZ>;
+export const productVariantUpdateZ = productVariantSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" },
+);
+
+// Product creation accepts pre-transform key-value arrays and produces records.
+export type ProductCreateInput = z.input<typeof productSchemaZ>;
+export type ProductCreateOutput = z.output<typeof productSchemaZ>;
 export type ProductVariantUpdateInput = z.infer<typeof productVariantUpdateZ>;
 
 export type ProductUpdateInput = z.infer<typeof productUpdateZ>;
@@ -114,13 +200,24 @@ export const adminCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
+// ৩. NID এবং Role ছাড়া আপডেট স্কিমা
+export const adminUpdateLimitedZ = z
+  .object(adminCreateZ.shape)
+  .omit({ nid: true, role: true }) // প্রথমে ফিল্ড বাদ দিন
+  .partial() // তারপর অপশনাল করুন
+  .refine(
+    // সবশেষে রিফাইনমেন্ট যোগ করুন
+    (data) => Object.keys(data).length > 0,
+    { message: "At least one field must be provided for update" },
+  );
+
 // If you want a separate update schema where fields can be optional:
 export const adminUpdateZ = adminCreateZ.partial().refine(
   (data) => {
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Types (optional)
@@ -132,10 +229,10 @@ export const idSchemaZ = z.object({
   _id: z
     .any()
     .transform((val) =>
-      val instanceof mongoose.Types.ObjectId ? val.toString() : val
+      val instanceof mongoose.Types.ObjectId ? val.toString() : val,
     )
     .refine((val) => mongoose.Types.ObjectId.isValid(val), {
-      message: "Invalid MongoDB User ID format",
+      message: "Invalid MongoDB User ID format.",
     }),
 });
 
@@ -157,12 +254,11 @@ export const userCreateZ = z.object({
     .min(2, "Name must be at least 2 characters")
     .trim()
     .optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .trim()
-    .toLowerCase()
-    .optional(),
+  occupation: z.string().optional(),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -184,7 +280,7 @@ export const userUpdateZ = userCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Types (optional)
@@ -198,7 +294,11 @@ export const querySchemaZ = z.object({
 
 export const loginSchemeZ = z
   .object({
-    email: z.string().email().optional(),
+    email: z.preprocess(
+      (val) => (val === "" ? undefined : val),
+      z.string().email("Invalid email address").trim().toLowerCase().optional(),
+    ),
+
     phone: z
       .string()
       .length(11, "Phone number must be 11 characters long")
@@ -219,11 +319,11 @@ export const avatarSchemaZ = z.object({
     .refine(
       (file) =>
         ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
-          file.type
+          file.type,
         ),
       {
         message: "Only JPEG, JPG, PNG and WEBP files are allowed",
-      }
+      },
     ),
 });
 
@@ -238,10 +338,12 @@ export const categoryCreateZ = z.object({
     .toLowerCase()
     .regex(
       /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-      "Slug must be kebab-case (e.g. my-category)"
+      "Slug must be kebab-case (e.g. my-category)",
     ),
   description: z.string().trim().optional().nullable(),
   image: imageZ.optional().nullable(),
+  sortOrder: z.number().int().optional(),
+  isActive: z.boolean().optional(),
 });
 
 // If you want a separate update schema where fields can be optional:
@@ -250,7 +352,7 @@ export const categoryUpdateZ = categoryCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Input Type inferred from Zod
@@ -263,7 +365,11 @@ export const settingCreateZ = z.object({
   siteDescription: z.string().optional(),
   logo: imageZ.optional(),
   favicon: imageZ.optional(),
-  contactEmail: z.string().email("Invalid email address").trim().optional(),
+  contactEmail: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+  ),
+
   contactPhone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -285,7 +391,7 @@ export const settingUpdateZ = settingCreateZ.partial().refine(
     // ensure at least one field present on update
     return Object.keys(data).length > 0;
   },
-  { message: "At least one field must be provided for update" }
+  { message: "At least one field must be provided for update" },
 );
 
 // Input Type inferred from Zod
@@ -300,18 +406,21 @@ export const orderProductSchemaZ = z.object({
 });
 
 /** Payment status and order status enums */
-export const paymentStatusEnumZ = z.enum(["unpaid", "paid"]);
+export const paymentStatusEnumZ = z.enum(["unpaid", "paid", "refunded"]);
 export const orderStatusEnumZ = z.enum([
   "pending",
+  "confirmed",
   "processing",
   "shipped",
   "delivered",
   "cancelled",
+  "returned",
+  "archived",
 ]);
 
 /** Main Order schema */
 export const orderSchemaZ = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"), // name for create user
   products: z
     .array(orderProductSchemaZ)
     .min(1, "Order must contain at least one product"),
@@ -319,6 +428,10 @@ export const orderSchemaZ = z.object({
   address: addressZ,
 
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -329,20 +442,25 @@ export const orderSchemaZ = z.object({
   paymentMethod: z.enum(["cod"]).default("cod"),
   shippingCost: z.number().nonnegative("price must be >= 0").default(0),
 
-  orderDate: z.coerce
+  createdAt: z.coerce
     .date()
     .optional()
     .default(() => new Date()),
 });
 
 // If you want a separate update schema where fields can be optional:
-export const orderUpdateZ = orderSchemaZ.partial().refine(
-  (data) => {
-    // ensure at least one field present on update
-    return Object.keys(data).length > 0;
-  },
-  { message: "At least one field must be provided for update" }
-);
+export const orderUpdateZ = orderSchemaZ
+  .partial()
+  .extend({
+    note: z.string().trim().max(500).optional(),
+  })
+  .refine(
+    (data) => {
+      // ensure at least one field present on update
+      return Object.keys(data).length > 0;
+    },
+    { message: "At least one field must be provided for update" },
+  );
 
 /** TypeScript types inferred from schemas */
 export type OrderProductInput = z.infer<typeof orderProductSchemaZ>;
@@ -380,12 +498,10 @@ export const orderFetchQuerySchema = z.object({
       message: "Invalid MongoDB User ID format",
     })
     .optional(),
-  email: z
-    .string()
-    .email("Invalid email address")
-    .trim()
-    .toLowerCase()
-    .optional(),
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+  ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -400,10 +516,66 @@ export const orderFetchQuerySchema = z.object({
     .optional(),
 
   status: z
-    .enum(["pending", "processing", "shipped", "delivered", "cancelled"])
+    .enum([
+      "pending",
+      "confirmed",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled",
+      "returned",
+      "archived",
+    ])
     .optional(),
 
   search: z.string().optional(),
 
   paymentStatus: z.enum(["paid", "unpaid"]).optional(),
 });
+
+export const subscriberSchemaZ = z.object({
+  email: z.preprocess(
+    (val) => (val === "" ? undefined : val),
+    z.string().email("Invalid email address").trim().toLowerCase(),
+  ),
+  status: z.enum(["subscribed", "unsubscribed"]).default("subscribed"),
+
+  verified: z.boolean().default(false),
+  isBlocked: z.boolean().default(false),
+  blockedAt: z.date().optional(),
+
+  source: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const subscriberUpdateZ = subscriberSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" },
+);
+
+export const subscriberQueryZ = z.object({
+  sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
+  sortType: z.enum(["asc", "desc"]).default("asc"),
+  verified: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined,
+    ),
+  isBlocked: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined,
+    ),
+  search: z.string().optional(),
+});
+
+/** TypeScript types inferred from schemas */
+export type SubscribeInput = z.infer<typeof subscriberSchemaZ>;
+export type SubscribeUpdateInput = z.infer<typeof subscriberUpdateZ>;

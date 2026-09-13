@@ -10,11 +10,15 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "twelvebd.com",
+        hostname: "pub-e4bff183853a4153b77097918c463364.r2.dev",
       },
       {
         protocol: "https",
-        hostname: "www.aarong.com",
+        hostname: "pub-976649628e44456dad08b79879d22be9.r2.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
       },
     ],
   },

@@ -1,6 +1,5 @@
 import { badRequestHandler, serverErrorHandler } from "./../error/index.js";
 import { orderService } from "./../services/index.js";
-import { setAuthCookie } from "./../utils/index.js";
 import type { Context } from "hono";
 
 export const register = async (c: Context) => {
@@ -16,37 +15,38 @@ export const register = async (c: Context) => {
     return serverErrorHandler(c, response.serverError);
   }
 
-  await setAuthCookie(
-    c,
-    "X-User-Phone",
-    response.success.user.phone,
-    60 * 60 * 24 * 365
-  );
-
   return c.json(response.success, 201);
 };
 
 // Update order
 export const updateOrder = async (c: Context) => {
   const body = await c.req.json();
-  const _id = c.req.param("_id");
+
+  const _id = c.req.param("_id") as string;
 
   const response = await orderService.updateOrder({ body, _id });
 
-  if (response.error) {
+  if ("error" in response && response.error) {
     return badRequestHandler(c, response.error);
   }
 
-  if (response.serverError) {
+  if ("serverError" in response && response.serverError) {
     return serverErrorHandler(c, response.serverError);
   }
 
-  return c.json(response.success, 200);
+  if ("success" in response) {
+    return c.json(response.success, 200);
+  }
+
+  return serverErrorHandler(c, {
+    success: false,
+    message: "Unexpected response from order service",
+  });
 };
 
 // // Delete Order
 export const deleteOrder = async (c: Context) => {
-  const orderId = c.req.param("orderId");
+  const orderId = c.req.param("orderId") as string;
 
   const response = await orderService.deleteOrder(orderId);
 
@@ -112,7 +112,7 @@ export const getOrders = async (c: Context) => {
 };
 
 export const getOrder = async (c: Context) => {
-  const _id = c.req.param("_id");
+  const _id = c.req.param("_id") as string;
 
   const response = await orderService.getOrder(_id);
 

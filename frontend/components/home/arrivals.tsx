@@ -1,13 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { IProduct } from "@/interfaces/products";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/hooks/products/use-products";
+import { ProductCard } from "../products/products-grid";
 
 export function ArrivalsSection() {
   const [products, setProducts] = useState<IProduct[]>([]);
@@ -24,65 +21,38 @@ export function ArrivalsSection() {
   }, []);
 
   return (
-    <section className="w-full bg-background py-12 md:py-16 lg:py-20">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="mb-8 md:mb-12 text-center">
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-            New Arrivals
-          </h2>
-          <p className="text-lg mb-6 opacity-90">
-            Get 20% off on all new collection items this week
-          </p>
+    <section className="py-12 md:py-16 lg:py-20 bg-secondary/50">
+      <div className="container mx-auto px-4">
+        <div className="flex items-end justify-between mb-12 gap-4 font-cormorant">
+          <div>
+            <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-3">
+              Just In
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-light tracking-wide text-foreground">
+              New Arrivals
+            </h2>
+          </div>
+          <Link
+            href="/shop?category=new-arrivals"
+            className="text-xs tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors underline underline-offset-4"
+          >
+            View All
+          </Link>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((product) => (
-            <div
-              key={product._id}
-              className="group relative overflow-hidden rounded-lg bg-card hover:shadow-lg transition-shadow duration-300"
-            >
-              {/* Product Image Container */}
-              <div className="relative w-full aspect-square overflow-hidden bg-muted">
-                {product.images[0].url ? (
-                  <Image
-                    src={product.images[0].url || ""}
-                    alt={product.images[0].alt || product.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center">
-                    <span className="text-muted-foreground">No image</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Product Details */}
-              <div className="p-3 md:p-4">
-                <h3 className="text-sm md:text-base font-medium text-foreground truncate mb-2">
-                  {product.title}
-                </h3>
-                <div className="flex items-center gap-1 md:gap-2">
-                  <span className="text-base md:text-lg font-bold text-primary">
-                    {formatPrice(product.variants[0].price)}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* View All Button */}
-        <div className="mt-10 md:mt-14 flex justify-center">
-          <Button asChild size="lg">
-            <Link href="/products?sortType=desc">
-              Shop New Arrivals
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        </div>
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
+            {products.slice(0, 6).map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground">
+              No new arrivals at the moment. Check back soon!
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

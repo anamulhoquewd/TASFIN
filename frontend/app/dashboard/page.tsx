@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DashboardOverview } from "@/components/user-dashboard/dashboard-overview";
 import MyOrderCard from "@/components/user-dashboard/my-order-card";
 import useOrders from "@/hooks/orders/use-orders";
 import useUsers from "@/hooks/users/use-users";
@@ -48,7 +47,7 @@ export default function Page() {
         </p>
       </div>
 
-      <DashboardOverview />
+      {/* <DashboardOverview /> */}
 
       <h2 className="text-lg font-medium">Your Recent Orders</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -61,7 +60,7 @@ export default function Page() {
                 Looks like your order list is empty. Time to treat yourself!
               </p>
 
-              <Link href="/products">
+              <Link href="/shop">
                 <Button className="cursor-pointer" variant={"link"} size={"sm"}>
                   Go Shopping
                 </Button>

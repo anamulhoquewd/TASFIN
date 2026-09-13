@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { schemaValidationError } from "./../error/index.js";
 import Category from "./../models/categorise.model.js";
 import pagination from "./../utils/pagination.js";
@@ -93,6 +94,12 @@ export const getCategories = async (queryParams: {
         { name: { $regex: queryParams.search, $options: "i" } },
         { slug: { $regex: queryParams.search, $options: "i" } },
       ];
+
+      if (mongoose.Types.ObjectId.isValid(queryParams.search)) {
+        query.$or.push({
+          _id: new mongoose.Types.ObjectId(queryParams.search),
+        });
+      }
     }
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "slug"].includes(
@@ -109,6 +116,7 @@ export const getCategories = async (queryParams: {
         .sort({ [sortField]: sortDirection })
         .skip((queryParams.page - 1) * queryParams.limit)
         .limit(queryParams.limit)
+        .lean()
         .exec(),
       Category.countDocuments(query),
     ]);
@@ -235,7 +243,7 @@ export const updateCategory = async ({
 
 export const deleteCategory = async (_id: string) => {
   // Validate ID
-  const idValidation = idSchemaZ.safeParse({ _id: _id });
+  const idValidation = idSchemaZ.safeParse({ _id });
   if (!idValidation.success) {
     return { error: schemaValidationError(idValidation.error, "Invalid ID") };
   }
