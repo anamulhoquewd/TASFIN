@@ -38,8 +38,6 @@ const useLogin = () => {
         throw new Error(response.data?.error?.message || "Login failed");
       }
 
-      router.push("/admin");
-
       // get tokens
       const tokens = response.data.tokens;
 
@@ -63,6 +61,7 @@ const useLogin = () => {
 
       // Redirect to home page
       toast(response.data?.success?.message || "Login successful!");
+      router.push("/admin");
     } catch (error: any) {
       // Handle error
       handleAxiosError(error);

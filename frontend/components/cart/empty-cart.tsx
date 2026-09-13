@@ -17,14 +17,14 @@ export function EmptyCart({ children }: { children: ReactNode }) {
             Shop Collection
           </Button>
         </Link>
-        <Link href="/make-custom">
+        {/* <Link href="/make-custom">
           <Button
             size={"lg"}
             className="rounded-none h-9 px-4 py-2 md:px-6 md:h-10 bg-transparent border border-foreground text-foreground hover:text-background hover:bg-foreground transition-colors duration-300 cursor-pointer text-xs tracking-[0.2em] uppercase"
           >
             Make Custom
           </Button>
-        </Link>
+        </Link> */}
       </div>
     </div>
   );

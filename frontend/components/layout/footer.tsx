@@ -1,18 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { Facebook, Instagram, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SubscribeForm from "../subscribe-fomr";
 import useSubscribe from "@/hooks/use-subscribe";
+import { Facebook, Instagram, Share2 } from "lucide-react";
+import Link from "next/link";
+import SubscribeForm from "../subscribe-fomr";
 
 export function Footer() {
   const { form, isLoading, handleSubscribe } = useSubscribe();
 
   const quickLinks = [
     { href: "/shop", label: "Shop All" },
-    { href: "/shop?category=new-arrivals", label: "New Arrivals" },
-    { href: "/make-custom", label: "Make Custom" },
+    // { href: "/shop?category=new-arrivals", label: "New Arrivals" },
+    // { href: "/make-custom", label: "Make Custom" },
     { href: "/about", label: "About Us" },
     { href: "/support", label: "Support" },
     { href: "/order-tracking", label: "Order Tracking" },
@@ -106,6 +106,15 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
+              <li key={"kids"}>
+                <Link
+                  target={"_blank"}
+                  href={"https://kids-tasfin.vercel.app/"}
+                  className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+                >
+                  Tasfin Kids
+                </Link>
+              </li>
             </ul>
           </div>
 

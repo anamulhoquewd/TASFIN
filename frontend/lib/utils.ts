@@ -78,7 +78,7 @@ export const defaultPagination = {
 export const navLinks = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
-  { href: "/shop?category=new-arrivals", label: "New Arrivals" },
+  { href: "/about", label: "About Us" },
 ];
 
 export const testimonials = [
@@ -133,7 +133,11 @@ export const product: IProduct = {
   _id: "1",
   title: "Silk Midi Dress in Ivory",
   images: [
-    { key: "placeholder", url: "/product-placeholder.png", alt: "Silk Midi Dress in Ivory" },
+    {
+      key: "placeholder",
+      url: "/product-placeholder.png",
+      alt: "Silk Midi Dress in Ivory",
+    },
   ],
   categories: ["2-piece"],
   description:

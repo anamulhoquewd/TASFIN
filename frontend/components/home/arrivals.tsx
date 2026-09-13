@@ -33,7 +33,7 @@ export function ArrivalsSection() {
             </h2>
           </div>
           <Link
-            href="/shop?category=new-arrivals"
+            href="/shop"
             className="text-xs tracking-[0.15em] uppercase text-foreground hover:text-muted-foreground transition-colors underline underline-offset-4"
           >
             View All
