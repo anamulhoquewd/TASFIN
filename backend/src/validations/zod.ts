@@ -200,13 +200,12 @@ export const adminCreateZ = z.object({
   avatar: imageZ.optional(), // optional
 });
 
-// ৩. NID এবং Role ছাড়া আপডেট স্কিমা
+// ৩. update without NID and Role
 export const adminUpdateLimitedZ = z
   .object(adminCreateZ.shape)
-  .omit({ nid: true, role: true }) // প্রথমে ফিল্ড বাদ দিন
-  .partial() // তারপর অপশনাল করুন
+  .omit({ nid: true, role: true })
+  .partial() 
   .refine(
-    // সবশেষে রিফাইনমেন্ট যোগ করুন
     (data) => Object.keys(data).length > 0,
     { message: "At least one field must be provided for update" },
   );
@@ -397,6 +396,29 @@ export const settingUpdateZ = settingCreateZ.partial().refine(
 // Input Type inferred from Zod
 export type SettingCreateInput = z.infer<typeof settingCreateZ>;
 export type SettingUpdateInput = z.infer<typeof settingUpdateZ>;
+
+// testimonials
+export const testimonialSchemaZ = z.object({
+  name: z.string(),
+  location: z.string(),
+  rating: z.number().min(0).max(5),
+  message: z.string(),
+  avatar: imageZ.optional(),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const testimonialUpdateZ = testimonialSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" },
+);
+
+// Input Type inferred from Zod
+export type TestimoalCreateInput = z.infer<typeof testimonialSchemaZ>;
+export type TestimoalUpdateInput = z.infer<typeof testimonialUpdateZ>;
+
 
 /** OrderProduct schema */
 export const orderProductSchemaZ = z.object({

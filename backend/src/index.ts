@@ -12,6 +12,7 @@ import orderRoutes from "./routes/orders.route.js";
 import productRoutes from "./routes/products.route.js";
 import settingsRoutes from "./routes/settings.route.js";
 import subscriberRoutes from "./routes/subscribers.controller.js";
+import testimonialRoutes from "./routes/testimonials.route.js";
 import userRoutes from "./routes/users.route.js";
 
 dotenv.config();
@@ -21,7 +22,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
 const app = new Hono().basePath("/api/v1");
 
 // Config MongoDB
-connectDB()
+connectDB();
 
 app.use(
   logger(),
@@ -36,7 +37,7 @@ app.use(
     credentials: true,
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-User-ID"],
-  })
+  }),
 );
 
 // Health check
@@ -63,6 +64,9 @@ app.route("/products", productRoutes);
 app.route("/orders", orderRoutes);
 
 // Order routes
+app.route("/testimonials", testimonialRoutes);
+
+// Order routes
 app.route("/subscribers", subscriberRoutes);
 
 // Settings routes
@@ -77,7 +81,7 @@ app.onError((error: any, c) => {
       message: error.message,
       stack: process.env.NODE_ENV === "production" ? null : error.stack,
     },
-    500
+    500,
   );
 });
 
@@ -94,5 +98,5 @@ serve(
   },
   (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
-  }
+  },
 );

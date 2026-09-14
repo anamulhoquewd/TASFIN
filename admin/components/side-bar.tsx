@@ -13,9 +13,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  CalendarCheck,
   CreditCard,
   LayoutDashboard,
   ListIcon,
+  MessageSquareMore,
   Package,
   SettingsIcon,
   ShoppingCart,
@@ -85,6 +87,22 @@ export function AppSidebar({ className }: { className?: string }) {
                 <Link href="/admin/payments">
                   <CreditCard />
                   <span>Payments</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/admin/subscribers">
+                  <CalendarCheck />
+                  <span>Subscribers</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/admin/testimonials">
+                  <MessageSquareMore />
+                  <span>Testimonials</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

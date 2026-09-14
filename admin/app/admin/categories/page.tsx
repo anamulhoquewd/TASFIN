@@ -152,7 +152,7 @@ export default function Categories() {
                             <AvatarImage
                               src={category?.image?.url as string}
                               alt={category?.image?.alt || category?.name}
-                              // className="object-cover"
+                              className="object-cover"
                             />
                             <AvatarFallback>CI</AvatarFallback>
                           </Avatar>
@@ -160,7 +160,7 @@ export default function Categories() {
                       </TableCell>
                       <TableCell>
                         <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                          {category._id}
+                          {category._id.substring(0, 6)}
                         </code>
                         <TooltipProvider>
                           <Tooltip>

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export interface CustomerSessionT  {
+export interface CustomerSessionT {
   userId: mongoose.Types.ObjectId;
   tokenHash: string;
   expiresAt: Date;
@@ -52,7 +52,7 @@ export interface IProduct {
   updatedAt: Date;
 }
 
-export interface ICategory  {
+export interface ICategory {
   _id: string;
   name: string;
   slug: string;
@@ -64,6 +64,15 @@ export interface ICategory  {
   isActive?: boolean;
 }
 
+export interface ITestimonial  {
+  _id: string;
+  name: string;
+  location: string;
+  message: string;
+  rating: number;
+  avatar: IImage;
+}
+
 export interface IAddress {
   _id?: string;
   street: string;
@@ -73,7 +82,7 @@ export interface IAddress {
   country: string;
 }
 
-export interface IAdmin  {
+export interface IAdmin {
   _id: string;
   name: string;
   email: string;
@@ -99,7 +108,7 @@ export interface IAdmin  {
   updatedAt: Date;
 }
 
-export interface IUser  {
+export interface IUser {
   _id: string;
   name: string;
   email: string;
@@ -128,7 +137,7 @@ export interface ISubscriber {
   blockedReason: string; // Added — admin note for why a user was blocked
 }
 
-export interface ICoupon  {
+export interface ICoupon {
   code: string;
   type: "percent" | "fixed";
   value: number;
@@ -191,7 +200,7 @@ export interface IOrder {
   updatedAt: Date;
 }
 
-export interface IPayment  {
+export interface IPayment {
   _id: string;
   orderId: mongoose.Types.ObjectId;
   method: "cod" | "bkash" | "nagad" | "card";
@@ -206,7 +215,7 @@ export interface IPayment  {
   updatedAt: Date;
 }
 
-export interface IReview  {
+export interface IReview {
   _id: string;
   productId: mongoose.Types.ObjectId;
   userId: mongoose.Types.ObjectId;
@@ -218,7 +227,7 @@ export interface IReview  {
   updatedAt: Date;
 }
 
-export interface IOffers  {
+export interface IOffers {
   name: string;
   message: string;
   image: IImage;
@@ -227,7 +236,7 @@ export interface IOffers  {
   isActive: boolean;
 }
 
-export interface IDiscount  {
+export interface IDiscount {
   _id: string;
   title: string;
   description?: string;
@@ -254,7 +263,7 @@ export interface IPagination {
   prevPage?: number;
 }
 
-export interface ISettings  {
+export interface ISettings {
   siteName: string;
   siteDescription: string;
   logo: IImage;
