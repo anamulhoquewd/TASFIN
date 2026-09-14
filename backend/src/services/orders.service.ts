@@ -291,15 +291,34 @@ export const register = async (body: OrderInput) => {
 
     // Step 1: Find or Create User
     let user = await User.findOne({ phone });
+    const profileAddress = {
+      ...address,
+      state: address.state ?? "",
+      zipCode: address.zipCode ?? "",
+    };
 
     if (!user) {
       const newUser = new User({
         phone,
         ...(email && { email }),
-        address,
+        addresses: [profileAddress],
         name,
       });
       user = await newUser.save();
+    } else {
+      const hasAddress = user.addresses?.some(
+        (savedAddress) =>
+          savedAddress.street === profileAddress.street &&
+          savedAddress.city === profileAddress.city &&
+          savedAddress.state === profileAddress.state &&
+          savedAddress.zipCode === profileAddress.zipCode &&
+          savedAddress.country === profileAddress.country,
+      );
+
+      if (!hasAddress) {
+        user.addresses = [...(user.addresses ?? []), profileAddress];
+        await user.save();
+      }
     }
 
     // Keep inventory changes and order creation atomic. User creation intentionally

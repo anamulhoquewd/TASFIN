@@ -11,12 +11,17 @@ import OrderConfirmed from "@/components/order/order-confirmed";
 import OrderFailed from "@/components/order/order-faild";
 import { FREE_SHIPPING_THRESHOLD, getShippingFee } from "@/lib/utils";
 import { useEffect } from "react";
+import { useState } from "react";
+import useUsers from "@/hooks/users/use-users";
+import { IAddress } from "@/interfaces/orders";
 
 export default function CheckoutPage() {
   const { cartItems, subtotal, originalSubtotal, totalCartItems } =
     useCartAndWishlist();
   const { form, handleSubmit, isProcessing, status, order, setStatus } =
     useOrder();
+  const { getProfile } = useUsers();
+  const [savedAddresses, setSavedAddresses] = useState<IAddress[]>([]);
 
   const shippingLocation = form.watch("shippingLocation");
   const isDhaka = shippingLocation === "dhaka";
@@ -27,10 +32,22 @@ export default function CheckoutPage() {
     form.setValue("shippingCost", shippingFee, { shouldValidate: true });
   }, [form, shippingFee]);
 
+  useEffect(() => {
+    getProfile().then((response) => {
+      const profile = response?.data;
+      if (!profile) return;
+
+      form.setValue("name", profile.name ?? "");
+      form.setValue("phone", profile.phone ?? "");
+      form.setValue("email", profile.email ?? "");
+      setSavedAddresses(profile.addresses ?? []);
+    });
+  }, [form, getProfile]);
+
   if (status === "success" && order)
     return (
       <OrderConfirmed
-        orderId={order?.data._id}
+        orderNumber={order?.data.orderNumber}
         totalAmount={order.data.totalAmount}
         email={order.data?.user?.email}
       />
@@ -68,6 +85,20 @@ export default function CheckoutPage() {
       totalItems={totalCartItems}
       shippingThreshold={FREE_SHIPPING_THRESHOLD}
       isDhaka={isDhaka}
+      savedAddresses={savedAddresses}
+      onSelectAddress={(address) => {
+        form.setValue(
+          "address",
+          {
+            street: address.street,
+            city: address.city,
+            state: address.state ?? "",
+            zipCode: address.zipCode ?? "",
+            country: address.country,
+          },
+          { shouldValidate: true },
+        );
+      }}
     />
   );
 }

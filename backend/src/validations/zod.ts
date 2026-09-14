@@ -184,7 +184,7 @@ export const BDPhoneRegex = /^01[3-9]\d{8}$/;
 // Admin (Amdin) validation
 export const adminCreateZ = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").trim(),
-  email: z.string().email("Invalid email address").trim().toLowerCase(),
+  email: z.email("Invalid email address").trim().toLowerCase(),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
@@ -257,13 +257,13 @@ export const userCreateZ = z.object({
   occupation: z.string().optional(),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+    z.email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
     .regex(BDPhoneRegex, "Invalid BD phone number (e.g. 019XXXXXXXX)")
     .trim(),
-  address: addressZ.optional(),
+  addresses: z.array(addressZ).optional(),
 
   isActive: z.boolean().default(true),
 
@@ -296,7 +296,7 @@ export const loginSchemeZ = z
   .object({
     email: z.preprocess(
       (val) => (val === "" ? undefined : val),
-      z.string().email("Invalid email address").trim().toLowerCase().optional(),
+      z.email("Invalid email address").trim().toLowerCase().optional(),
     ),
 
     phone: z
@@ -367,7 +367,7 @@ export const settingCreateZ = z.object({
   favicon: imageZ.optional(),
   contactEmail: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+    z.email("Invalid email address").trim().toLowerCase().optional(),
   ),
 
   contactPhone: z
@@ -430,7 +430,7 @@ export const orderSchemaZ = z.object({
   paymentStatus: paymentStatusEnumZ.default("unpaid"),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+    z.email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
@@ -500,7 +500,7 @@ export const orderFetchQuerySchema = z.object({
     .optional(),
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase().optional(),
+    z.email("Invalid email address").trim().toLowerCase().optional(),
   ),
   phone: z
     .string()
@@ -536,7 +536,7 @@ export const orderFetchQuerySchema = z.object({
 export const subscriberSchemaZ = z.object({
   email: z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().email("Invalid email address").trim().toLowerCase(),
+    z.email("Invalid email address").trim().toLowerCase(),
   ),
   status: z.enum(["subscribed", "unsubscribed"]).default("subscribed"),
 

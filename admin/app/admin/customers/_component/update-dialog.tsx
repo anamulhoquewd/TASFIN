@@ -115,7 +115,7 @@ export default function UpdateDialog({
 
                 <FormField
                   control={form.control}
-                  name="address.street"
+                  name="addresses.0.street"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Street Address</FormLabel>
@@ -133,7 +133,7 @@ export default function UpdateDialog({
 
                 <FormField
                   control={form.control}
-                  name="address.city"
+                  name="addresses.0.city"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>City</FormLabel>
@@ -147,7 +147,7 @@ export default function UpdateDialog({
 
                 <FormField
                   control={form.control}
-                  name="address.state"
+                  name="addresses.0.state"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>State</FormLabel>
@@ -161,7 +161,7 @@ export default function UpdateDialog({
 
                 <FormField
                   control={form.control}
-                  name="address.zipCode"
+                  name="addresses.0.zipCode"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Zip Code</FormLabel>
@@ -175,7 +175,7 @@ export default function UpdateDialog({
 
                 <FormField
                   control={form.control}
-                  name="address.country"
+                  name="addresses.0.country"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Country</FormLabel>

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { deleteCookie } from "./app/actions";
-import { toast } from "sonner";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

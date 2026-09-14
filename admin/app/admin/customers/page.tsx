@@ -147,12 +147,13 @@ export default function CustomersPage() {
                         {customer?.email}
                       </TableCell>
                       <TableCell className="max-w-[250px] whitespace-normal break-words">
-                        {`${customer?.address?.street} ${
-                          customer?.address?.state || ""
-                        } ${customer?.address?.city || ""}, ${
-                          customer?.address?.country || ""
-                        } ${customer?.address?.zipCode || ""}` ||
-                          "No address available"}
+                        {customer.addresses?.length
+                          ? `${customer.addresses[0].street} ${
+                              customer.addresses[0].state || ""
+                            } ${customer.addresses[0].city || ""}, ${
+                              customer.addresses[0].country || ""
+                            } ${customer.addresses[0].zipCode || ""}`
+                          : "No address available"}
                       </TableCell>
 
                       <TableCell className="text-center">

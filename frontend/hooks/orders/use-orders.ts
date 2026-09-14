@@ -136,7 +136,7 @@ const useOrders = () => {
   // fetch orders by userId
   const getOrdersByUserId = useCallback(
     async ({ filters, page, userId, limit = 10 }: IFetchOrder) => {
-      const phone = (await getCookie("X-User-ID")) as string;
+      const id = (await getCookie("X-User-ID")) as string;
       try {
         const response = await api.get(`/orders`, {
           params: {
@@ -158,7 +158,7 @@ const useOrders = () => {
             page: page === 1 ? undefined : page,
             limit,
           },
-          headers: { Authorization: phone },
+          headers: { "X-User-ID": id },
         });
 
         if (!response.data.success || !Array.isArray(response.data.data)) {

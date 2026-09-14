@@ -137,6 +137,33 @@ export const updateMe = async (c: Context) => {
   return c.json(response.success, 200);
 };
 
+export const updateAddress = async (c: Context) => {
+  const user = c.get("user");
+  if (!user) return authenticationError(c);
+
+  const response = await userService.updateAddress({
+    user,
+    addressId: c.req.param("addressId") as string,
+    body: await c.req.json(),
+  });
+
+  if (response.error) return badRequestHandler(c, response.error);
+  return c.json(response.success, 200);
+};
+
+export const deleteAddress = async (c: Context) => {
+  const user = c.get("user");
+  if (!user) return authenticationError(c);
+
+  const response = await userService.deleteAddress({
+    user,
+    addressId: c.req.param("addressId") as string,
+  });
+
+  if (response.error) return badRequestHandler(c, response.error);
+  return c.json(response.success, 200);
+};
+
 // Update user by admin
 export const updateUser = async (c: Context) => {
   const body = await c.req.json();

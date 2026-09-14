@@ -21,6 +21,14 @@ userRoutes.patch("/by-admin/:_id", authenticatedAdmin, (c) =>
 
 userRoutes.get("/me", authenticatedUser, (c) => userController.getMe(c));
 
+userRoutes.patch("/me/addresses/:addressId", authenticatedUser, (c) =>
+  userController.updateAddress(c),
+);
+
+userRoutes.delete("/me/addresses/:addressId", authenticatedUser, (c) =>
+  userController.deleteAddress(c),
+);
+
 userRoutes.delete("/:_id", authenticatedAdmin, (c) =>
   userController.deleteUser(c)
 );

@@ -20,7 +20,7 @@ const SubscriberSchema = new Schema(
       default: "website", // homepage, popup, footer, campaign, etc
     },
 
-    verifiedByAdmin: { type: Boolean, default: false }, // verified by admin
+    verified: { type: Boolean, default: false }, // verified by admin
     isBlocked: { type: Boolean, default: false },
     blockedAt: { type: Date, required: false },
     blockedReason: { type: String, required: false },

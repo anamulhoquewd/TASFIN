@@ -4,6 +4,7 @@ import type { IUser } from "./../interfaces/index.js";
 import User from "./../models/users.model.js";
 import pagination from "./../utils/pagination.js";
 import {
+  addressZ,
   idSchemaZ,
   querySchemaZ,
   type UserCreateInput,
@@ -112,7 +113,7 @@ export const getUsers = async (queryParams: {
 
     // Allowable sort fields
     const sortField = ["createdAt", "updatedAt", "name", "email"].includes(
-      queryParams.sortBy
+      queryParams.sortBy,
     )
       ? queryParams.sortBy
       : "createdAt";
@@ -193,6 +194,74 @@ export const updateProfile = async ({
       },
     };
   }
+};
+
+export const updateAddress = async ({
+  user,
+  addressId,
+  body,
+}: {
+  user: mongoose.HydratedDocument<IUser>;
+  addressId: string;
+  body: unknown;
+}) => {
+  const validData = addressZ.safeParse(body);
+
+  if (!validData.success) {
+    return {
+      error: schemaValidationError(validData.error, "Invalid address"),
+    };
+  }
+
+  const addressIndex = user.addresses?.findIndex(
+    (address) => address._id?.toString() === addressId,
+  );
+
+  if (addressIndex === undefined || addressIndex < 0) {
+    return { error: { message: "Address not found" } };
+  }
+
+  user.addresses![addressIndex] = {
+    ...validData.data,
+    state: validData.data.state ?? "",
+    zipCode: validData.data.zipCode ?? "",
+  };
+  await user.save();
+
+  return {
+    success: {
+      success: true,
+      message: "Address updated successfully",
+      data: user.addresses,
+    },
+  };
+};
+
+export const deleteAddress = async ({
+  user,
+  addressId,
+}: {
+  user: mongoose.HydratedDocument<IUser>;
+  addressId: string;
+}) => {
+  const addressIndex = user.addresses?.findIndex(
+    (address) => address._id?.toString() === addressId,
+  );
+
+  if (addressIndex === undefined || addressIndex < 0) {
+    return { error: { message: "Address not found" } };
+  }
+
+  user.addresses!.splice(addressIndex, 1);
+  await user.save();
+
+  return {
+    success: {
+      success: true,
+      message: "Address deleted successfully",
+      data: user.addresses,
+    },
+  };
 };
 
 export const updateUser = async ({

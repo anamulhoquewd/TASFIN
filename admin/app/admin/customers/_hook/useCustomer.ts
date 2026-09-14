@@ -15,10 +15,10 @@ const customerFormSchema = z.object({
     .string()
     .regex(
       /^01\d{9}$/,
-      "Phone number must start with 01 and be exactly 11 digits"
+      "Phone number must start with 01 and be exactly 11 digits",
     )
     .optional(),
-  address: addressZ,
+  addresses: z.array(addressZ).min(1, "At least one address is required"),
   email: z
     .string()
     .email({ message: "Please enter a valid email address." })
@@ -41,13 +41,15 @@ function useCustomer() {
     name: "",
     phone: "",
     email: "",
-    address: {
-      city: "",
-      country: "Bangladesh",
-      state: "",
-      street: "",
-      zipCode: "1000",
-    },
+    addresses: [
+      {
+        city: "",
+        country: "Bangladesh",
+        state: "",
+        street: "",
+        zipCode: "1000",
+      },
+    ],
   };
 
   const form = useForm<FormValues>({
@@ -97,7 +99,7 @@ function useCustomer() {
       const response = await api.patch(
         `/users/by-admin/${selectedItem._id}`,
         data,
-        {}
+        {},
       );
 
       if (!response.data.success) {
@@ -166,7 +168,10 @@ function useCustomer() {
       form.reset({
         name: selectedItem.name ?? "",
         phone: selectedItem.phone ?? "",
-        address: selectedItem.address,
+        email: selectedItem.email ?? "",
+        addresses: selectedItem.addresses?.length
+          ? selectedItem.addresses
+          : defaultValues.addresses,
       });
     } else {
       form.reset(defaultValues);

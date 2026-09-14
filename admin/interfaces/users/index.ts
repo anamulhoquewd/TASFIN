@@ -21,7 +21,7 @@ export interface ICustomer {
   name: string;
   email: string;
   phone: string;
-  address?: IAddress;
+  addresses?: IAddress[];
   isActive: boolean;
   isBlocked?: boolean;
   blockedAt: Date;

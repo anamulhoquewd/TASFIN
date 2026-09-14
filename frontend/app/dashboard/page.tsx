@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import MyOrderCard from "@/components/user-dashboard/my-order-card";
+import AddressBook from "@/components/user-dashboard/address-book";
 import useOrders from "@/hooks/orders/use-orders";
 import useUsers from "@/hooks/users/use-users";
 import { IOrder } from "@/interfaces/orders";
@@ -69,6 +70,8 @@ export default function Page() {
           </Card>
         )}
       </div>
+
+      <AddressBook />
     </main>
   );
 }

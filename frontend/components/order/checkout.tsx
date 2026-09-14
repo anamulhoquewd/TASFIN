@@ -5,7 +5,8 @@ import {
   OUTSIDE_DHAKA_SHIPPING_COST,
 } from "@/lib/utils";
 import { CheckoutFormValues } from "@/lib/zod-validation";
-import { CreditCard, Wallet } from "lucide-react";
+import { IAddress } from "@/interfaces/orders";
+import { CreditCard, MapPin, Wallet } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { UseFormReturn } from "react-hook-form";
@@ -44,6 +45,8 @@ interface CheckoutProps {
   shippingFee: number;
   shippingThreshold: number;
   isDhaka: boolean;
+  savedAddresses: IAddress[];
+  onSelectAddress: (address: IAddress) => void;
 }
 
 function Checkout({
@@ -58,6 +61,8 @@ function Checkout({
   shippingFee,
   shippingThreshold,
   isDhaka,
+  savedAddresses,
+  onSelectAddress,
 }: CheckoutProps) {
   const totalDiscount = items.reduce(
     (sum, item) => sum + (item.discountAmount || 0) * item.quantity,
@@ -111,6 +116,29 @@ function Checkout({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  {savedAddresses.length > 0 && (
+                    <div className="space-y-2">
+                      <FormLabel>Saved addresses</FormLabel>
+                      <div className="grid gap-2">
+                        {savedAddresses.map((address, index) => (
+                          <Button
+                            key={address._id ?? index}
+                            type="button"
+                            variant="outline"
+                            className="h-auto justify-start whitespace-normal p-3 text-left"
+                            onClick={() => onSelectAddress(address)}
+                          >
+                            <MapPin className="mt-0.5" />
+                            <span>
+                              {address.street}, {address.city}
+                              {address.state ? `, ${address.state}` : ""}
+                              {address.zipCode ? ` - ${address.zipCode}` : ""}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   <FormField
                     control={form.control}
                     name="name"

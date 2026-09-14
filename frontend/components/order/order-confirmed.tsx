@@ -1,21 +1,21 @@
-import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import useSubscribe from "@/hooks/use-subscribe";
 import { copyToClipboard, formatPrice } from "@/lib/utils";
+import { SubscribeFormValues } from "@/lib/zod-validation";
+import { Check, Copy } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import SubscribeForm from "../subscribe-fomr";
+import { Card } from "../ui/card";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { useState } from "react";
-import { Card } from "../ui/card";
-import SubscribeForm from "../subscribe-fomr";
-import useSubscribe from "@/hooks/use-subscribe";
-import { SubscribeFormValues } from "@/lib/zod-validation";
 
 interface OrderConfirmedProps {
-  orderId: string;
+  orderNumber: string;
   email?: string;
   totalAmount: number;
 }
@@ -24,7 +24,7 @@ const ESTIMATED_DELIVERY_TIME = process.env
   .NEXT_PUBLIC_ESTIMATED_DELIVERY_TIME as string;
 
 export default function OrderConfirmed({
-  orderId,
+  orderNumber,
   email,
   totalAmount,
 }: OrderConfirmedProps) {
@@ -62,7 +62,7 @@ export default function OrderConfirmed({
                 </span>
                 <span className="font-mono text-sm font-semibold text-foreground">
                   <code className="px-2 py-1 bg-muted rounded text-xs font-mono truncate max-w-[180px]">
-                    {orderId.substring(0, 12)}...
+                    ...{orderNumber.split("-")[3]}
                   </code>
                   <TooltipProvider>
                     <Tooltip>
@@ -71,7 +71,7 @@ export default function OrderConfirmed({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 cursor-pointer"
-                          onClick={() => copyToClipboard(orderId)}
+                          onClick={() => copyToClipboard(orderNumber)}
                         >
                           <Copy className="h-3 w-3" />
                           <span className="sr-only">Copy order ID</span>

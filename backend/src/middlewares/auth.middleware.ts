@@ -11,12 +11,12 @@ const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
 const COOKIE_SECRET = process.env.COOKIE_SECRET as string;
 
 export const authenticatedAnyUser = async (c: Context, next: Next) => {
-  const phone = c.req.header("X-User-ID");
+  const id = c.req.header("X-User-ID");
   const token = c.req.header("Authorization")?.replace("Bearer ", "");
 
   try {
-    if (phone) {
-      const user = await User.findOne({ phone });
+    if (id) {
+      const user = await User.findOne({ _id: id });
       if (!user || user.isBlocked) {
         return authenticationError(c);
       }

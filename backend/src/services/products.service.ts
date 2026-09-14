@@ -324,7 +324,7 @@ export const updateGeneralInfo = async ({
           try {
             return keyValueArrayToRecord(arr);
           } catch (e: any) {
-            ctx.addIssue({ code: "", message: e.message });
+            ctx.addIssue({ code: "custom", message: e.message });
             return z.NEVER;
           }
         }),
