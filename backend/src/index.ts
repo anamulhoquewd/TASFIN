@@ -8,6 +8,7 @@ import connectDB from "./config/db.js";
 import { notFound } from "./error/index.js";
 import adminRoutes from "./routes/admins.route.js";
 import categoryRoutes from "./routes/categorise.route.js";
+import kidsRoutes from "./routes/kids.route.js";
 import orderRoutes from "./routes/orders.route.js";
 import productRoutes from "./routes/products.route.js";
 import settingsRoutes from "./routes/settings.route.js";
@@ -68,6 +69,9 @@ app.route("/testimonials", testimonialRoutes);
 
 // Order routes
 app.route("/subscribers", subscriberRoutes);
+
+// Order routes
+app.route("/kids", kidsRoutes);
 
 // Settings routes
 app.route("/settings", settingsRoutes);

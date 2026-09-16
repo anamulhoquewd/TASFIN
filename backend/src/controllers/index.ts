@@ -6,6 +6,7 @@ import * as settingsController from "./settings.controller.js";
 import * as subscribersController from "./subscriber.controller.js";
 import * as testimonialsController from "./testimonials.controller.js";
 import * as userController from "./users.controller.js";
+import * as kidsController from "./kids.controller.js";
 
 export {
   adminController,
@@ -16,4 +17,5 @@ export {
   subscribersController,
   testimonialsController,
   userController,
+  kidsController,
 };

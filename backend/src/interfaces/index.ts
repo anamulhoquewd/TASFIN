@@ -137,6 +137,19 @@ export interface ISubscriber {
   blockedReason: string; // Added — admin note for why a user was blocked
 }
 
+export interface IKidsProduct {
+  name: string;
+  images: IImage[];
+  fabric: string;
+  sizes: string[];
+  colors: string[];
+  moq: number;
+  minPrice: number;
+  maxPrice: number;
+  description: string;
+  isActive: boolean;
+}
+
 export interface ICoupon {
   code: string;
   type: "percent" | "fixed";

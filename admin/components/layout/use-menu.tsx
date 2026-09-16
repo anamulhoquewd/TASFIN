@@ -39,7 +39,7 @@ export default function UserMenu() {
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium">{user?.name || "TASFIN"}</p>
             <p className="text-xs text-muted-foreground">
-              {user?.email || "info@tasfin.com"}
+              {user?.email || "nasrullahtasfin@gmail.com"}
             </p>
           </div>
         </DropdownMenuLabel>

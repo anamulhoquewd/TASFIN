@@ -204,11 +204,10 @@ export const adminCreateZ = z.object({
 export const adminUpdateLimitedZ = z
   .object(adminCreateZ.shape)
   .omit({ nid: true, role: true })
-  .partial() 
-  .refine(
-    (data) => Object.keys(data).length > 0,
-    { message: "At least one field must be provided for update" },
-  );
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 
 // If you want a separate update schema where fields can be optional:
 export const adminUpdateZ = adminCreateZ.partial().refine(
@@ -419,7 +418,6 @@ export const testimonialUpdateZ = testimonialSchemaZ.partial().refine(
 export type TestimoalCreateInput = z.infer<typeof testimonialSchemaZ>;
 export type TestimoalUpdateInput = z.infer<typeof testimonialUpdateZ>;
 
-
 /** OrderProduct schema */
 export const orderProductSchemaZ = z.object({
   productId: objectIdSchemaZ,
@@ -601,3 +599,42 @@ export const subscriberQueryZ = z.object({
 /** TypeScript types inferred from schemas */
 export type SubscribeInput = z.infer<typeof subscriberSchemaZ>;
 export type SubscribeUpdateInput = z.infer<typeof subscriberUpdateZ>;
+
+// kids product
+export const kidsSchemaZ = z.object({
+  name: z.string(),
+  images: imagesSchema,
+  fabric: z.string(),
+  sizes: z.array(z.string()),
+  colors: z.array(z.string()),
+  moq: z.number(),
+  priceMin: z.number(),
+  priceMax: z.number(),
+  description: z.string().optional(),
+  isActive: z.boolean().default(false),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const kidsSchemaUpdateZ = kidsSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" },
+);
+
+export const kidsQueryZ = z.object({
+  sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
+  sortType: z.enum(["asc", "desc"]).default("asc"),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined,
+    ),
+  search: z.string().optional(),
+});
+
+/** TypeScript types inferred from schemas */
+export type KidsInput = z.infer<typeof kidsSchemaZ>;
+export type KidsUpdateInput = z.infer<typeof kidsSchemaUpdateZ>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { Globe, Mail, MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -34,7 +35,14 @@ export default function Footer() {
               </p>
             </div>
             <p className="text-xs opacity-70">
-              A sub-brand of TASFIN Fashion • Bangladesh 🇧🇩
+              A sub-brand of{" "}
+              <Link
+                className="text-blue-700 underline font-semibold"
+                href={"https://tasfin.vercel.app/"}
+              >
+                TASFIN
+              </Link>{" "}
+              Fashion • Bangladesh 🇧🇩
             </p>
           </div>
 
@@ -44,12 +52,12 @@ export default function Footer() {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
-                  <a
+                  <Link
                     href={link.href}
                     className="text-sm opacity-80 hover:opacity-100 transition-opacity"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -61,7 +69,7 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center gap-2 opacity-80">
                 <Mail className="size-4" />
-                <span>info@tasfin.com</span>
+                <span>nasrullahtasfin@gmail.com</span>
               </li>
               <li className="flex items-center gap-2 opacity-80">
                 <MessageCircle className="size-4" />
@@ -85,7 +93,7 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Follow Us</h3>
             <div className="flex gap-4">
               {socialLinks.map(({ icon: Icon, href, label }) => (
-                <a
+                <Link
                   key={label}
                   target="_blank"
                   href={href}
@@ -94,7 +102,7 @@ export default function Footer() {
                   title={label}
                 >
                   <Icon className="size-4" />
-                </a>
+                </Link>
               ))}
             </div>
           </div>
