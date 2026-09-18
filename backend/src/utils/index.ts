@@ -116,7 +116,7 @@ export const setAuthCookie = async (
   return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
     secure: process.env.NODE_ENV === "production",
-    domain: process.env.NODE_ENV === "production" ? domain : undefined,
+    // domain: process.env.NODE_ENV === "production" ? domain : undefined,
     httpOnly: true,
     maxAge: maxAgeSeconds,
     expires: new Date(Date.now() + maxAgeSeconds * 1000),

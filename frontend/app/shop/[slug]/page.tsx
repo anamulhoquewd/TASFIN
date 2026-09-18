@@ -39,6 +39,11 @@ import {
   getVariantAttributeGroups,
   getVariantAttributes,
 } from "@/lib/variant-utils";
+import { Swiper, SwiperSlide } from "swiper/react";
+import type { Swiper as SwiperInstance } from "swiper";
+import { EffectFade } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/effect-fade";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
@@ -54,6 +59,10 @@ export default function ProductPage() {
   const [selectedVariant, setSelectedVariant] =
     useState<IProductVariant | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mainSwiper, setMainSwiper] = useState<SwiperInstance | null>(null);
+  const [lightboxSwiper, setLightboxSwiper] = useState<SwiperInstance | null>(
+    null,
+  );
 
   const { copied, handleShare } = useShare();
 
@@ -98,8 +107,8 @@ export default function ProductPage() {
   };
 
   const debouncedAddToCart = useMemo(
-    () => debounce(handleAddToCart, 500),
-    [product, selectedVariant, quantity]
+    () => debounce(handleAddToCart, 200),
+    [product, selectedVariant, quantity],
   );
 
   const debouncedWishlist = useMemo(() => {
@@ -186,42 +195,51 @@ export default function ProductPage() {
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedImage((prev) =>
-                prev > 0 ? prev - 1 : product.images.length - 1
-              );
+              lightboxSwiper?.slidePrev();
             }}
             variant={"ghost"}
             size={"icon-lg"}
-            className="absolute rounded-none cursor-pointer left-6 top-1/2 -translate-y-1/2"
+            className="absolute hidden lg:flex rounded-none cursor-pointer left-6 top-1/2 -translate-y-1/2"
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
           <Button
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedImage((prev) =>
-                prev < product.images.length - 1 ? prev + 1 : 0
-              );
+              lightboxSwiper?.slideNext();
             }}
             variant={"ghost"}
             size={"icon-lg"}
-            className="absolute rounded-none cursor-pointer right-6 top-1/2 -translate-y-1/2"
+            className="absolute hidden lg:flex rounded-none cursor-pointer right-6 top-1/2 -translate-y-1/2"
           >
             <ChevronLeft className="w-6 h-6 rotate-180" />
           </Button>
 
-          <div
-            className="relative w-[85vw] h-[85vh] cursor-zoom-out"
+          <Swiper
+            modules={[EffectFade]}
+            effect="fade"
+            fadeEffect={{ crossFade: true }}
+            initialSlide={selectedImage}
+            loop={product.images.length > 1}
+            onSwiper={setLightboxSwiper}
+            onSlideChange={(swiper) => setSelectedImage(swiper.realIndex)}
             onClick={() => setIsLightboxOpen(false)}
+            className="relative w-[85vw] h-[85vh] cursor-grab active:cursor-grabbing"
           >
-            <Image
-              src={product.images[selectedImage].url || "/placeholder.svg"}
-              alt={product.title}
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
+            {product.images.map((image, index) => (
+              <SwiperSlide key={image.url || index}>
+                <div className="relative w-full h-full">
+                  <Image
+                    src={image.url || "/placeholder.svg"}
+                    alt={image.alt || product.title}
+                    fill
+                    className="object-contain"
+                    priority={index === selectedImage}
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
 
           {/* Lightbox thumbnails */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
@@ -230,13 +248,13 @@ export default function ProductPage() {
                 key={index}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setSelectedImage(index);
+                  lightboxSwiper?.slideToLoop(index);
                 }}
                 className={cn(
                   "relative w-12 h-16 overflow-hidden transition-all duration-200",
                   selectedImage === index
                     ? "ring-1 ring-foreground"
-                    : "ring-1 ring-transparent opacity-60 hover:opacity-100"
+                    : "ring-1 ring-transparent opacity-60 hover:opacity-100",
                 )}
               >
                 <Image
@@ -280,12 +298,12 @@ export default function ProductPage() {
             {product.images.map((image, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedImage(index)}
+                onClick={() => mainSwiper?.slideToLoop(index)}
                 className={cn(
                   "relative cursor-pointer w-16 h-20 md:w-20 md:h-24 flex-shrink-0 overflow-hidden transition-all duration-300",
                   selectedImage === index
                     ? "ring-1 ring-foreground"
-                    : "ring-1 ring-transparent hover:ring-border"
+                    : "ring-1 ring-transparent hover:ring-border",
                 )}
               >
                 <Image
@@ -299,41 +317,53 @@ export default function ProductPage() {
           </div>
 
           {/* Main Image */}
-          <div
-            className="relative flex-1 aspect-[3/4] bg-secondary overflow-hidden cursor-zoom-in group"
-            onClick={() => setIsLightboxOpen(true)}
-          >
-            <Image
-              src={product.images[selectedImage]?.url || "/placeholder.svg"}
-              alt={product.images[selectedImage]?.alt || product.title}
-              fill
-              className={cn("object-cover")}
-            />
+          <div className="relative flex-1 aspect-[3/4] bg-secondary overflow-hidden cursor-zoom-in group">
+            <Swiper
+              modules={[EffectFade]}
+              effect="fade"
+              fadeEffect={{ crossFade: true }}
+              initialSlide={selectedImage}
+              loop={product.images.length > 1}
+              onSwiper={setMainSwiper}
+              onSlideChange={(swiper) => setSelectedImage(swiper.realIndex)}
+              onClick={() => setIsLightboxOpen(true)}
+              className="h-full w-full cursor-grab active:cursor-grabbing"
+            >
+              {product.images.map((image, index) => (
+                <SwiperSlide key={image.url || index}>
+                  <div className="relative h-full w-full">
+                    <Image
+                      src={image.url || "/placeholder.svg"}
+                      alt={image.alt || product.title}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
 
             {/* Navigation Arrows */}
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedImage((prev) =>
-                  prev > 0 ? prev - 1 : product.images.length - 1
-                );
+                mainSwiper?.slidePrev();
               }}
               variant={"secondary"}
               size={"icon-lg"}
-              className="absolute rounded-none cursor-pointer left-6 top-1/2 -translate-y-1/2"
+              className="absolute hidden lg:flex rounded-none cursor-pointer left-6 top-1/2 -translate-y-1/2"
             >
               <ChevronLeft className="w-6 h-6" />
             </Button>
             <Button
               onClick={(e) => {
                 e.stopPropagation();
-                setSelectedImage((prev) =>
-                  prev < product.images.length - 1 ? prev + 1 : 0
-                );
+                mainSwiper?.slideNext();
               }}
               variant={"secondary"}
               size={"icon-lg"}
-              className="absolute rounded-none cursor-pointer right-6 top-1/2 -translate-y-1/2"
+              className="absolute hidden lg:flex rounded-none cursor-pointer right-6 top-1/2 -translate-y-1/2"
             >
               <ChevronLeft className="w-6 h-6 rotate-180" />
             </Button>
@@ -366,7 +396,7 @@ export default function ProductPage() {
                       "w-5 h-5 transition-all duration-300",
                       isInWishlist(product._id)
                         ? "fill-foreground stroke-foreground"
-                        : "fill-transparent stroke-foreground hover:stroke-foreground"
+                        : "fill-transparent stroke-foreground hover:stroke-foreground",
                     )}
                   />
                 </Button>
@@ -383,7 +413,7 @@ export default function ProductPage() {
             <div className="flex items-baseline gap-3">
               <span className="text-xl tracking-wide text-foreground">
                 {formatPrice(
-                  selectedVariant?.price || product.variants[0].price
+                  selectedVariant?.price || product.variants[0].price,
                 )}
               </span>
               {/* {product.originalPrice && (
@@ -442,27 +472,40 @@ export default function ProductPage() {
             </div>
             {getVariantAttributeGroups(product.variants).map((group) => (
               <div key={group.key}>
-                <p className="mb-2 text-xs uppercase text-muted-foreground">{group.key}</p>
+                <p className="mb-2 text-xs uppercase text-muted-foreground">
+                  {group.key}
+                </p>
                 <div className="flex gap-2 flex-wrap">
                   {group.values.map((value) => {
                     const currentAttributes = selectedVariant
                       ? getVariantAttributes(selectedVariant.attributes)
                       : {};
                     const candidate = product.variants.find((variant) => {
-                      const attributes = getVariantAttributes(variant.attributes);
+                      const attributes = getVariantAttributes(
+                        variant.attributes,
+                      );
                       return (
                         attributes[group.key] === value &&
                         Object.entries(currentAttributes)
                           .filter(([key]) => key !== group.key)
-                          .every(([key, selectedValue]) => attributes[key] === selectedValue)
+                          .every(
+                            ([key, selectedValue]) =>
+                              attributes[key] === selectedValue,
+                          )
                       );
                     });
                     return (
                       <Button
-                        variant={candidate?._id === selectedVariant?._id ? "default" : "secondary"}
+                        variant={
+                          candidate?._id === selectedVariant?._id
+                            ? "default"
+                            : "secondary"
+                        }
                         size="icon-lg"
                         key={`${group.key}-${value}`}
-                        onClick={() => candidate && setSelectedVariant(candidate)}
+                        onClick={() =>
+                          candidate && setSelectedVariant(candidate)
+                        }
                         className="text-xs relative overflow-hidden tracking-wide border rounded-none cursor-pointer"
                         disabled={!candidate || candidate.stock === 0}
                       >
@@ -532,13 +575,13 @@ export default function ProductPage() {
               {selectedVariant === null || selectedVariant.stock === 0
                 ? "Select options"
                 : hasStock
-                ? "Add to Bag"
-                : "Out of stock"}
+                  ? "Add to Bag"
+                  : "Out of stock"}
             </Button>
 
             <div className="p-3 bg-green-500/10 rounded-md text-xs text-center">
               <p className="text-xs text-green-700">
-                Free shipping on orders over
+                Free shipping on orders over{" "}
                 {formatPrice(Number(FREE_SHIPPING_START_FROM) - 1)}
               </p>
             </div>
@@ -558,14 +601,16 @@ export default function ProductPage() {
                 </AccordionTrigger>
                 <AccordionContent className="flex flex-col gap-4 text-balance">
                   <div className="grid grid-cols-2 gap-4">
-                    {product?.specifications?.map((detail, index) => (
-                      <div key={index}>
-                        <p className="text-sm text-muted-foreground">
-                          {detail.label}
-                        </p>
-                        <p className="font-medium">{detail.value}</p>
-                      </div>
-                    ))}
+                    {Object.entries(product?.specifications ?? {}).map(
+                      ([label, value]) => (
+                        <div key={label}>
+                          <p className="text-sm text-muted-foreground">
+                            {label}
+                          </p>
+                          <p className="font-medium">{value}</p>
+                        </div>
+                      ),
+                    )}
                   </div>
                 </AccordionContent>
               </AccordionItem>

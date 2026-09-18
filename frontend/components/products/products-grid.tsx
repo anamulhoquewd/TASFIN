@@ -260,8 +260,8 @@ export function ProductCard({
   };
 
   const debouncedAddToCart = useMemo(
-    () => debounce(handleAddToCart, 500),
-    [product, selectedVariant]
+    () => debounce(handleAddToCart, 200),
+    [product, selectedVariant],
   );
 
   const discountActive = isDiscountActive(product.discount);

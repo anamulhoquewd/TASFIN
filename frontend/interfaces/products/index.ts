@@ -18,7 +18,7 @@ export interface IProduct {
   categories: string[];
   images: IImage[];
   variants: IProductVariant[];
-  specifications?: Array<{ label: string; value: string }>;
+  specifications?: Record<string, string>;
   minPrice: number;
   maxPrice: number;
   inStock: boolean;
