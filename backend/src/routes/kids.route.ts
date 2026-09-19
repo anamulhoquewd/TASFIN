@@ -4,22 +4,25 @@ import { authenticatedAdmin } from "./../middlewares/auth.middleware.js";
 
 const kidsRoutes = new Hono();
 
-kidsRoutes.post("/register", (c) => kidsController.register(c));
-
-kidsRoutes.get("/", authenticatedAdmin, (c) =>
-  kidsController.getSubscribers(c),
+kidsRoutes.post("/register", authenticatedAdmin, (c) =>
+  kidsController.register(c),
 );
+kidsRoutes.post("/inquiry", (c) => kidsController.inquiry(c));
 
-kidsRoutes.get("/:_id", authenticatedAdmin, (c) =>
-  kidsController.getSubscriber(c),
+kidsRoutes.get("/", (c) => kidsController.getKidsProducts(c));
+
+kidsRoutes.get("/:_id", (c) => kidsController.getKidsProduct(c));
+
+kidsRoutes.patch("/:_id/images", authenticatedAdmin, (c) =>
+  kidsController.updateKidsImages(c),
 );
 
 kidsRoutes.patch("/:_id", authenticatedAdmin, (c) =>
-  kidsController.updateSubscriber(c),
+  kidsController.updateKidsProduct(c),
 );
 
 kidsRoutes.delete("/:_id", authenticatedAdmin, (c) =>
-  kidsController.deleteSubscriber(c),
+  kidsController.deleteKidsProduct(c),
 );
 
 export default kidsRoutes;

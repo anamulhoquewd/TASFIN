@@ -1,11 +1,26 @@
+import { IKidsProduct } from "@/interfaces/kids";
 import { IImage, IProduct, IProductVariant } from "@/interfaces/products";
 import { toast } from "sonner";
 import z from "zod";
 
 export type KeyValue = { key: string; value: string };
 export type ProductImage = Pick<IImage, "url"> & { alt?: string };
-export type FormProps = { product: IProduct; onClose: () => void };
-export type DialogProps = FormProps & { type: string; product?: IProduct };
+export type FormProps = {
+  product: IProduct;
+  onClose: () => void;
+};
+export type KidsFormProps = {
+  product: IKidsProduct;
+  onClose: () => void;
+};
+export type KidsDialogProps = KidsFormProps & {
+  type: string;
+  product?: IKidsProduct;
+};
+export type DialogProps = FormProps & {
+  type: string;
+  product?: IProduct;
+};
 
 const keyValuesZ = z.array(
   z.object({
@@ -27,6 +42,24 @@ export const generalZ = z.object({
   isFeatured: z.boolean(),
   isActive: z.boolean(),
 });
+
+export const kidsGeneralZ = z
+  .object({
+    name: z.string().trim().min(1, "Name is required"),
+    fabric: z.string().trim().min(1, "Fabric is required"),
+    description: z.string().max(1000).optional(),
+    sizes: z.array(z.string().trim().min(1)).min(1, "Add at least one size"),
+    colors: z.array(z.string().trim().min(1)).min(1, "Add at least one color"),
+    isActive: z.boolean(),
+    moq: z.coerce.number().min(0, "MOQ must be 0 or more"),
+    minPrice: z.coerce.number().min(0, "Minimum price must be 0 or more"),
+    maxPrice: z.coerce.number().min(0, "Maximum price must be 0 or more"),
+  })
+  .refine((data) => data.maxPrice >= data.minPrice, {
+    message: "Maximum price must be greater than or equal to minimum price",
+    path: ["maxPrice"],
+  });
+
 export const discountZ = z.object({
   discount: z
     .object({
@@ -54,6 +87,8 @@ export const variantZ = z.object({
   price: z.coerce.number().min(0),
 });
 export const imagesZ = z.object({ images: z.array(z.instanceof(File)) });
+export type KidsGeneralValues = z.output<typeof kidsGeneralZ>;
+export type KidsGeneralInput = z.input<typeof kidsGeneralZ>;
 export type GeneralValues = z.output<typeof generalZ>;
 export type GeneralInput = z.input<typeof generalZ>;
 export type DiscountValues = z.output<typeof discountZ>;
@@ -81,4 +116,3 @@ export const reportError = (error: unknown, fallback: string) => {
   ).response?.data;
   toast.error(data?.error?.message ?? data?.message ?? fallback);
 };
-

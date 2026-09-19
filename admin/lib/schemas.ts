@@ -274,3 +274,45 @@ export const loginFormSchema = z.object({
 });
 
 export type LoginFormValuse = z.infer<typeof loginFormSchema>;
+
+
+// Kids products
+
+export const kidsSchemaZ = z.object({
+  name: z.string(),
+  
+  images: z.array(fileSchema).nonempty("At least 1 image is required"),
+  fabric: z.string(),
+  sizes: z.array(z.string()),
+  colors: z.array(z.string()),
+  moq: z.number(),
+  minPrice: z.number(),
+  maxPrice: z.number(),
+  description: z.string().optional(),
+  isActive: z.boolean().default(false),
+});
+
+// If you want a separate update schema where fields can be optional:
+export const kidsSchemaUpdateZ = kidsSchemaZ.partial().refine(
+  (data) => {
+    // ensure at least one field present on update
+    return Object.keys(data).length > 0;
+  },
+  { message: "At least one field must be provided for update" },
+);
+
+export const kidsQueryZ = z.object({
+  sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
+  sortType: z.enum(["asc", "desc"]).default("asc"),
+  isActive: z
+    .string()
+    .optional()
+    .transform((val) =>
+      val === "true" ? true : val === "false" ? false : undefined,
+    ),
+  search: z.string().optional(),
+});
+
+/** TypeScript types inferred from schemas */
+export type KidsInput = z.infer<typeof kidsSchemaZ>;
+export type KidsUpdateInput = z.infer<typeof kidsSchemaUpdateZ>;

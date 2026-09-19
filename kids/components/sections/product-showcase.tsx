@@ -1,15 +1,17 @@
-'use client'
+"use client";
 
-import { Product } from '@/lib/validation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { ShoppingBag } from 'lucide-react'
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { productImageUrl } from "@/lib/utils";
+import { Product } from "@/lib/validation";
+import { ShoppingBag } from "lucide-react";
+import Image from "next/image";
 
 interface ProductShowcaseProps {
-  products: Product[]
-  loading: boolean
-  onProductSelect: (productId: string) => void
+  products: Product[];
+  loading: boolean;
+  onProductSelect: (productId: string) => void;
 }
 
 export default function ProductShowcase({
@@ -18,12 +20,12 @@ export default function ProductShowcase({
   onProductSelect,
 }: ProductShowcaseProps) {
   const handleInquire = (productId: string) => {
-    onProductSelect(productId)
-    const element = document.querySelector('#inquiry')
+    onProductSelect(productId);
+    const element = document.querySelector("#inquiry");
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+      element.scrollIntoView({ behavior: "smooth" });
     }
-  }
+  };
 
   return (
     <section id="products" className="py-16 md:py-24 bg-muted/30">
@@ -33,7 +35,8 @@ export default function ProductShowcase({
             Our Product Collection
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Curated selection of premium kids&apos; clothing, sourced with care and crafted for quality.
+            Curated selection of premium kids&apos; clothing, sourced with care
+            and crafted for quality.
           </p>
         </div>
 
@@ -65,15 +68,17 @@ export default function ProductShowcase({
             {products.map((product) => (
               <Card
                 key={product._id}
-                className="overflow-hidden border border-border hover:shadow-lg transition-shadow duration-300 flex flex-col"
+                className="w-full max-w-97.5 overflow-hidden rounded-2xl border-2 border-zinc-800 bg-zinc-950 text-white shadow-none"
               >
                 {/* Product Image */}
                 <div className="relative h-48 bg-linear-to-br from-blue-100/50 via-pink-100/30 to-yellow-100/30 flex items-center justify-center overflow-hidden">
-                  {product.images && product.images[0] ? (
-                    <img
-                      src={product.images[0]}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
+                  {productImageUrl(product) ? (
+                    <Image
+                      src={productImageUrl(product)}
+                      alt={product.images[0]?.alt || product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 100vw, 390px"
                     />
                   ) : (
                     <svg
@@ -114,7 +119,7 @@ export default function ProductShowcase({
                           Price Range
                         </p>
                         <p className="text-foreground font-semibold">
-                          ${product.priceMin} - ${product.priceMax}
+                          ${product.minPrice} - ${product.maxPrice}
                         </p>
                       </div>
                     </div>
@@ -136,12 +141,28 @@ export default function ProductShowcase({
                         </div>
                       </div>
                     )}
+                    {product.colors && product.colors.length > 0 && (
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-1">
+                          Colors Available
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {product.colors.map((color) => (
+                            <span
+                              key={color}
+                              className="px-2 py-1 bg-muted rounded text-xs text-foreground"
+                            >
+                              {color}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <Button
                     onClick={() => handleInquire(product._id)}
-                    variant="default"
-                    className="w-full mt-auto rounded-full"
+                    className="w-full rounded-full bg-zinc-100 text-black hover:bg-white"
                   >
                     Inquire About This
                   </Button>
@@ -152,5 +173,5 @@ export default function ProductShowcase({
         )}
       </div>
     </section>
-  )
+  );
 }

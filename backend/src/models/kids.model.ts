@@ -4,13 +4,20 @@ import type { IKidsProduct } from "../interfaces/index.js";
 const kidsProductSchema = new Schema(
   {
     name: { type: String, required: true },
-    images: [{ type: String }],
+    images: [
+      {
+        url: { type: String, required: true },
+        key: { type: String, required: true },
+        position: { type: Number, required: true },
+        alt: { type: String, required: true },
+      },
+    ],
     fabric: { type: String, required: true },
     sizes: [{ type: String }],
     colors: [{ type: String }],
     moq: { type: Number, required: true },
-    priceMin: { type: Number, required: true },
-    priceMax: { type: Number, required: true },
+    minPrice: { type: Number, required: true },
+    maxPrice: { type: Number, required: true },
     description: { type: String },
     isActive: { type: Boolean, default: true },
   },

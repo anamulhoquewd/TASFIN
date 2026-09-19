@@ -13,6 +13,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
+  Blocks,
   CalendarCheck,
   CreditCard,
   LayoutDashboard,
@@ -103,6 +104,14 @@ export function AppSidebar({ className }: { className?: string }) {
                 <Link href="/admin/testimonials">
                   <MessageSquareMore />
                   <span>Testimonials</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/admin/kids">
+                  <Blocks />
+                  <span>Kids</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

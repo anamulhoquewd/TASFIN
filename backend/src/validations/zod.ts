@@ -608,20 +608,23 @@ export const kidsSchemaZ = z.object({
   sizes: z.array(z.string()),
   colors: z.array(z.string()),
   moq: z.number(),
-  priceMin: z.number(),
-  priceMax: z.number(),
+  minPrice: z.number(),
+  maxPrice: z.number(),
   description: z.string().optional(),
   isActive: z.boolean().default(false),
 });
 
 // If you want a separate update schema where fields can be optional:
-export const kidsSchemaUpdateZ = kidsSchemaZ.partial().refine(
-  (data) => {
-    // ensure at least one field present on update
-    return Object.keys(data).length > 0;
-  },
-  { message: "At least one field must be provided for update" },
-);
+export const kidsSchemaUpdateZ = kidsSchemaZ
+  .omit({ images: true })
+  .partial()
+  .refine(
+    (data) => {
+      // ensure at least one field present on update
+      return Object.keys(data).length > 0;
+    },
+    { message: "At least one field must be provided for update" },
+  );
 
 export const kidsQueryZ = z.object({
   sortBy: z.enum(["createdAt", "updatedAt", "email"]).default("email"),
@@ -635,6 +638,26 @@ export const kidsQueryZ = z.object({
   search: z.string().optional(),
 });
 
+export const kidsInquirySchemaZ = z.object({
+  fullName: z.string().min(2),
+  shopName: z.string().min(2),
+  city: z.string().min(2),
+  phone: z.string().min(6),
+  email: z.string().email(),
+  interestedProductIds: z
+    .array(
+      z
+        .string()
+        .refine((val) => mongoose.Types.ObjectId.isValid(val), {
+          message: "Invalid product ID",
+        }),
+    )
+    .min(1, "Select at least one product"),
+  estimatedQty: z.string().optional(),
+  message: z.string().optional(),
+});
+
 /** TypeScript types inferred from schemas */
 export type KidsInput = z.infer<typeof kidsSchemaZ>;
 export type KidsUpdateInput = z.infer<typeof kidsSchemaUpdateZ>;
+export type KidsInquiryInput = z.infer<typeof kidsInquirySchemaZ>;

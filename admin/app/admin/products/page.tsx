@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { ProductsTable } from "../../../components/products/products-table";
 
-export default function AdminDashboard() {
+export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex flex-col mb-8 gap-4 md:flex-row md:items-center md:justify-between">

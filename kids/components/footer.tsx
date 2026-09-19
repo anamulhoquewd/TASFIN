@@ -16,7 +16,7 @@ export default function Footer() {
   const socialLinks = [
     { icon: MessageCircle, href: "#", label: "Instagram" },
     { icon: MessageCircle, href: "#", label: "Facebook" },
-    { icon: Globe, href: "tasfin.vercel.app", label: "TASFIN" },
+    { icon: Globe, href: "https://tasfin.vercel.app", label: "TASFIN" },
   ];
 
   return (

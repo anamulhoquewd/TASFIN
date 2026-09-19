@@ -64,7 +64,7 @@ export interface ICategory {
   isActive?: boolean;
 }
 
-export interface ITestimonial  {
+export interface ITestimonial {
   _id: string;
   name: string;
   location: string;

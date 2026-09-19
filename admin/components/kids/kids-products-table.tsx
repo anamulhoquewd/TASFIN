@@ -45,56 +45,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import useKidsProducts from "@/hooks/kids-products/useKidsProducts";
 import { IPagination } from "@/interfaces/global";
-import { IProduct } from "@/interfaces/products";
+import { IKidsProduct } from "@/interfaces/kids";
 import { defaultPagination } from "@/utils/details";
 import {} from "@radix-ui/react-dialog";
 import { format } from "date-fns";
-import {
-  Edit,
-  ExternalLink,
-  Eye,
-  Package,
-  Search,
-  ShoppingCart,
-  Star,
-  Trash2,
-} from "lucide-react";
+import { Edit, Search, Trash2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import useProducts from "../../hooks/products/useProducts";
-import {
-  KPICard,
-  ProductAnalyticsModal,
-  useProductAnalyticsModal,
-} from "./product-analytics";
-import { ProductEditDialogs } from "./product-edit";
+import { useEffect, useState } from "react";
+import { KidsProductEditDialogs } from "./kids-product-edit";
 
-export function ProductsTable() {
-  const { isOpen, selectedProductId, closeModal } = useProductAnalyticsModal();
+export function KidsProductsTable() {
   const [statusFilter, setStatusFilter] = useState("all");
-  const [featuredFilter, setFeaturedFilter] = useState("all");
-  // const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [products, setProducts] = useState<IProduct[]>([]);
+  const [kidsProducts, setKidsProducts] = useState<IKidsProduct[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pagination, setPagination] = useState<IPagination>(defaultPagination);
   const [deleteOpen, setDeleteOpen] = useState<boolean>(false);
   const [deletedProductId, setDeletedProductId] = useState<string | null>(null);
+  const [refreshTick, setRefreshTick] = useState(0);
   const [editModal, setEditModal] = useState<{
     open: boolean;
     type: string | null;
-    product: IProduct | null;
+    product: IKidsProduct | null;
   }>({
     open: false,
     type: null,
     product: null,
   });
 
-  const { getProducts, onDelete } = useProducts();
+  const { getKidsProducts, onDelete } = useKidsProducts();
 
   // mapping helper
   const mapStatusToBoolean = (status: string): boolean | undefined => {
@@ -113,15 +95,13 @@ export function ProductsTable() {
     const fetchProducts = async () => {
       try {
         setIsLoading(true);
-        const result = await getProducts({
+        const result = await getKidsProducts({
           page: pagination.page || 1,
           searchQuery,
-          categoryFilter: "all",
           isActive: mapStatusToBoolean(statusFilter),
-          isFeatured: mapFeaturedToBoolean(featuredFilter),
         });
 
-        setProducts(result.data);
+        setKidsProducts(result.data);
 
         setPagination(() => ({
           page: result.pagination.page,
@@ -141,33 +121,9 @@ export function ProductsTable() {
   }, [
     pagination.page,
     searchQuery,
-    // categoryFilter,
     statusFilter,
-    featuredFilter,
+    refreshTick,
   ]);
-
-  // Calculate analytics data
-  const analytics = useMemo(() => {
-    const activeProducts = products.filter((p) => p.isActive).length;
-    const featuredProducts = products.filter((p) => p.isFeatured).length;
-    const totalStock = products.reduce(
-      (acc, product) =>
-        acc +
-        product.variants.reduce((varAcc, variant) => varAcc + variant.stock, 0),
-      0,
-    );
-    const totalVariants = products.reduce(
-      (acc, product) => acc + product.variants.length,
-      0,
-    );
-
-    return {
-      activeProducts,
-      featuredProducts,
-      totalStock,
-      totalVariants,
-    };
-  }, [products]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -189,7 +145,7 @@ export function ProductsTable() {
       setDeletedProductId(null);
 
       // remove product locally
-      setProducts((prev) => prev.filter((p) => p._id !== deletedProductId));
+      setKidsProducts((prev) => prev.filter((p) => p._id !== deletedProductId));
     } catch (error) {
       console.error("Error deleting product:", error);
     } finally {
@@ -197,7 +153,7 @@ export function ProductsTable() {
     }
   };
 
-  const openEditModal = (type: string, product: IProduct) => {
+  const openEditModal = (type: string, product: IKidsProduct) => {
     setEditModal({
       open: true,
       type,
@@ -211,72 +167,13 @@ export function ProductsTable() {
       type: null,
       product: null,
     });
-  };
-
-  const handleDeleteProduct = async () => {
-    if (!deletedProductId) return;
-
-    try {
-      const response = await fetch(`/api/products/${deletedProductId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setProducts(products.filter((p) => p._id !== deletedProductId));
-        toast.success("Product deleted successfully");
-      } else {
-        const error = await response.json();
-        toast.error(error.message || "Failed to delete product");
-      }
-    } catch (error) {
-      toast.error("Failed to delete product");
-      console.log("Error: ", error);
-    } finally {
-      setDeleteOpen(false);
-      setDeletedProductId(null);
-    }
+    setRefreshTick((tick) => tick + 1);
   };
 
   return (
     <>
       <div className="space-y-6">
         {/* Analytics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <KPICard
-            title="Total Products"
-            value={pagination.total.toString()}
-            icon={<ShoppingCart className="h-4 w-4" />}
-            description="Total product based on filters"
-          />
-
-          <KPICard
-            title="Active Products"
-            value={analytics.activeProducts.toString()}
-            icon={<Eye className="h-4 w-4" />}
-            description="Only on this page"
-          />
-
-          <KPICard
-            title="Featured"
-            value={analytics.featuredProducts.toString()}
-            icon={<Star className="h-4 w-4" />}
-            description="Only on this page"
-          />
-
-          <KPICard
-            title="Total Stock"
-            value={analytics.totalStock.toString()}
-            description="Only on this page"
-            icon={<Package className="h-4 w-4" />}
-          />
-
-          <KPICard
-            title="Total Variants"
-            value={analytics.totalVariants.toString()}
-            description="Only on this page"
-            icon={<Package className="h-4 w-4" />}
-          />
-        </div>
 
         {/* Filters and Search */}
         <Card>
@@ -292,7 +189,7 @@ export function ProductsTable() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products by title or tags..."
+                  placeholder="Search kidsProducts by title or tags..."
                   className="pl-8"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -309,17 +206,6 @@ export function ProductsTable() {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Select value={featuredFilter} onValueChange={setFeaturedFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by featured" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Products</SelectItem>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="not-featured">Not Featured</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             {/* Products Table */}
@@ -328,23 +214,16 @@ export function ProductsTable() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[100px]">Image</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Variants</TableHead>
-                    <TableHead>Total Stock</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>MOQ</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Sales</TableHead>
-                    <TableHead>Discount</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                  {products.map((product) => {
-                    const totalStock = product.variants.reduce(
-                      (acc, variant) => acc + variant.stock,
-                      0,
-                    );
+                  {kidsProducts.map((product) => {
                     const firstPositionImage = product.images[0];
 
                     return (
@@ -354,63 +233,19 @@ export function ProductsTable() {
                             width={1000}
                             height={1000}
                             src={firstPositionImage?.url as string}
-                            alt={firstPositionImage?.alt || product.title}
+                            alt={firstPositionImage?.alt || product.name}
                             className="w-12 h-12 object-cover rounded-md"
                           />
                         </TableCell>
 
                         <TableCell className="max-w-[150px] whitespace-normal break-words">
-                          <div className="font-medium ">{product.title}</div>
-                          <Link
-                            target="_blank"
-                            href={`${process.env.NEXT_PUBLIC_DOMAIN}/shop/${product.slug}`}
-                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-xs"
-                          >
-                            /{product.slug} <ExternalLink className="h-4 w-4" />
-                          </Link>
+                          {product.name}
+
                           {/* <div className="text-xs text-muted-foreground">
                             We can write somthing on there
                           </div> */}
                         </TableCell>
-
-                        <TableCell>
-                          <div className="space-y-1">
-                            {product.variants
-                              .slice(0, 2)
-                              .map((variant, index) => (
-                                <div
-                                  key={index}
-                                  className="text-sm flex gap-1 flex-col"
-                                >
-                                  <span className="font-medium">
-                                    {variant.sku}
-                                  </span>
-                                  <span className="text-muted-foreground ml-2">
-                                    ({variant.stock} in stock)
-                                  </span>
-                                </div>
-                              ))}
-                            {product.variants.length > 2 && (
-                              <div className="text-xs text-muted-foreground">
-                                +{product.variants.length - 2} more variants
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-
-                        <TableCell>
-                          <span
-                            className={`font-medium ${
-                              totalStock < 10
-                                ? "text-red-600"
-                                : totalStock < 20
-                                  ? "text-yellow-600"
-                                  : "text-green-600"
-                            }`}
-                          >
-                            {totalStock}
-                          </span>
-                        </TableCell>
+                        <TableCell>{product.moq}</TableCell>
 
                         <TableCell>
                           <div className="flex flex-col gap-1">
@@ -421,43 +256,7 @@ export function ProductsTable() {
                             >
                               {product.isActive ? "Active" : "Inactive"}
                             </Badge>
-                            {product.isFeatured && (
-                              <Badge
-                                variant="outline"
-                                className="text-blue-600 border-blue-600"
-                              >
-                                Featured
-                              </Badge>
-                            )}
                           </div>
-                        </TableCell>
-
-                        <TableCell>Mock : 09</TableCell>
-                        <TableCell>
-                          {product?.discount ? (
-                            <>
-                              <div className="font-medium ">
-                                {product.discount.value} -{" "}
-                                {product.discount.discountType === "fixed"
-                                  ? "TK"
-                                  : "%"}
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Start:{" "}
-                                {format(
-                                  new Date(product.discount.startAt),
-                                  "dd MMM",
-                                )}{" "}
-                                — End:{" "}
-                                {format(
-                                  new Date(product.discount.endAt),
-                                  "dd MMM",
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            "_"
-                          )}
                         </TableCell>
 
                         <TableCell>
@@ -495,47 +294,13 @@ export function ProductsTable() {
                                 >
                                   General Info
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditModal("discount", product)
-                                  }
-                                >
-                                  Discount %
-                                </DropdownMenuItem>
+
                                 <DropdownMenuItem
                                   onClick={() =>
                                     openEditModal("images", product)
                                   }
                                 >
-                                  Main Images
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditModal("variantInfo", product)
-                                  }
-                                >
-                                  Variant Info
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditModal("variantImages", product)
-                                  }
-                                >
-                                  Variant Images
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditModal("createVariant", product)
-                                  }
-                                >
-                                  Create New Variant
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditModal("deleteVariant", product)
-                                  }
-                                >
-                                  Delete Variant
+                                  Images
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -562,14 +327,14 @@ export function ProductsTable() {
               </Table>
             </div>
 
-            {products.length === 0 && (
+            {kidsProducts.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                No products found matching your criteria.
+                No kidsProducts found matching your criteria.
               </div>
             )}
           </CardContent>
 
-          {products.length !== 0 && (
+          {kidsProducts.length !== 0 && (
             <CardFooter className="flex items-center justify-end">
               <Paginations
                 pagination={pagination}
@@ -580,19 +345,13 @@ export function ProductsTable() {
         </Card>
       </div>
 
-      <ProductAnalyticsModal
-        product={products.find((p) => p._id === selectedProductId) || null}
-        open={isOpen}
-        onOpenChange={closeModal}
-      />
-
       {/* Edit Dialog */}
       <Dialog open={editModal.open} onOpenChange={closeEditModal}>
         <DialogContent className="w-[80vh] max-h-[90vh] overflow-y-auto">
           {/* Content Part (Dynamic Render) */}
           <div className="mt-4">
             {editModal.product && editModal.type !== null && (
-              <ProductEditDialogs
+              <KidsProductEditDialogs
                 type={editModal.type}
                 product={editModal.product}
                 onClose={closeEditModal}
@@ -615,7 +374,7 @@ export function ProductsTable() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteProduct}
+              onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete Product

@@ -3,28 +3,25 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'TASFIN Kids | Premium Kids Fashion Wholesale Export',
-  description: 'Premium kids clothing wholesale export from Bangladesh to Pakistan. Quality fabrics, reliable delivery, dedicated wholesale support.',
-  generator: 'v0.app',
-  keywords: 'kids fashion, wholesale, export, Bangladesh, Pakistan, clothing',
+  title: "TASFIN Kids | Premium Kids Fashion Wholesale Export",
+  description:
+    "Premium kids clothing wholesale export from Bangladesh to Pakistan. Quality fabrics, reliable delivery, dedicated wholesale support.",
+  generator: "tasfin.vercel.app",
+  keywords: "kids fashion, wholesale, export, Bangladesh, Pakistan, clothing",
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
+        url: "/icon-light-32x32.png",
+        media: "(prefers-color-scheme: light)",
       },
       {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: "/icon-dark-32x32.png",
+        media: "(prefers-color-scheme: dark)",
       },
     ],
-    apple: '/apple-icon.png',
+    apple: "/apple-icon.png",
   },
-}
+};
 
 export const viewport: Viewport = {
   colorScheme: 'light dark',
