@@ -9,7 +9,7 @@ import { useCartAndWishlist } from "@/lib/cart-context";
 import {
   cn,
   formatPrice,
-  FREE_SHIPPING_THRESHOLD,
+  FREE_SHIPPING_START_FROM,
   getShippingFee,
 } from "@/lib/utils";
 import Image from "next/image";
@@ -275,10 +275,10 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {subtotal < FREE_SHIPPING_THRESHOLD && (
+              {subtotal < FREE_SHIPPING_START_FROM && (
                 <div className="p-3 bg-green-500/10">
                   <p className="text-xs text-green-700">
-                    Add {formatPrice(FREE_SHIPPING_THRESHOLD - subtotal)} more
+                    Add {formatPrice(FREE_SHIPPING_START_FROM - subtotal)} more
                     for free shipping!
                   </p>
                 </div>

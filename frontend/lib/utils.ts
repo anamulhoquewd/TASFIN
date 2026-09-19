@@ -46,19 +46,22 @@ export const getDiscountLabel = (discount?: IProduct["discount"]) => {
     : `${formatPrice(discount.value)} OFF`;
 };
 
-export const FREE_SHIPPING_THRESHOLD = 3000;
-export const DHAKA_SHIPPING_COST = 70;
-export const OUTSIDE_DHAKA_SHIPPING_COST = 130;
+export const FREE_SHIPPING_START_FROM =
+  Number(process.env.NEXT_PUBLIC_FREE_SHIPPING_START_FROM) || 3000;
+export const SHIPPING_COST_IN_DHAKA =
+  Number(process.env.NEXT_PUBLIC_SHIPPING_COST_IN_DHAKA) || 3000;
+export const SHIPPING_COST_OUT_DHAKA =
+  Number(process.env.NEXT_PUBLIC_SHIPPING_COST_OUT_DHAKA) || 3000;
 
 export const getShippingFee = (
   subtotal: number,
   location: "dhaka" | "outside-dhaka" = "outside-dhaka",
 ) => {
-  if (subtotal <= 0 || subtotal >= FREE_SHIPPING_THRESHOLD) return 0;
+  if (subtotal <= 0 || subtotal >= FREE_SHIPPING_START_FROM) return 0;
 
   return location === "dhaka"
-    ? DHAKA_SHIPPING_COST
-    : OUTSIDE_DHAKA_SHIPPING_COST;
+    ? SHIPPING_COST_IN_DHAKA
+    : SHIPPING_COST_OUT_DHAKA;
 };
 
 // Function to copy the access key to clipboard

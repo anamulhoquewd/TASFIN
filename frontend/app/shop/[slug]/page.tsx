@@ -17,6 +17,7 @@ import {
 import Image from "next/image";
 import { ProductNotFound } from "@/components/products/product/product-not-found";
 import {
+  FREE_SHIPPING_START_FROM,
   cn,
   debounce,
   formatPrice,
@@ -31,6 +32,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { useCartAndWishlist } from "@/lib/cart-context";
 import { ProductSkeleton } from "@/components/products/product/product-skeleton";
@@ -43,8 +51,13 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperInstance } from "swiper";
 import "swiper/css";
 
-const FREE_SHIPPING_START_FROM = process.env
-  .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
+const WOMENS_SIZE_CHART = [
+  { size: "S", bust: 36, hip: 38 },
+  { size: "M", bust: 38, hip: 40 },
+  { size: "L", bust: 40, hip: 42 },
+  { size: "XL", bust: 42, hip: 44 },
+  { size: "XXL", bust: 44, hip: 46 },
+];
 
 export default function ProductPage() {
   const params = useParams();
@@ -61,6 +74,7 @@ export default function ProductPage() {
   const [lightboxSwiper, setLightboxSwiper] = useState<SwiperInstance | null>(
     null,
   );
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   const { copied, handleShare } = useShare();
 
@@ -468,6 +482,7 @@ export default function ProductPage() {
               <Button
                 variant={"link"}
                 className="text-sm cursor-pointer tracking-wide text-muted-foreground underline underline-offset-4 hover:text-foreground transition-colors"
+                onClick={() => setIsSizeGuideOpen(true)}
               >
                 Size Guide
               </Button>
@@ -520,6 +535,59 @@ export default function ProductPage() {
               </div>
             ))}
           </div>
+
+          <Dialog open={isSizeGuideOpen} onOpenChange={setIsSizeGuideOpen}>
+            <DialogContent className="max-w-xl rounded-none">
+              <DialogHeader className="pr-6">
+                <DialogTitle className="font-cormorant text-xl font-medium tracking-wide">
+                  Women&apos;s Size Guide
+                </DialogTitle>
+                <DialogDescription>
+                  Measurements are in inches. Compare them with your body
+                  measurements for the best fit.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="overflow-hidden border border-border">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="border-b border-border text-left">
+                      <th className="px-4 py-3 font-medium">Size</th>
+                      <th className="px-4 py-3 font-medium">Bust</th>
+                      <th className="px-4 py-3 font-medium">Hip</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {WOMENS_SIZE_CHART.map((row) => (
+                      <tr
+                        key={row.size}
+                        className="border-b border-border last:border-0"
+                      >
+                        <td className="px-4 py-3 font-medium">{row.size}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {row.bust}&quot;
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {row.hip}&quot;
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>
+                  <span className="font-medium text-foreground">Note:</span>{" "}
+                  Between two sizes? Choose the larger one.
+                </p>
+                <p>
+                  Measure around the fullest part of your bust and hips while
+                  wearing light clothing.
+                </p>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Quantity */}
           <div className="flex flex-col gap-3">

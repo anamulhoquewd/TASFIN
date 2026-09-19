@@ -1,8 +1,8 @@
 import { ICartItem } from "@/interfaces/context";
 import {
-  DHAKA_SHIPPING_COST,
+  SHIPPING_COST_IN_DHAKA,
   formatPrice,
-  OUTSIDE_DHAKA_SHIPPING_COST,
+  SHIPPING_COST_OUT_DHAKA,
 } from "@/lib/utils";
 import { CheckoutFormValues } from "@/lib/zod-validation";
 import { IAddress } from "@/interfaces/orders";
@@ -266,7 +266,7 @@ function Checkout({
                                   Inside Dhaka
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                  {formatPrice(DHAKA_SHIPPING_COST)} delivery
+                                  {formatPrice(SHIPPING_COST_IN_DHAKA)} delivery
                                 </span>
                               </span>
                             </label>
@@ -283,7 +283,7 @@ function Checkout({
                                   Outside Dhaka
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                  {formatPrice(OUTSIDE_DHAKA_SHIPPING_COST)}{" "}
+                                  {formatPrice(SHIPPING_COST_OUT_DHAKA)}{" "}
                                   delivery
                                 </span>
                               </span>

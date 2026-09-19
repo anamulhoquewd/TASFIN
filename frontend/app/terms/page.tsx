@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { FREE_SHIPPING_START_FROM } from "@/lib/utils";
 import Link from "next/link";
 
-const FREE_SHIPPING_START_FROM =
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_START_FROM;
 export default function TermsPage() {
   return (
     <div className="container mx-auto px-4 py-16">
