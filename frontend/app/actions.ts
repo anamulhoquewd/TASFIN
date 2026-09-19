@@ -14,8 +14,11 @@ export async function createCookie(data: {
     value: data.value,
     httpOnly: true,
     path: "/",
-    secure: true,
-    sameSite: "none",
+    ...(process.env.COOKIE_DOMAIN
+      ? { domain: process.env.COOKIE_DOMAIN }
+      : {}),
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: data.maxAgeAsSeconds,
     expires: new Date(Date.now() + data.maxAgeAsSeconds * 1000),
   });
@@ -27,5 +30,10 @@ export async function getCookie(name: "X-User-ID") {
 }
 
 export async function deleteCookie(name: "X-User-ID") {
-  (await cookies()).set(name, "", { maxAge: 0 });
+  const cookieStore = await cookies();
+  cookieStore.set(name, "", {
+    domain: process.env.COOKIE_DOMAIN || undefined,
+    path: "/",
+    maxAge: 0,
+  });
 }

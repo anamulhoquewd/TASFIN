@@ -18,7 +18,10 @@ import userRoutes from "./routes/users.route.js";
 
 dotenv.config();
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
+const allowedOrigins =
+  process.env.ALLOWED_ORIGINS?.split(",")
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean) || [];
 
 const app = new Hono().basePath("/api/v1");
 
@@ -30,7 +33,7 @@ app.use(
   prettyJSON(),
   cors({
     origin: (origin) => {
-      if (allowedOrigins.includes(origin)) return origin;
+      if (allowedOrigins.includes(origin.replace(/\/$/, ""))) return origin;
 
       return null;
     },

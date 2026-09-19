@@ -41,9 +41,7 @@ import {
 } from "@/lib/variant-utils";
 import { Swiper, SwiperSlide } from "swiper/react";
 import type { Swiper as SwiperInstance } from "swiper";
-import { EffectFade } from "swiper/modules";
 import "swiper/css";
-import "swiper/css/effect-fade";
 
 const FREE_SHIPPING_START_FROM = process.env
   .NEXT_PUBLIC_FREE_SHIPPING_START_FROM as string;
@@ -167,6 +165,11 @@ export default function ProductPage() {
 
   const hasStock = product?.isActive && variantsHasStock.length > 0;
 
+  const galleryImages =
+    selectedVariant?.images && selectedVariant.images.length > 0
+      ? selectedVariant.images
+      : (product?.images ?? []);
+
   if (isLoading) {
     return <ProductSkeleton />;
   }
@@ -180,7 +183,11 @@ export default function ProductPage() {
       {isLightboxOpen && (
         <div
           className="fixed inset-0 z-[100] bg-background/75 min-h-screen backdrop-blur-md flex items-center justify-center"
-          onClick={() => setIsLightboxOpen(false)}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setIsLightboxOpen(false);
+            }
+          }}
         >
           <Button
             variant={"ghost"}
@@ -216,17 +223,14 @@ export default function ProductPage() {
           </Button>
 
           <Swiper
-            modules={[EffectFade]}
-            effect="fade"
-            fadeEffect={{ crossFade: true }}
+            key={selectedVariant?._id ?? "product-images"}
             initialSlide={selectedImage}
-            loop={product.images.length > 1}
+            loop={galleryImages.length > 1}
             onSwiper={setLightboxSwiper}
             onSlideChange={(swiper) => setSelectedImage(swiper.realIndex)}
-            onClick={() => setIsLightboxOpen(false)}
             className="relative w-[85vw] h-[85vh] cursor-grab active:cursor-grabbing"
           >
-            {product.images.map((image, index) => (
+            {galleryImages.map((image, index) => (
               <SwiperSlide key={image.url || index}>
                 <div className="relative w-full h-full">
                   <Image
@@ -243,7 +247,7 @@ export default function ProductPage() {
 
           {/* Lightbox thumbnails */}
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-            {product.images.map((image, index) => (
+            {galleryImages.map((image, index) => (
               <button
                 key={index}
                 onClick={(e) => {
@@ -295,7 +299,7 @@ export default function ProductPage() {
         <div className="flex flex-col-reverse md:flex-row gap-4 lg:sticky lg:top-20 lg:self-start">
           {/* Thumbnails */}
           <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
-            {product.images.map((image, index) => (
+            {galleryImages.map((image, index) => (
               <button
                 key={index}
                 onClick={() => mainSwiper?.slideToLoop(index)}
@@ -319,17 +323,15 @@ export default function ProductPage() {
           {/* Main Image */}
           <div className="relative flex-1 aspect-[3/4] bg-secondary overflow-hidden cursor-zoom-in group">
             <Swiper
-              modules={[EffectFade]}
-              effect="fade"
-              fadeEffect={{ crossFade: true }}
+              key={selectedVariant?._id ?? "product-images"}
               initialSlide={selectedImage}
-              loop={product.images.length > 1}
+              loop={galleryImages.length > 1}
               onSwiper={setMainSwiper}
               onSlideChange={(swiper) => setSelectedImage(swiper.realIndex)}
               onClick={() => setIsLightboxOpen(true)}
               className="h-full w-full cursor-grab active:cursor-grabbing"
             >
-              {product.images.map((image, index) => (
+              {galleryImages.map((image, index) => (
                 <SwiperSlide key={image.url || index}>
                   <div className="relative h-full w-full">
                     <Image
@@ -504,7 +506,8 @@ export default function ProductPage() {
                         size="icon-lg"
                         key={`${group.key}-${value}`}
                         onClick={() =>
-                          candidate && setSelectedVariant(candidate)
+                          candidate &&
+                          (setSelectedVariant(candidate), setSelectedImage(0))
                         }
                         className="text-xs relative overflow-hidden tracking-wide border rounded-none cursor-pointer"
                         disabled={!candidate || candidate.stock === 0}

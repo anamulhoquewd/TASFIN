@@ -109,20 +109,20 @@ export const setAuthCookie = async (
   value: string,
   maxAgeSeconds: number,
 ) => {
-  const origin = c.req.header("Origin") || "";
+  // const origin = c.req.header("Origin") || "";
 
-  const domain = allowedOrigins.find((o) => origin.includes(o));
+  // const domain = allowedOrigins.find((o) => origin.includes(o));
 
   return await setSignedCookie(c, name, value, COOKIE_SECRET as string, {
     path: "/",
+    domain: process.env.COOKIE_DOMAIN || undefined,
     secure: process.env.NODE_ENV === "production",
-    // domain: process.env.NODE_ENV === "production" ? domain : undefined,
     httpOnly: true,
     maxAge: maxAgeSeconds,
     expires: new Date(Date.now() + maxAgeSeconds * 1000),
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
   });
-};
+};;
 
 export const parseFormValue = (key: string, value: any) => {
   if (value === undefined) return undefined;

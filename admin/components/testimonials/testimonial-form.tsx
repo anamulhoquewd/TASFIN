@@ -21,7 +21,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TestimonialFormValues } from "@/hooks/testimonials/useTestimonial";
-import { ITestimonial } from "@/interfaces/testimonials";
 
 interface Props {
   form: UseFormReturn<TestimonialFormValues>;

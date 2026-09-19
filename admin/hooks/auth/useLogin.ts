@@ -42,12 +42,12 @@ const useLogin = () => {
       const tokens = response.data.tokens;
 
       // Set tokens in cookie
-      createCookie({
+      await createCookie({
         name: "accessToken",
         value: tokens.accessToken,
         maxAgeAsSeconds: 60 * 60, // 60m
       });
-      createCookie({
+      await createCookie({
         name: "refreshToken",
         value: tokens.refreshToken,
         maxAgeAsSeconds: 60 * 60 * 24 * 30, // 30d
